@@ -1,29 +1,19 @@
 \cdpchapter{Resumen}
 
-El resumen del Trabajo fin de Grado consiste, como su propio nombre indica, es un resumen de la memoria en formato apropiado 
-para ser indexado en las bases de datos bibliotecarias. No debe ocupar m\'as de una carilla de texto
-y en ella hay que exponer en pocas palabras la finalidad y objetivos del trabajo, 
-as{\'\i} como las aportaciones realizadas. En general,
-no incluir\'a figuras, cuadros ni referencias bibliogr\'aficas.
+\begingroup
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8\baselineskip}
 
-El resumen es obligatorio en espa{\~n}ol para todos los TfG. Es opcional incluir un \emph{Abstract} (resumen en ingl\'es)
-en una hoja separada. Debe ser traducci\'on dle correspodiente resumen en español. En los TfG presentados en ingl\'es,
-la inclusi\'on del \emph{abstract} es tmabi\'en obligatoria, as{\'\i} como en los TfG correspondientes a la titulaci\'on
-de Ingenier{\'\i}a de la Salud.
+Este Trabajo Fin de Grado analiza la complejidad y la posible presencia de estructura no lineal en series temporales financieras, tomando como caso de estudio la volatilidad intradía de Bitcoin. El objetivo es estudiar hasta qué punto herramientas propias de la dinámica no lineal permiten caracterizar mejor este tipo de series y aportar capacidad predictiva adicional frente a enfoques lineales tradicionales.
 
-El resumen de este documento es el siguiente:
+El trabajo parte de datos reales de mercado de Bitcoin en intervalos de 5 minutos, a partir de los cuales se construye una serie de volatilidad realizada. Sobre dicha serie se realiza primero una fase de caracterización general, que incluye análisis descriptivo, estudio de estacionariedad, correlogramas, análisis espectral y gráficos de recurrencia.
 
-Este trabajo pretende ser una gu{\'\i}a para uniformar los formatos de las memorias de los Trabajos fin de Grado de las titulaciones: 
-\begin{itemize}
-\item Grado en Ingenier{\'\i}a Inform\'atica --- Ingenier{\'\i}a de Computadores
-\item Grado en Ingenier{\'\i}a Inform\'atica --- Ingenier{\'\i}a del Software
-\item Grado en Ingenier{\'\i}a Inform\'atica --- Tecnolog{\'\i}as Inform\'aticas
-\end{itemize}
+Posteriormente, se aplica un filtrado lineal y distintos contrastes de no linealidad para determinar si la dependencia observada en los datos puede explicarse mediante modelos lineales o si persiste una dinámica más compleja.
 
-de la Escuela T\'ecnica Superior de Ingenier{\'\i}a Inform\'atica de la Universidad de Sevilla.
+El núcleo metodológico del trabajo consiste en la reconstrucción del espacio de estados de la serie temporal mediante coordenadas retardadas. Para ello se seleccionan los parámetros de reconstrucción utilizando información mutua, falsos vecinos y el método de Cao. A partir de esta reconstrucción se estudian diversas medidas de complejidad dinámica y se implementan técnicas de predicción local en el espacio de estados, comparando su comportamiento con modelos base de carácter lineal.
 
-Al mismo tiempo, se pretende que el documento sea un ejemplo de la realizaci\'on de un memoria de Trabajo fin de Grado. 
-Debido a ello, hemos estructurado el documento en cap{\'\i}tulos e incluido diversos {\'\i}ndices y bibliograf{\'\i}a,
-aunque obviamente no hubiera sido necesario.
+La aportación principal del trabajo es doble. Por un lado, adapta al análisis de una serie financiera real una metodología inspirada en la literatura sobre caos y dinámica no lineal. Por otro, desarrolla una implementación computacional completa para el procesamiento, análisis, visualización y evaluación empírica de la serie estudiada.
 
+El enfoque adoptado permite valorar de forma rigurosa y prudente si la volatilidad intradía de Bitcoin contiene estructura no lineal útil para la predicción local, evitando identificar de manera automática no linealidad con caos determinista.
 
+\endgroup

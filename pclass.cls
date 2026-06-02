@@ -22,7 +22,7 @@
 %\setlength{\marginparwidth}{57pt}
 %\setlength{\footskip}{30pt}
 
-\RequirePackage [a4paper,left=3cm,right=3cm,top=2.5cm,bottom=2.5cm,headheight=14pt]{geometry}
+\RequirePackage [a4paper,left=3cm,right=3cm,top=2.5cm,bottom=2.5cm,headheight=15pt]{geometry}
 \RequirePackage {graphicx}%para incluir im{\'a}genes
 \RequirePackage{amsmath,amsthm,amssymb,latexsym}%s{\'\i}mbolos matem{\'a}ticos
 \usepackage{url}%Para direcciones web

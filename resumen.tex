@@ -4,7 +4,7 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.8\baselineskip}
 
-Este Trabajo Fin de Grado analiza la complejidad y la posible presencia de estructura no lineal en series temporales financieras, tomando como caso de estudio la volatilidad intradía de Bitcoin. El objetivo es estudiar hasta qué punto herramientas propias de la dinámica no lineal permiten caracterizar mejor este tipo de series y aportar capacidad predictiva adicional frente a enfoques lineales tradicionales.
+Este Trabajo Fin de Grado analiza la complejidad y la posible presencia de estructura no lineal en series temporales financieras, tomando como caso de estudio la volatilidad intradía de Bitcoin. El objetivo es estudiar hasta qué punto herramientas propias de la dinámica no lineal permiten caracterizar mejor este tipo de series, evaluar su utilidad predictiva frente a referencias lineales y cerrar el análisis con un modelo práctico exportable.
 
 El trabajo parte de datos reales de mercado de Bitcoin en intervalos de 5 minutos, a partir de los cuales se construye una serie de volatilidad realizada. Sobre dicha serie se realiza primero una fase de caracterización general, que incluye análisis descriptivo, estudio de estacionariedad, correlogramas, análisis espectral y gráficos de recurrencia.
 
@@ -12,8 +12,12 @@ Posteriormente, se aplica un filtrado lineal y distintos contrastes de no lineal
 
 El núcleo metodológico del trabajo consiste en la reconstrucción del espacio de estados de la serie temporal mediante coordenadas retardadas. Para ello se seleccionan los parámetros de reconstrucción utilizando información mutua, falsos vecinos y el método de Cao. A partir de esta reconstrucción se estudian diversas medidas de complejidad dinámica y se implementan técnicas de predicción local en el espacio de estados, comparando su comportamiento con modelos base de carácter lineal.
 
-La aportación principal del trabajo es doble. Por un lado, adapta al análisis de una serie financiera real una metodología inspirada en la literatura sobre caos y dinámica no lineal. Por otro, desarrolla una implementación computacional completa para el procesamiento, análisis, visualización y evaluación empírica de la serie estudiada.
+El estudio se valida además sobre un mapa logístico caótico, utilizado como sistema sintético conocido para comprobar que el pipeline detecta estructura cuando la dinámica subyacente sí es caótica. En la serie real de Bitcoin, sin embargo, la interpretación se mantiene prudente: se observa dependencia temporal y cierta capacidad predictiva, pero no una prueba concluyente de caos determinista.
 
-El enfoque adoptado permite valorar de forma rigurosa y prudente si la volatilidad intradía de Bitcoin contiene estructura no lineal útil para la predicción local, evitando identificar de manera automática no linealidad con caos determinista.
+Como cierre predictivo se incorpora un modelo HAR-logRV compacto basado en memoria multiescala de volatilidad realizada \cite{corsi2009}. Este modelo combina información de la última hora, las últimas cuatro horas y el último día, y mejora ligeramente a AR(49) y al predictor local kNN en la muestra histórica comparable. Por su simplicidad, velocidad e interpretabilidad, HAR-logRV se adopta como modelo práctico recomendado.
+
+La aportación principal del trabajo es triple. Por un lado, adapta al análisis de una serie financiera real una metodología inspirada en la literatura sobre caos y dinámica no lineal. Por otro, desarrolla una implementación computacional completa para el procesamiento, análisis, visualización y evaluación empírica de la serie estudiada. Finalmente, integra los artefactos resultantes en un MVP web desarrollado con Streamlit, capaz de cargar datos recientes, validar su calidad, calcular variables de volatilidad y generar predicciones operativas sin depender en tiempo de ejecución del repositorio técnico.
+
+El enfoque adoptado permite valorar de forma rigurosa y prudente si la volatilidad intradía de Bitcoin contiene estructura útil para la predicción, evitando identificar de manera automática no linealidad con caos determinista y separando claramente el análisis metodológico, el cierre predictivo HAR y la implementación práctica del MVP.
 
 \endgroup

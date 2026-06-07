@@ -6,7 +6,9 @@
 % TODO: redactar este apartado.
 
 \section{Obtención y validación inicial de los datos}\label{sec:obtencion-datos}
-% TODO: redactar este apartado.
+El dato bruto procede de los ficheros mensuales de klines de Binance Spot para el par BTCUSDT con frecuencia de cinco minutos. Los archivos se descargan en formato comprimido desde la ruta pública de Binance Data Vision, con nombres del tipo \texttt{BTCUSDT-5m-2024-01.zip}, y se almacenan en \texttt{data/raw/}. El script \texttt{build\_btc\_5m\_clean.py} lee todos los \texttt{.zip}, extrae los CSV internos sin cabecera, normaliza las columnas de Binance y genera el fichero limpio \texttt{btc\_5m\_clean.csv}.
+
+La Fase 0 valida este CSV antes de construir cualquier variable derivada: columnas esperadas, rango temporal, frecuencia exacta de cinco minutos, duplicados, huecos, nulos, conversiones numéricas, precios positivos y consistencia OHLC. Esta validación es necesaria para que las fases posteriores no interpreten errores de adquisición como estructura dinámica.
 
 \section{Construcción de variables y medidas de volatilidad}\label{sec:construccion-variables}
 % TODO: redactar este apartado.
@@ -43,6 +45,12 @@
 
 \section{Experimentos de robustez y configuraciones alternativas}\label{sec:experimentos-robustez}
 % TODO: redactar este apartado.
+
+\section{Validación metodológica con mapa logístico}\label{sec:validacion-logistica}
+La Fase 13 replica el pipeline sobre un mapa logístico con parámetro caótico conocido. Esta fase no utiliza datos de Bitcoin, sino una serie sintética que permite comprobar si las herramientas de reconstrucción, cuantificación y predicción local responden cuando existe una dinámica no lineal controlada. El contraste es importante para la memoria: si el pipeline detecta estructura en el mapa logístico pero ofrece resultados más ambiguos en BTC, la conclusión prudente no se debe a un fallo directo de implementación, sino a la naturaleza financiera y ruidosa de la serie real.
+
+\section{Modelo HAR-logRV y exportación al MVP}\label{sec:har-logrv-exportacion}
+La Fase 14 introduce un modelo HAR-logRV compacto como cierre predictivo operativo. El modelo estima la volatilidad futura a una hora a partir de tres memorias de volatilidad realizada: 1 hora, 4 horas y 1 día. Sus coeficientes se ajustan solo en train y se evalúan en validation y test sin recalibración. Además, el modelo se exporta como artefacto JSON para que el MVP web pueda ejecutarlo sin importar código del repositorio técnico.
 
 \section{Resultado final de la validación del modelo}\label{sec:resultado-validacion}
 % TODO: redactar este apartado.

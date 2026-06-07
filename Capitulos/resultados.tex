@@ -26,6 +26,11 @@
 \section{Comparación entre configuraciones alternativas}\label{sec:comparacion-configuraciones}
 % TODO: redactar este apartado.
 
+\section{Comparación final con HAR-logRV}\label{sec:resultados-har}
+La comparación final incorpora HAR-logRV como modelo práctico de memoria multiescala. En la muestra test comparable de 5000 puntos, HAR-logRV obtiene un RMSE de 0,8608, frente a 0,8641 de AR(49) y 0,8765 del kNN local con \(\tau=137\), \(m=5\) y \(k=200\). La mejora frente a AR(49) es pequeña, aproximadamente un 0,4\%, por lo que no debe presentarse como una ruptura fuerte respecto al benchmark lineal. Su interés principal está en que combina buen rendimiento, bajo coste computacional, interpretabilidad y facilidad de exportación al MVP.
+
+Este resultado también matiza la lectura de las fases de reconstrucción: el kNN confirma cierta utilidad predictiva de la estructura local, pero en BTC la persistencia multiescala de la volatilidad queda mejor resumida por un modelo HAR simple. Por tanto, HAR-logRV se interpreta como cierre práctico del estudio, no como evidencia adicional de caos determinista.
+
 \section{Discusión sobre la existencia de caos determinista}\label{sec:discusion-caos}
 % TODO: redactar este apartado.
 

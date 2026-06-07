@@ -12,6 +12,8 @@ Objetivo de este documento:
 ## FASE 0: Validación integral de datos
 
 **Qué hago en mi proyecto:**
+- Parto de los ZIP mensuales oficiales de Binance Spot para BTCUSDT 5m, guardados en `data/raw/` con nombres como `BTCUSDT-5m-2024-01.zip`.
+- Uso `src/build_btc_5m_clean.py` para leer los CSV internos de Binance, normalizar columnas y generar `btc_5m_clean.csv`.
 - Verifico columnas esperadas.
 - Compruebo rango temporal.
 - Valido frecuencia de 5 minutos.
@@ -33,6 +35,8 @@ Objetivo de este documento:
 - Mi fase es más informática y más explícita: incluye validaciones automáticas de integridad, frecuencia, duplicados y ausencia de leakage posterior.
 
 **Qué me sirve para la memoria:**
+- Documentar el origen de los datos: klines mensuales de Binance Spot (`data.binance.vision`) para BTCUSDT a 5 minutos.
+- Explicar que el CSV analizado no es un fichero manual, sino el resultado de concatenar, ordenar y limpiar los ZIP mensuales.
 - Justificar que todo análisis posterior depende de la calidad del dato inicial.
 - Explicar que, antes de hablar de no linealidad o caos, hay que garantizar que la serie está bien construida.
 - Esta fase puede ir en el bloque de **datos y preprocesamiento**.
@@ -550,6 +554,81 @@ Objetivo de este documento:
 
 ---
 
+## FASE 14: Modelo HAR-logRV compacto y exportación al MVP
+
+**Qué hago en mi proyecto:**
+- Construyo un modelo HAR-logRV simple con tres ventanas: `log_rv_past_12` (1 hora), `log_rv_past_48` (4 horas) y `log_rv_past_288` (1 día).
+- Ajusto los coeficientes solo en train (2024-01-02 a 2025-06-30).
+- Evalúo en validation y test sin recalibración.
+- Comparo predicción: HAR vs persistencia, AR(49) y kNN de Fase 11–12.
+- Exporto el modelo y sus coeficientes como artefactos JSON para el MVP.
+- Implemento en `mvp-web` como modelo recomendado (`har_logrv_global`).
+
+**Partes de la tesis relacionadas:**
+- **Capítulo 8: Series temporales. Predicción**.
+  - Métodos de predicción multiescala.
+  - Modelos de regresión simple.
+  - Comparación de técnicas.
+- **Capítulo 10: Aplicación empírica**.
+  - Cierre empírico con un modelo práctico de predicción.
+- **Referencias bibliográficas externas (no en Olmedo):**
+  - Corsi (2009), "A Simple Approximate Long-Memory Model of Realized Volatility", *Journal of Financial Econometrics*. — Modelo HAR original.
+
+**Relación con la tesis:**
+- Relación indirecta pero importante.
+- La tesis termina con predicción local en espacio reconstruido; yo añado un modelo de referencia práctica.
+- HAR no es un enfoque caótico, sino una formalización empírica de la persistencia multiescala de volatilidad.
+- La conexión es: después de explorar no linealidad, se cierra con un modelo exportable que combina simplicidad e interpretabilidad.
+
+**Qué me sirve para la memoria:**
+- Explicar que HAR captura memoria a tres escalas temporales: intradia (última hora), intraday-daily (últimas 4 horas) y daily (últimas 24 horas).
+- Presentar la ecuación explícita: `log_rv_future_12 = β₀ + β₁ log_rv_past_12 + β₂ log_rv_past_48 + β₃ log_rv_past_288 + ε`.
+- Mostrar coeficientes estimados: típicamente β₁ > β₂ > β₃ (decrecimiento de la memoria).
+- Comparar resultados: HAR (RMSE 0.8608, R² 0.537) mejora ligeramente a AR(49) (RMSE 0.8641, R² 0.534) y claramente a kNN (RMSE 0.8765, R² 0.520).
+- Enfatizar que la mejora es marginal (~0.4%) pero HAR es más simple, interpretable y exportable.
+- Usar HAR como puente entre investigación teórica (fases 0–13) y aplicación práctica (MVP).
+
+**Conclusión:**
+- Esta fase no tiene equivalente directo en la tesis, pero es una aportación propia importante.
+- Cierra el ciclo narrativo: del análisis dinámico complejo al modelo práctico recomendado.
+- HAR no es una prueba de caos, sino una herramienta de predicción basada en la persistencia multiescala observada en volatilidad financiera (fenómeno bien documentado empíricamente).
+
+---
+
+## MVP WEB: Implementación operativa y experiencia del usuario
+
+**Qué hago en mi proyecto:**
+- Desarrollo una aplicación Streamlit (`mvp-web/`) que encapsula los modelos de predicción del estudio.
+- Integra cinco modelos: persistencia, kNN (`k=200`), AR(49), HAR-logRV global y Mini-HAR local (experimental).
+- Fuentes de datos: Binance API (en vivo), CSV del usuario, dataset histórico ejemplo.
+- Validación y cálculo de features automáticos (log_rv_past_12, past_48, past_288).
+- Predicción out-of-sample sobre el horizonte 12 velas (1 hora).
+- Comparación de métricas y visualización interactiva.
+- Manejo de limitaciones: sin señales de trading, sin intervalos de confianza y sin promesas de rentabilidad.
+
+**Integración con el estudio:**
+- **Datos y features:** hereda la validación y construcción de Fase 0–1.
+- **Modelos:** usa coeficientes/parámetros exportados de Fases 6, 11, 14.
+- **Validación:** referencia histórica en `assets/historical_validation/` mostrando desempeño en muestras pasadas.
+- **Autonomía:** no importa `btc-volatility` en runtime; funciona de forma desacoplada.
+
+**Relación con la tesis:**
+- Relación conceptual: la tesis termina con predicción y comparación de modelos; el MVP materializa esa comparación de forma interactiva.
+- No es una contribución teórica a la tesis, sino una aplicación práctica de sus conclusiones empíricas.
+
+**Qué me sirve para la memoria:**
+- Describir arquitectura modular (`app.py`, `pages/`, `src/model_registry.py`, `scripts/export_model_artifacts.py`).
+- Justificar HAR como modelo recomendado en la UI.
+- Listar páginas funcionales: Predicción, Diagnóstico, Comparación de modelos, Ayuda.
+- Explicar anti-leakage: el MVP valida que `rv_future_12(t)` coincide con `rv_past_12(t+12)` antes de predecir.
+- Advertencias explícitas: no es asesoramiento, no demuestra caos, no sustituye análisis profesional.
+
+**Conclusión:**
+- El MVP no es parte de la investigación teórica, pero es una aportación importante de practicidad e integración.
+- Muestra que el pipeline es reproducible, auditable y desplegable.
+
+---
+
 # Mapa resumen fase → tesis
 
 | Fase de mi proyecto | Parte principal de la tesis | Relación |
@@ -568,6 +647,8 @@ Objetivo de este documento:
 | Fase 11: predicción kNN | Cap. 8 y Cap. 10 | Predicción local y benchmarks |
 | Fase 12: robustez | Cap. 5, Cap. 8 y Cap. 10 | Sensibilidad a parámetros |
 | Fase 13: mapa logístico | Cap. 2, Cap. 3, Cap. 5, Cap. 7 y Cap. 8 | Validación sintética del pipeline |
+| Fase 14: HAR-logRV | Cap. 8, Cap. 10 + literatura HAR | Cierre predictivo operativo y exportación |
+| MVP web | Cap. 8, Cap. 10 | Aplicación práctica de predicción |
 
 ---
 
@@ -671,6 +752,42 @@ Objetivo de este documento:
 
 ---
 
+## Bloque 7: Modelo HAR-logRV y cierre predictivo
+
+**Fase:** 14.
+
+**Tesis relacionada:** capítulo 8, capítulo 10 y literatura complementaria (Corsi 2009 sobre HAR).
+
+**Qué escribir:**
+- Motivación: después de explorar reconstrucción y predicción local, implementar un modelo práctico de referencia.
+- Definición de HAR-logRV con tres escalas: `log_rv_past_12` (1 h), `log_rv_past_48` (4 h), `log_rv_past_288` (1 día).
+- Ecuación de regresión.
+- Coeficientes estimados.
+- Comparación de rendimiento: HAR vs persistencia, AR(49) y kNN.
+- Resultado: mejora marginal (~0.4%) respecto a AR(49), pero mayor simplicidad e interpretabilidad.
+- Exportación de coeficientes como artefactos JSON.
+
+---
+
+## Bloque 8: Implementación práctica - MVP web
+
+**Componente:** `mvp-web/` (aplicación Streamlit autónoma).
+
+**Conexión con el estudio:** Materialización interactiva de los modelos y resultados de Fases 0–14.
+
+**Qué escribir:**
+- Objetivo: aplicación demostrativa de predicción operativa.
+- Arquitectura modular: `app.py` (Streamlit), `pages/` (tabs de funcionalidad), `src/` (lógica), `scripts/` (exportación).
+- Datos: Binance API, CSV usuario, dataset histórico ejemplo.
+- Modelos integrados: persistencia, kNN (`k=200`), AR(49), HAR-logRV (recomendado), Mini-HAR local.
+- Features automáticas: `log_rv_past_12`, `log_rv_past_48`, `log_rv_past_288`.
+- Validación: anti-leakage, coincidencia numérica `rv_future = rv_past(t+12)`.
+- Comparación de métricas y visualización.
+- Limitaciones explícitas: sin señales de trading, sin intervalos de confianza, sin certeza de caos.
+- Autonomía: no requiere repo `btc-volatility` en runtime.
+
+---
+
 # Qué fases son más “tesis pura” y cuáles son más aportación propia
 
 ## Muy alineadas con la tesis
@@ -698,6 +815,8 @@ Objetivo de este documento:
 - Fase 11: train/validation/test con no-leakage.
 - Fase 12: robustez de parámetros.
 - Fase 13: validación sintética completa.
+- **Fase 14: modelo HAR-logRV multiescala y exportación de artefactos.**
+- **MVP web: aplicación Streamlit autónoma, reproducible y demostrativa.**
 
 ---
 
@@ -717,16 +836,20 @@ validar datos
 → comparar con barajados/subrogados
 → evaluar predicción
 → validar el pipeline en un sistema sintético conocido
+→ CIERRE: implementar modelo práctico (HAR) y aplicación web (MVP)
 ```
 
-La tesis sirve como columna vertebral teórica. Mi trabajo añade tres diferencias importantes:
+La tesis sirve como columna vertebral teórica. Mi trabajo añade cuatro diferencias importantes:
 
 1. **Dato financiero de alta frecuencia:** BTC a 5 minutos, no desempleo mensual.
 2. **Mayor control computacional:** validación, no-leakage, train/validation/test, salidas reproducibles.
 3. **Interpretación más prudente:** estructura temporal y predictibilidad parcial sí; caos determinista en BTC, no demostrado.
+4. **Cierre práctico:** modelo HAR-logRV exportable y MVP demostrativo que materializan los resultados del estudio teórico.
 
 La frase que debería guiar la memoria es:
 
 ```text
-El objetivo no es demostrar que BTC sea caótico, sino explorar hasta qué punto las herramientas de dinámica no lineal permiten caracterizar, reconstruir y predecir parcialmente la volatilidad realizada, comparando siempre contra referencias lineales y controles sintéticos.
+El objetivo no es demostrar que BTC sea caótico, sino explorar hasta qué punto las herramientas de dinámica no lineal permiten caracterizar, reconstruir y predecir parcialmente la volatilidad realizada, 
+comparando siempre contra referencias lineales y controles sintéticos, y cerrar con un modelo práctico (HAR) 
+y una herramienta operativa (MVP) que sinteticen los hallazgos del estudio.
 ```

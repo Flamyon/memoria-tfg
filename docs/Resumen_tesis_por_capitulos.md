@@ -333,9 +333,11 @@ Objetivo de este resumen:
 - Relación directa con:
   - **Fase 11:** predicción local kNN.
   - **Fase 12:** robustez de k, m y tau.
+  - **Fase 14:** modelo HAR-logRV como cierre predictivo práctico.
+  - **MVP web:** materialización operativa de la predicción.
 - La tesis compara predicción local, modelos lineales y redes neuronales.
-- Mi trabajo compara media histórica, persistencia, AR(49), 1-NN y kNN.
-- Mi resultado es más prudente: kNN mejora persistencia, pero no supera AR(49).
+- Mi trabajo compara media histórica, persistencia, AR(49), kNN y HAR-logRV.
+- Mi resultado es más prudente: kNN mejora persistencia, pero no supera AR(49); HAR-logRV mejora ligeramente a AR(49) y queda como modelo práctico recomendado por simplicidad, interpretabilidad y exportación al MVP.
 
 **Output para mi memoria:**
 - Explicar predicción local en espacio reconstruido.
@@ -345,11 +347,16 @@ Objetivo de este resumen:
   - k grande: más suave, más sesgo.
 - Conectar con sesgo-varianza.
 - Presentar AR como benchmark lineal.
+- Presentar HAR-logRV como modelo de memoria multiescala de volatilidad realizada:
+  - última hora (`log_rv_past_12`);
+  - últimas 4 horas (`log_rv_past_48`);
+  - último día (`log_rv_past_288`).
+- Separar validación histórica formal y uso operativo en MVP.
 - Interpretar que mejorar a persistencia no equivale a demostrar caos.
 
 **Conclusión:**
-- Este capítulo justifica mis fases 11 y 12.
-- En la memoria debería ser una sección aplicada y clara: “si la reconstrucción contiene información útil, debe mejorar alguna referencia simple”.
+- Este capítulo justifica mis fases 11, 12 y parte de la Fase 14.
+- En la memoria debería ser una sección aplicada y clara: “si la reconstrucción o la memoria multiescala contienen información útil, deben mejorar referencias simples y lineales”.
 
 ---
 
@@ -450,6 +457,8 @@ Objetivo de este resumen:
   - shuffling/subrogados → **Fase 10**.
   - predicción local → **Fases 11–12**.
   - validación sintética logística → **Fase 13**, que la tesis usa más como teoría previa que como validación separada.
+  - cierre predictivo HAR-logRV → **Fase 14**, aportación propia basada en literatura de volatilidad realizada.
+  - aplicación web → **MVP**, implementación práctica posterior al estudio técnico.
 
 **Output para mi memoria:**
 - Este capítulo puede servir como plantilla narrativa:
@@ -463,8 +472,10 @@ Objetivo de este resumen:
   8. Cuantificar dinámica.
   9. Comparar con barajados/subrogados.
   10. Evaluar predicción.
+  11. Cerrar con un modelo práctico exportable.
+  12. Explicar la implementación operativa sin confundirla con la validación teórica.
 - En mi memoria, la diferencia central será que BTC ofrece resultados más ambiguos que el desempleo de la tesis.
-- Mi conclusión debe ser menos fuerte: estructura temporal y predictibilidad parcial, pero no prueba concluyente de caos.
+- Mi conclusión debe ser menos fuerte: estructura temporal y predictibilidad parcial, pero no prueba concluyente de caos. La Fase 14 y el MVP deben presentarse como cierre práctico, no como demostración adicional de caos.
 
 **Conclusión:**
 - Este capítulo es el equivalente directo a mi bloque de “Validación de modelo”.
@@ -494,6 +505,8 @@ Objetivo de este resumen:
   - hay predictibilidad parcial;
   - no se demuestra caos de forma fuerte en BTC;
   - el pipeline sí funciona en el mapa logístico sintético.
+  - HAR-logRV es el modelo práctico recomendado para la aplicación;
+  - el MVP convierte el pipeline en una herramienta demostrativa y reproducible.
 
 **Output para mi memoria:**
 - Inspiración para el capítulo de conclusiones.
@@ -503,7 +516,8 @@ Objetivo de este resumen:
   - qué limitaciones hay;
   - qué trabajo futuro queda.
 - Posibles líneas futuras:
-  - webapp MVP;
+  - ampliar el MVP con intervalos de incertidumbre;
+  - despliegue web del MVP si se quiere pasar de prototipo local a demo pública;
   - otros activos;
   - otras frecuencias;
   - modelos GARCH/EGARCH;
@@ -541,6 +555,7 @@ Objetivo de este resumen:
   - Kantz/Schreiber;
   - BDS;
   - literatura de volatilidad financiera;
+  - Corsi/HAR para volatilidad realizada;
   - tesis de Olmedo.
 
 **Conclusión:**
@@ -561,9 +576,10 @@ Objetivo de este resumen:
 | Estacionariedad y no linealidad | 6 | Fases 3, 6, 7 |
 | Cuantificación dinámica y contrastes | 7 | Fases 9, 10 |
 | Predicción no lineal | 8 | Fases 11, 12 |
+| Cierre predictivo práctico | 8 + literatura HAR | Fase 14 |
 | Contexto económico aplicado | 9 | Contexto financiero/BTC en mi memoria |
-| Aplicación empírica completa | 10 | Fases 0–12 |
-| Conclusiones | 11 | Cierre de resultados y trabajo futuro |
+| Aplicación empírica completa | 10 | Fases 0–14 + MVP |
+| Conclusiones | 11 | Cierre de resultados, MVP y trabajo futuro |
 | Bibliografía/figuras | 12–13 | Parte formal de la memoria |
 
 ---
@@ -600,6 +616,8 @@ Objetivo de este resumen:
 - La tesis afirma indicios de caos con más fuerza.
 - Mi validación es más prudente: detecta estructura temporal y predictibilidad parcial, pero no caos concluyente.
 - Mi pipeline incluye una validación sintética explícita con mapa logístico.
+- Mi pipeline añade un cierre HAR-logRV que no procede de la tesis, sino de la literatura específica de volatilidad realizada.
+- Mi trabajo termina en un MVP Streamlit funcional, no solo en una validación empírica.
 - Mi trabajo tiene un componente computacional más claro:
   - scripts;
   - CSV;
@@ -607,7 +625,9 @@ Objetivo de este resumen:
   - JSON;
   - validación anti-leakage;
   - train/validation/test;
-  - futura webapp MVP.
+  - exportación de artefactos;
+  - tests automatizados;
+  - MVP web autónomo.
 
 ---
 
@@ -634,6 +654,8 @@ Objetivo de este resumen:
 11. Datos barajados y subrogados.
 12. Predicción local kNN y benchmarks.
 13. Validación sintética con mapa logístico.
+14. HAR-logRV y memoria multiescala de volatilidad realizada.
+15. Arquitectura del MVP como implementación del modelo exportado.
 
 ## Bloques empíricos mínimos
 
@@ -653,7 +675,9 @@ Objetivo de este resumen:
 14. Predicción local.
 15. Robustez.
 16. Mapa logístico.
-17. Conclusiones.
+17. HAR-logRV y comparación final de modelos.
+18. Implementación MVP.
+19. Conclusiones.
 
 ---
 
@@ -674,5 +698,5 @@ caracterizar serie
 Mi validación de modelo encaja muy bien como versión computacional actualizada de esa lógica. La diferencia clave es interpretativa: en la memoria no conviene afirmar que BTC sea caótico. Lo defendible es:
 
 ```text
-La serie de volatilidad realizada de BTC muestra estructura temporal, dependencia en varianza y cierta predictibilidad local. Las herramientas de dinámica no lineal revelan patrones compatibles con una dinámica compleja, pero los resultados no permiten concluir de forma fuerte la existencia de caos determinista. La validación con mapa logístico confirma que el pipeline sí detecta estructura caótica cuando el sistema subyacente es conocido.
+La serie de volatilidad realizada de BTC muestra estructura temporal, dependencia en varianza y cierta predictibilidad. Las herramientas de dinámica no lineal revelan patrones compatibles con una dinámica compleja, pero los resultados no permiten concluir de forma fuerte la existencia de caos determinista. La validación con mapa logístico confirma que el pipeline sí detecta estructura caótica cuando el sistema subyacente es conocido. Como cierre aplicado, HAR-logRV captura de forma simple la memoria multiescala de la volatilidad y se exporta a un MVP web que demuestra la viabilidad operativa del estudio.
 ```

@@ -4,24 +4,97 @@
 
 \section{Conceptos básicos para un lector no especialista}\label{sec:conceptos-basicos}
 
-Una serie temporal es una sucesión de observaciones ordenadas en el tiempo. Si se denota por \(x_t\) el valor observado en el instante \(t\), una serie de longitud \(T\) puede escribirse como
+Una serie temporal es una sucesión de observaciones ordenadas según una variable temporal. Si se denota por \(x_t\) el valor observado en el instante \(t\), una serie de longitud \(T\) puede escribirse como
 \begin{equation}
-x_1, x_2, \ldots, x_T.
+    \{x_t\}_{t=1}^{T} = x_1, x_2, \ldots, x_T.
 \end{equation}
-El orden de los datos no es un detalle secundario. En una tabla sin tiempo, dos observaciones pueden intercambiarse sin cambiar demasiado el problema. En una serie temporal, en cambio, cambiar el orden destruye parte de la información, porque el valor actual puede depender de valores anteriores.
+El subíndice \(t\) indica la posición de cada observación dentro de la secuencia. Cuando la serie está muestreada de forma regular, dos observaciones consecutivas están separadas por un intervalo fijo \(\Delta t\). En ese caso, el tiempo físico asociado a la observación \(t\) puede expresarse como
+\begin{equation}
+    s_t = s_0 + t\Delta t,
+\end{equation}
+donde \(s_0\) representa el instante inicial. En este trabajo los datos proceden de velas de cinco minutos, por lo que \(\Delta t = 5\) minutos. Así, 12 observaciones corresponden a una hora, 288 observaciones a un día y 2016 observaciones a una semana.
 
-En el análisis de una serie temporal conviene distinguir tres tareas. La primera es describir la serie: representar sus valores, resumir su nivel medio, su variabilidad y sus episodios extremos. La segunda es modelizarla: construir una representación simplificada de cómo se relacionan sus observaciones. La tercera es predecir: usar información disponible hasta un instante determinado para estimar un valor futuro. Estas tres tareas están relacionadas, pero no son equivalentes. Una serie puede estar bien descrita y, aun así, ser difícil de predecir.
+El orden de los datos forma parte de la información de una serie temporal. En una tabla de observaciones independientes, intercambiar dos filas puede no alterar el análisis. En una serie temporal, esa operación modifica la estructura del problema, ya que el valor observado en un instante puede depender de valores anteriores. Esta dependencia se representa mediante retardos. Para un entero positivo \(k\), el valor \(x_{t-k}\) es la observación situada \(k\) pasos antes de \(x_t\). Por ejemplo, con datos de cinco minutos, \(x_{t-12}\) corresponde al valor observado una hora antes de \(x_t\).
 
-La dependencia temporal aparece cuando las observaciones no se comportan como valores aislados. Si los valores altos tienden a ir seguidos de valores altos, o si los episodios de variabilidad se agrupan, la serie contiene información en su propio pasado. Esta idea es central en el trabajo: antes de hablar de no linealidad o de caos, hay que comprobar si existe dependencia temporal y qué parte de ella puede explicarse con modelos sencillos.
+El conjunto de información disponible en un instante \(t\) puede escribirse como
+\begin{equation}
+    \mathcal{F}_t = \{x_t, x_{t-1}, x_{t-2}, \ldots\}.
+\end{equation}
+Esta notación permite separar la información pasada y presente de la información futura. Cualquier predicción realizada en \(t\) debe construirse únicamente a partir de \(\mathcal{F}_t\). Si durante el ajuste o la evaluación de un modelo se utiliza información posterior a \(t\), aparece fuga de información. Este problema conduce a estimaciones artificialmente favorables, porque el modelo se beneficia de datos que no estarían disponibles en una situación real de predicción.
 
-Un modelo es una simplificación. No reproduce todos los mecanismos reales que generan los datos, sino que intenta capturar una parte útil de su comportamiento. En una serie financiera, por ejemplo, el precio observado depende de noticias, liquidez, expectativas, actividad de mercado y muchos factores que no se observan directamente. Un modelo de la serie no pretende reconstruir todos esos factores; pretende representar alguna regularidad que pueda medirse y evaluarse.
+En el análisis de series temporales conviene distinguir entre observaciones directas y variables derivadas. En una serie financiera pueden observarse precios de apertura, máximo, mínimo, cierre, volumen o número de operaciones. A partir de estas magnitudes se calculan otras variables diseñadas para estudiar propiedades concretas. Si \(P_t\) representa un precio observado, una variable derivada puede definirse mediante una transformación
+\begin{equation}
+    z_t = g(P_t, P_{t-1}, \ldots, P_{t-h}),
+\end{equation}
+donde \(g\) es una función elegida por el investigador. Los retornos, la volatilidad realizada, las medias móviles o las variables retardadas son ejemplos de este tipo de construcción. La elección de la variable analizada forma parte de la metodología, ya que distintas transformaciones resaltan propiedades distintas de la serie.
 
-También resulta útil separar de forma intuitiva señal y ruido. La señal es la parte del comportamiento que tiene cierta regularidad aprovechable; el ruido es la variación que no se explica con la información disponible o que se comporta como perturbación. Esta distinción no siempre es clara. En datos reales, una misma oscilación puede parecer ruido con un modelo simple y convertirse en señal cuando se dispone de una descripción mejor.
+También debe distinguirse entre variables explicativas y variable objetivo. Una variable explicativa disponible en \(t\) se construye con información pasada o presente. Una variable objetivo asociada a un horizonte futuro utiliza observaciones posteriores y sirve para entrenar o evaluar el modelo. De forma general, si \(h\) es el horizonte de predicción, puede escribirse
+\begin{equation}
+    y_t^{(h)} = q(x_{t+1}, x_{t+2}, \ldots, x_{t+h}),
+\end{equation}
+donde \(q\) resume el comportamiento futuro que se desea estimar. En este TFG el horizonte principal es de 12 velas, equivalente a una hora.
 
-Los modelos pueden ser deterministas o estocásticos. En un modelo determinista, conocido el estado actual y conocida la regla de evolución, el valor siguiente queda fijado. En un modelo estocástico interviene un componente aleatorio, de modo que el mismo estado puede conducir a distintos resultados posibles. Esta diferencia no debe confundirse con la regularidad visual de la serie: un sistema determinista puede generar trayectorias irregulares, y un modelo estocástico puede producir patrones aparentes.
+El análisis de una serie temporal suele organizarse en tres tareas. La primera es la descripción de la serie. Consiste en representar sus valores y resumir propiedades básicas como nivel medio, dispersión, asimetría, colas y episodios extremos. Dos magnitudes elementales son la media muestral,
+\begin{equation}
+    \bar{x} = \frac{1}{T}\sum_{t=1}^{T} x_t,
+\end{equation}
+y la varianza muestral,
+\begin{equation}
+    s^2 = \frac{1}{T-1}\sum_{t=1}^{T}(x_t-\bar{x})^2.
+\end{equation}
+Estas medidas ofrecen una primera caracterización, aunque resultan insuficientes cuando la serie cambia de comportamiento a lo largo del tiempo o presenta periodos de variabilidad muy distintos.
 
-En este TFG la predicción se entiende siempre como predicción a corto plazo y bajo una separación temporal estricta entre datos usados para ajustar modelos y datos usados para evaluarlos. Además, la aplicación financiera no busca predecir la dirección del precio de Bitcoin. La variable de interés es la volatilidad realizada futura, es decir, la intensidad esperada de variación durante un horizonte corto. Esta elección delimita el problema: no se intenta anticipar si el precio subirá o bajará, sino estudiar una magnitud que suele presentar más persistencia temporal.
+La segunda tarea es la modelización. Un modelo proporciona una representación simplificada de la relación entre observaciones. En forma general, un modelo temporal puede escribirse como
+\begin{equation}
+    x_t = f(x_{t-1}, x_{t-2}, \ldots, x_{t-p}) + \varepsilon_t,
+\end{equation}
+donde \(f\) describe la parte sistemática de la relación temporal, \(p\) es el número de retardos utilizados y \(\varepsilon_t\) recoge la parte no explicada por el modelo. Esta formulación no exige que el modelo reproduzca todos los mecanismos reales que generan los datos. Su valor depende de su capacidad para capturar regularidades medibles y contrastables.
 
+La tercera tarea es la predicción. Si se desea estimar un valor futuro \(y_t^{(h)}\) usando la información disponible en \(t\), una predicción puede representarse como
+\begin{equation}
+    \hat{y}_t^{(h)} = M(\mathcal{F}_t),
+\end{equation}
+donde \(M\) es el modelo utilizado. La calidad de la predicción se evalúa comparando el valor estimado con el valor observado posteriormente. El error asociado se define como
+\begin{equation}
+    e_t^{(h)} = y_t^{(h)} - \hat{y}_t^{(h)}.
+\end{equation}
+A partir de estos errores se calculan métricas de evaluación que permiten comparar modelos sobre datos no utilizados durante el ajuste.
+
+La dependencia temporal aparece cuando las observaciones de una serie contienen información sobre otras observaciones de la misma serie. Una forma sencilla de expresarlo es mediante la esperanza condicional:
+\begin{equation}
+    \mathbb{E}[x_t \mid x_{t-1}, x_{t-2}, \ldots] \neq \mathbb{E}[x_t].
+\end{equation}
+Esta desigualdad indica que conocer el pasado modifica la estimación esperada del presente. En series financieras, la dependencia temporal puede ser débil en los retornos y mucho más visible en medidas de variabilidad. Por esta razón, el análisis de volatilidad suele ser más informativo que el análisis directo de la dirección del precio.
+
+La separación entre señal y ruido ayuda a interpretar los modelos. Una forma esquemática de escribir una observación es
+\begin{equation}
+    x_t = s_t + \eta_t,
+\end{equation}
+donde \(s_t\) representa una componente regular o aprovechable y \(\eta_t\) representa una perturbación. Esta descomposición tiene valor conceptual, pero en datos reales no suele conocerse de antemano. Una oscilación puede parecer ruido bajo un modelo simple y adquirir estructura bajo una representación más adecuada. Por ello, la distinción entre señal y ruido depende del modelo, de la escala temporal y de la información disponible.
+
+Los modelos temporales pueden clasificarse, de forma básica, en deterministas y estocásticos. En un modelo determinista, la regla de evolución fija el estado siguiente a partir del estado actual:
+\begin{equation}
+    x_{t+1} = f(x_t).
+\end{equation}
+En un modelo estocástico interviene una perturbación aleatoria:
+\begin{equation}
+    x_{t+1} = f(x_t) + \varepsilon_{t+1}.
+\end{equation}
+La presencia de irregularidad visual en una serie no permite distinguir por sí sola entre ambas posibilidades. Un sistema determinista no lineal puede producir trayectorias muy irregulares, mientras que un modelo estocástico puede generar patrones persistentes. Esta distinción es relevante para interpretar con cautela los resultados de técnicas de dinámica no lineal.
+
+En predicción de series temporales se trabaja normalmente con modelos de referencia. Un modelo de referencia es una alternativa sencilla que fija un nivel mínimo de comparación. En series persistentes, una referencia habitual es la persistencia:
+\begin{equation}
+    \hat{y}_t^{(h)} = x_t.
+\end{equation}
+Otra posibilidad es utilizar una media histórica o un modelo autorregresivo lineal. La comparación con estas referencias es necesaria porque un modelo más complejo solo aporta valor predictivo si mejora de forma verificable a alternativas simples.
+
+La evaluación debe respetar el orden temporal. Si el conjunto de observaciones se divide en entrenamiento, validación y prueba, una partición coherente cumple
+\begin{equation}
+    1 \leq t \leq T_{\mathrm{train}} < T_{\mathrm{val}} < T_{\mathrm{test}} \leq T.
+\end{equation}
+Los datos de entrenamiento se utilizan para ajustar el modelo, los de validación para seleccionar parámetros y los de prueba para medir el rendimiento final. Esta separación reproduce la situación real de predicción: al estimar el futuro, las observaciones posteriores al instante de decisión todavía no están disponibles.
+
+En este TFG la predicción se entiende como una estimación a corto plazo bajo esta restricción temporal. La aplicación financiera se centra en la volatilidad realizada futura, es decir, en la intensidad de variación esperada durante un horizonte breve. La dirección del precio queda fuera del objetivo del trabajo. Esta delimitación permite estudiar una magnitud con mayor persistencia temporal y reduce la ambigüedad entre predicción de variabilidad y predicción de rentabilidad.
 \section{Complejidad, no linealidad y caos determinista}\label{sec:complejidad-caos}
 
 En este trabajo se usa el término complejidad en un sentido concreto. Una serie no es compleja simplemente porque sea difícil de mirar o porque tenga muchos datos. La complejidad se refiere a comportamientos como dependencia del pasado, cambios de régimen, irregularidad persistente o interacción entre componentes que no pueden resumirse bien con una regla lineal simple. En series económicas y financieras, esta situación es habitual: los periodos tranquilos y los periodos de alta variabilidad no se alternan de forma completamente uniforme.

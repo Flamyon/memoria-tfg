@@ -499,36 +499,64 @@ La interpretación de esta reconstrucción debe mantenerse dentro de sus límite
 
 \section{Cuantificación de dinámicas complejas}\label{sec:cuantificacion-dinamicas}
 
-Una vez reconstruido el espacio de estados, pueden calcularse medidas que intentan describir su geometría o su irregularidad. Estas medidas proceden de la teoría de sistemas dinámicos y aparecen en la tesis de referencia como parte de la cuantificación de dinámicas complejas \cite{olmedo2001}. En este TFG se usan como indicadores exploratorios. Su lectura aislada no basta para afirmar caos en una serie financiera.
+Una vez reconstruido el espacio de estados, pueden calcularse medidas que intentan describir la geometría, la sensibilidad local o la irregularidad de las trayectorias. Estas medidas proceden de la teoría de sistemas dinámicos y aparecen en la tesis de referencia como parte de la cuantificación de dinámicas complejas \cite{olmedo2001}. En este TFG se utilizan como indicadores exploratorios. Su lectura aislada no permite afirmar caos determinista en una serie financiera, pero sí ayuda a comparar la serie original con versiones de control y a estudiar si existe estructura temporal aprovechable.
 
-La dimensión de correlación estudia cómo crece el número de vecinos al aumentar el radio alrededor de cada punto reconstruido. Si se dispone de \(N\) puntos \(X_i\), la suma de correlación puede definirse como
+La primera familia de medidas describe la geometría de la nube reconstruida. Si se dispone de \(N\) puntos \(X_1,\ldots,X_N\) en el espacio reconstruido, una pregunta natural es cuántos puntos quedan cerca unos de otros al variar una escala de distancia \(r\). La suma de correlación se define como
 \begin{equation}
-C(r)=\frac{2}{N(N-1)}\sum_{i<j}\mathbf{1}\left\{\|X_i-X_j\|<r\right\}.
+    C(r)=\frac{2}{N(N-1)}
+    \sum_{i<j}\mathbf{1}\left\{\|X_i-X_j\|<r\right\},
 \end{equation}
-La función \(C(r)\) mide la proporción de pares de puntos cuya distancia es menor que \(r\). En ciertos rangos de escala, la dimensión de correlación se aproxima mediante la pendiente
-\begin{equation}
-D_2 \approx \frac{d\log C(r)}{d\log r}.
-\end{equation}
-La interpretación intuitiva es geométrica: si al aumentar el radio aparecen vecinos muy deprisa, la nube ocupa un espacio más amplio; si aparecen más lentamente, puede haber una estructura más concentrada. En datos reales esta estimación depende de la muestra, del ruido, de la escala elegida y de la correlación temporal entre puntos.
+donde \(\mathbf{1}\{\cdot\}\) vale 1 si la condición se cumple y 0 en caso contrario. La función \(C(r)\) mide la proporción de pares de puntos cuya distancia es menor que \(r\). Si \(r\) es pequeño, solo se cuentan vecinos muy próximos; si \(r\) aumenta, se incorporan pares cada vez más alejados.
 
-El exponente máximo de Lyapunov intenta medir la divergencia media de trayectorias cercanas. Si dos estados reconstruidos empiezan próximos y después se separan, puede aproximarse su distancia media por
+La dimensión de correlación se basa en estudiar cómo crece \(C(r)\) cuando aumenta \(r\). Si en un rango de escalas se observa una relación aproximada de tipo potencia,
 \begin{equation}
-d(k)\approx d(0)e^{\lambda k}.
+    C(r) \propto r^{D_2},
 \end{equation}
-Un valor positivo de \(\lambda\) es compatible con sensibilidad a condiciones iniciales. Sin embargo, en datos financieros también puede aparecer divergencia por ruido, cambios de régimen o mala reconstrucción. Por eso el exponente no se interpreta como prueba aislada de caos. En la práctica se usan métodos como el de Rosenstein para estimar esa divergencia sobre puntos reconstruidos.
+entonces el exponente \(D_2\) puede estimarse como la pendiente de la relación entre \(\log C(r)\) y \(\log r\):
+\begin{equation}
+    D_2 \approx \frac{d\log C(r)}{d\log r}.
+\end{equation}
+Esta idea fue introducida por Grassberger y Procaccia como una forma de estimar dimensiones asociadas a atractores reconstruidos \cite{grassberger1983}. Intuitivamente, si al aumentar el radio aparecen vecinos muy rápido, la nube ocupa un espacio de mayor dimensión efectiva; si aparecen más lentamente, la estructura puede estar más concentrada.
 
-La entropía de permutación mide regularidad o irregularidad a partir de patrones ordinales. En lugar de fijarse en los valores exactos de la serie, observa el orden relativo de grupos de observaciones consecutivas. Si \(p(\pi)\) es la frecuencia de un patrón ordinal \(\pi\), la entropía puede escribirse como
-\begin{equation}
-H=-\sum_{\pi}p(\pi)\log p(\pi).
-\end{equation}
-Para compararla entre configuraciones se normaliza dividiendo por el máximo posible:
-\begin{equation}
-H_{\mathrm{norm}}=\frac{H}{\log(m!)}.
-\end{equation}
-Valores cercanos a uno indican alta diversidad de patrones ordinales; valores menores indican mayor regularidad relativa.
+En una aplicación empírica, la estimación de \(D_2\) debe interpretarse con cautela. Para que la pendiente tenga sentido, debería existir una zona de escala en la que la relación logarítmica sea aproximadamente lineal. Si esa zona no aparece con claridad, no es razonable hablar de una dimensión bien determinada. Además, la estimación depende del tamaño muestral, del ruido, de la métrica de distancia, de la elección de escalas y de la correlación temporal entre puntos. Esta última cuestión es relevante: puntos muy cercanos en el tiempo pueden parecer vecinos por continuidad temporal, no por proximidad dinámica. Por ello se suele emplear una ventana de Theiler al calcular vecinos o pares de puntos \cite{theiler1986}.
 
-Las series barajadas y las series sustitutas sirven como controles. Una serie barajada conserva la distribución marginal de valores, pero destruye el orden temporal. Si una métrica cambia mucho al barajar, parte de lo observado depende del orden. Las series sustitutas buscan controles más exigentes: por ejemplo, la aleatorización de fases conserva aproximadamente la estructura espectral lineal, mientras que AAFT intenta conservar tanto la distribución marginal como una estructura lineal aproximada. Estos controles reducen el riesgo de atribuir a caos lo que podría explicarse por distribución marginal, autocorrelación o heterocedasticidad.
-% TODO: añadir referencias bibliográficas sobre dimensión de correlación, Lyapunov, Theiler, Rosenstein y entropía de permutación.
+La segunda familia de medidas estudia la sensibilidad local. En un sistema sensible a las condiciones iniciales, dos estados inicialmente próximos pueden separarse de forma rápida. En un espacio reconstruido, si \(X_i\) y \(X_j\) son dos estados cercanos, puede observarse cómo evoluciona su distancia tras \(k\) pasos:
+\begin{equation}
+    d_{ij}(k)=\|X_{i+k}-X_{j+k}\|.
+\end{equation}
+Si la separación media crece aproximadamente de forma exponencial durante un tramo inicial, puede escribirse
+\begin{equation}
+    d(k)\approx d(0)e^{\lambda k},
+\end{equation}
+donde \(\lambda\) representa una tasa media de divergencia. Tomando logaritmos se obtiene
+\begin{equation}
+    \log d(k) \approx \log d(0) + \lambda k.
+\end{equation}
+Por tanto, \(\lambda\) puede estimarse como la pendiente de la curva media \(\log d(k)\) frente a \(k\) en una región inicial aproximadamente lineal.
+
+El método de Rosenstein proporciona un procedimiento práctico para estimar el mayor exponente de Lyapunov a partir de series temporales reconstruidas \cite{rosenstein1993}. La idea consiste en buscar vecinos próximos, excluir vecinos temporalmente triviales mediante una ventana de Theiler, seguir la separación entre trayectorias durante varios pasos y ajustar una pendiente en la zona inicial de divergencia. Un valor positivo de la pendiente es compatible con sensibilidad local, pero no constituye por sí solo una prueba de caos en datos financieros. El ruido, los cambios de régimen, la heterocedasticidad o una reconstrucción imperfecta también pueden producir separación rápida entre trayectorias cercanas.
+
+La tercera familia de medidas estudia la irregularidad de la serie. La entropía de permutación mide la diversidad de patrones ordinales observados en una serie temporal \cite{bandt2002}. En lugar de utilizar directamente los valores numéricos, analiza el orden relativo de grupos de observaciones. Por ejemplo, para tres valores consecutivos \((x_t,x_{t+1},x_{t+2})\), se observa si aparecen en orden creciente, decreciente o en alguna de las restantes ordenaciones posibles. Cada ordenación define un patrón ordinal.
+
+Si \(p(\pi)\) es la frecuencia relativa del patrón ordinal \(\pi\), la entropía de permutación se define como
+\begin{equation}
+    H=-\sum_{\pi}p(\pi)\log p(\pi).
+\end{equation}
+Para comparar configuraciones con distinto número de patrones posibles, se utiliza la versión normalizada:
+\begin{equation}
+    H_{\mathrm{norm}}=\frac{H}{\log(m!)},
+\end{equation}
+donde \(m\) es el orden de los patrones ordinales. Valores cercanos a 1 indican que los patrones aparecen con frecuencias similares, lo que corresponde a mayor irregularidad ordinal. Valores más bajos indican que ciertos patrones son más frecuentes que otros y, por tanto, que existe mayor regularidad relativa.
+
+La entropía de permutación tiene varias ventajas prácticas. Es sencilla de calcular, no requiere estimar distancias en espacios de alta dimensión y es relativamente robusta frente a transformaciones monótonas de la serie. Sin embargo, tampoco permite identificar caos por sí sola. Una entropía menor que la de una serie aleatoria puede deberse a dependencia lineal, periodicidad aproximada, cambios de régimen o persistencia de volatilidad. Su valor debe compararse con controles adecuados.
+
+Las series barajadas y las series sustitutas cumplen precisamente esa función de control. Una serie barajada se obtiene permutando aleatoriamente los valores observados. Este procedimiento conserva la distribución marginal de la serie, pero destruye el orden temporal. Si una métrica cambia de forma clara al barajar, puede concluirse que el orden temporal contiene información relevante. Este control es simple, pero no distingue entre dependencia lineal y no lineal.
+
+Las series sustitutas permiten contrastes más exigentes. El método de datos sustitutos fue propuesto como una forma de contrastar si una serie contiene estructura más allá de una hipótesis nula, por ejemplo un proceso lineal transformado estáticamente \cite{theiler1992}. Algunas series sustitutas se generan aleatorizando fases en el dominio de Fourier, lo que conserva aproximadamente la estructura espectral lineal y destruye relaciones de fase. Otras, como AAFT, intentan conservar tanto la distribución marginal como una aproximación a la estructura lineal de la serie. Revisiones posteriores, como la de Schreiber y Schmitz, insisten en que estos contrastes deben interpretarse atendiendo a la hipótesis nula que conserva cada tipo de sustituto \cite{schreiber2000}.
+
+La lógica de estos controles puede resumirse de forma escalonada. Si la serie original se diferencia de sus versiones barajadas, hay evidencia de que el orden temporal importa. Si además se diferencia de series sustitutas que conservan parte de la estructura lineal, la evidencia apunta a una organización temporal que no se explica solo por la distribución marginal ni por autocorrelación lineal. Si no se observa esa separación, parte de los resultados puede estar explicada por dependencia lineal, heterocedasticidad o propiedades de segundo orden.
+
+En conjunto, dimensión de correlación, divergencia local, entropía de permutación y contrastes con series de control permiten caracterizar la serie reconstruida desde varias perspectivas. La dimensión de correlación estudia geometría; el exponente de Lyapunov aproximado estudia sensibilidad local; la entropía de permutación estudia regularidad ordinal; y las series barajadas y sustitutas ayudan a interpretar si los valores obtenidos dependen del orden temporal. En una serie financiera, estas herramientas deben leerse como indicios complementarios, no como pruebas concluyentes de caos determinista.
 
 \section{Predicción local y modelos de referencia}\label{sec:prediccion-modelos-referencia}
 

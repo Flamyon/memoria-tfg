@@ -151,22 +151,56 @@ La no linealidad es una condición necesaria para el caos determinista, pero no 
 Esta cautela es especialmente necesaria en series financieras. Los datos de mercado combinan ruido, cambios de régimen, heterocedasticidad, dependencia temporal, efectos de liquidez y posibles errores de medición. Además, el proceso generador no se observa directamente. Por ello, al estudiar una serie como la volatilidad realizada de Bitcoin, resulta más adecuado hablar de dependencia temporal, no linealidad, estructura compatible con dinámica compleja y utilidad predictiva parcial.
 
 La tesis de Olmedo Fernández utiliza esta distinción como punto de partida para estudiar series económicas desde la dinámica no lineal \cite{olmedo2001}. Este TFG adopta esa línea metodológica, pero mantiene una interpretación conservadora. Los métodos de análisis permiten buscar indicios de comportamiento complejo y comparar modelos de predicción, pero esos indicios no autorizan, por sí solos, una afirmación de caos determinista en Bitcoin.
+
 \section{Indicios de caos en series económicas}\label{sec:indicios-caos-series-economicas}
 
-En una serie económica real rara vez puede demostrarse caos de forma precisa. A diferencia de un sistema sintético, no se conoce la regla generadora de los datos. Además, las observaciones están afectadas por ruido, errores de medida, agregación temporal, cambios institucionales o de régimen, heterocedasticidad y factores externos no observados. Por este motivo, el lenguaje adecuado no es el de la demostración, sino el de los indicios y las comparaciones.
+En una serie económica real la identificación de caos determinista plantea dificultades que no aparecen en un sistema sintético. En un sistema construido por el investigador, como el mapa logístico, la regla de evolución es conocida y puede analizarse directamente. En una serie observada, en cambio, solo se dispone de una secuencia de datos generada por un mecanismo no observable. Si la serie se denota por \(\{x_t\}_{t=1}^{T}\), el proceso que ha producido cada observación no se conoce de forma explícita. Por tanto, el problema no consiste en estudiar una función \(f\) dada, sino en inferir propiedades del posible mecanismo generador a partir de una única realización finita.
 
-Un indicio puede ser la aparición de sensibilidad local, la existencia de cierta estructura al reconstruir el espacio de estados, una dimensión efectiva relativamente baja en algún rango de escalas, una entropía menor que la de una serie barajada o una mejora de la predicción local a corto plazo frente a modelos de referencia. Ninguno de estos elementos, por separado, prueba caos. Su interés está en que permiten preguntar si la serie contiene algo más que ruido independiente o dependencia lineal elemental.
+Esta diferencia obliga a utilizar un lenguaje prudente. En datos económicos y financieros no suele ser posible demostrar caos en sentido estricto. Las observaciones pueden estar afectadas por ruido, errores de medida, agregación temporal, cambios institucionales, cambios de régimen, heterocedasticidad y factores externos no incluidos en la serie. Además, muchos métodos de dinámica no lineal fueron formulados bajo hipótesis más limpias que las que se cumplen en datos financieros reales: muestras largas, dinámica relativamente estable, bajo ruido y observación adecuada del sistema. Cuando estas condiciones no se cumplen plenamente, los resultados deben interpretarse como indicios.
 
-La dificultad aumenta en series financieras. La varianza suele cambiar con el tiempo, los episodios extremos no se distribuyen de manera uniforme y la estructura de mercado puede variar durante la muestra. Una señal compatible con no linealidad puede deberse a heterocedasticidad, a cambios de régimen o a una mezcla de mecanismos estocásticos y deterministas. Por eso son necesarios controles como el filtrado lineal, las series barajadas y las series sustitutas.
+Un indicio es una señal parcial compatible con una determinada hipótesis, pero insuficiente para establecerla por sí sola. En este contexto, pueden considerarse indicios la aparición de sensibilidad local, la existencia de estructura al reconstruir el espacio de estados, una dimensión efectiva relativamente baja en algún rango de escalas, una entropía menor que la obtenida en series barajadas o una mejora de la predicción local a corto plazo frente a modelos de referencia. Estas evidencias no tienen el mismo significado ni la misma fuerza. Su utilidad procede de la lectura conjunta y de la comparación con controles adecuados \cite{abarbanel1996,kantz2003,theiler1992}.
+La sensibilidad local se asocia a la separación de trayectorias inicialmente próximas. Si dos estados reconstruidos \(X_i\) y \(X_j\) son cercanos, puede estudiarse cómo evoluciona su distancia tras \(k\) pasos:
+\begin{equation}
+    d_{ij}(k) = \|X_{i+k} - X_{j+k}\|.
+\end{equation}
+Un crecimiento sistemático de esta distancia puede ser compatible con sensibilidad a las condiciones iniciales. Sin embargo, en una serie financiera también puede deberse a ruido, cambios de régimen o heterocedasticidad. Por ello, una pendiente positiva en una estimación tipo Lyapunov no constituye una prueba aislada de caos.
 
-En esta memoria se mantienen separadas cuatro ideas:
+La reconstrucción del espacio de estados proporciona otro tipo de evidencia. A partir de una única serie escalar se construyen vectores retardados de la forma
+\begin{equation}
+    X_t = (x_t, x_{t-\tau}, x_{t-2\tau}, \ldots, x_{t-(m-1)\tau}),
+\end{equation}
+donde \(\tau\) es el retardo y \(m\) la dimensión de reconstrucción. Si la nube de puntos reconstruida muestra regiones diferenciadas, recurrencias o cierta organización geométrica, puede pensarse que la serie conserva información temporal relevante. Aun así, una nube estructurada no implica necesariamente la existencia de un atractor determinista. También puede aparecer por persistencia lineal, por cambios de volatilidad o por una distribución marginal no uniforme.
 
-\begin{enumerate}
-\item Dependencia temporal: el pasado contiene información sobre el presente o futuro próximo. 
-\item No linealidad: esa dependencia no se explica completamente con relaciones lineales. 
-\item Dinámica compleja: la serie muestra patrones compatibles con una organización temporal más rica que la de una sucesión independiente. 
-\item Caos determinista: una propiedad fuerte de ciertos sistemas deterministas. Para Bitcoin, este trabajo estudia las tres primeras con cautela; no afirma la cuarta.
-\end{enumerate}
+La dimensión de correlación se utiliza para estudiar cómo crece el número de puntos vecinos al aumentar una escala de distancia \(r\). De forma simplificada, la suma de correlación puede escribirse como
+\begin{equation}
+    C(r)=\frac{2}{N(N-1)}\sum_{i<j}\mathbf{1}\{\|X_i-X_j\|<r\},
+\end{equation}
+donde \(\mathbf{1}\{\cdot\}\) vale 1 si la condición se cumple y 0 en caso contrario. Si existe una región en la que \(C(r)\) sigue aproximadamente una ley de potencia,
+\begin{equation}
+    C(r) \propto r^{D_2},
+\end{equation}
+entonces \(D_2\) puede interpretarse como una estimación de dimensión efectiva. En datos reales, esta estimación es sensible al tamaño muestral, al ruido, a la elección de escalas y a la correlación temporal. Por tanto, una dimensión aparentemente baja solo tiene valor si se compara con controles adecuados.
+
+La entropía proporciona una forma distinta de analizar la irregularidad. En términos generales, si una serie genera patrones \(\pi\) con probabilidades \(p(\pi)\), una medida de entropía puede escribirse como
+\begin{equation}
+    H = -\sum_{\pi} p(\pi)\log p(\pi).
+\end{equation}
+Valores altos indican mayor diversidad de patrones; valores más bajos indican mayor regularidad. En una serie económica, una entropía menor que la de una serie barajada puede sugerir que el orden temporal contiene información. No obstante, esa diferencia no separa por sí sola no linealidad, dependencia lineal, estacionalidad o cambios de régimen.
+
+Por este motivo son necesarios controles empíricos. Una serie barajada conserva los valores observados, pero destruye su orden temporal. Si un estadístico distingue claramente la serie original de sus versiones barajadas, puede afirmarse que el orden temporal contiene información. Este control descarta que el resultado se deba únicamente a la distribución marginal de los datos.
+
+Las series sustitutas permiten contrastes más exigentes. Algunas se construyen para conservar aproximadamente la estructura lineal o espectral de la serie original y destruir otros aspectos de su organización temporal. Si un estadístico separa la serie original de series sustitutas que conservan parte de la dependencia lineal, la evidencia a favor de una estructura adicional es más fuerte. Si no existe separación clara, parte del comportamiento observado puede explicarse mediante dependencia lineal, heterocedasticidad o propiedades de segundo orden.
+
+La dificultad aumenta en series financieras. La varianza suele cambiar con el tiempo y los episodios extremos tienden a concentrarse. En este caso, una señal compatible con no linealidad puede estar asociada a heterocedasticidad condicional. De forma general, esto significa que
+\begin{equation}
+    \operatorname{Var}(x_t \mid \mathcal{F}_{t-1})
+\end{equation}
+depende de la información pasada. Así, aunque la media condicional de los retornos sea difícil de predecir, la variabilidad futura puede contener dependencia temporal. Esta distinción es central en el estudio de volatilidad financiera.
+
+En esta memoria se separan cuatro niveles de interpretación. El primero es la dependencia temporal: el pasado contiene información sobre el presente o sobre el futuro próximo. El segundo es la no linealidad: esa dependencia no queda explicada completamente por relaciones lineales en media. El tercero es la dinámica compleja: la serie muestra patrones compatibles con una organización temporal más rica que la de una sucesión independiente. El cuarto es el caos determinista: una propiedad fuerte de ciertos sistemas dinámicos deterministas, asociada a sensibilidad a condiciones iniciales, trayectorias acotadas e irregularidad persistente.
+
+El análisis realizado en este TFG se mueve deliberadamente en los tres primeros niveles. Se estudia si la volatilidad realizada de Bitcoin presenta dependencia temporal, si aparecen indicios de no linealidad y si esa información tiene utilidad predictiva parcial. El cuarto nivel se reserva para sistemas donde la evidencia sea suficiente. En el caso de Bitcoin, los resultados deben interpretarse como indicios y comparaciones, no como demostración de caos determinista.
+
 \section{Sistemas dinámicos y mapa logístico}\label{sec:sistemas-dinamicos-logistico}
 
 Un sistema dinámico describe cómo evoluciona un estado a lo largo del tiempo. El estado es la información mínima que se usa para representar la situación del sistema en un instante. El conjunto de todos los estados posibles se denomina espacio de estados. Cuando el sistema evoluciona, va generando una sucesión de estados; esa sucesión recibe el nombre de trayectoria u órbita.

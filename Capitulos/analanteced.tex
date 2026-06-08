@@ -560,38 +560,79 @@ En conjunto, dimensión de correlación, divergencia local, entropía de permuta
 
 \section{Predicción local y modelos de referencia}\label{sec:prediccion-modelos-referencia}
 
-La reconstrucción del espacio de estados también puede usarse para predecir, siguiendo la lectura de la predicción como caracterización indirecta de una serie temporal \cite{olmedo2001}. La idea es directa: si dos estados reconstruidos son cercanos, sus futuros a corto plazo podrían parecerse. Esta hipótesis no requiere afirmar que el sistema sea caótico; basta con que la representación capture alguna dependencia útil.
+La reconstrucción del espacio de estados también puede utilizarse con fines predictivos. La idea procede de la interpretación de la predicción como una forma indirecta de caracterizar una serie temporal: si la representación reconstruida conserva información útil sobre la dinámica, entonces estados cercanos deberían tener, al menos a corto plazo, evoluciones futuras parcialmente parecidas \cite{olmedo2001,kantz2003,abarbanel1996,farmer1987}. Esta hipótesis no exige afirmar que el sistema sea caótico. Basta con que el espacio reconstruido agrupe situaciones con comportamiento posterior similar.
 
-Un predictor local basado en vecinos busca, para el estado actual \(X_t\), los \(k\) estados más cercanos dentro del conjunto de entrenamiento. Si \(N_k(X_t)\) denota ese conjunto de vecinos y \(y_j\) el valor futuro observado asociado al vecino \(j\), una predicción sencilla es
+Sea \(X_t\) el estado reconstruido en el instante \(t\), construido a partir de retardos de la serie observada. Si se desea predecir una variable futura \(y_t\), el enfoque local busca en el conjunto de entrenamiento estados \(X_j\) próximos a \(X_t\). La proximidad suele medirse mediante una distancia, por ejemplo la distancia euclídea:
 \begin{equation}
-\hat{y}_t=\frac{1}{k}\sum_{j\in N_k(X_t)} y_j.
+    d(X_t,X_j)=\|X_t-X_j\|_2.
 \end{equation}
-El parámetro \(k\) controla el compromiso entre localidad y estabilidad. Con un \(k\) pequeño, la predicción se apoya en estados muy parecidos, pero puede ser sensible al ruido. Con un \(k\) grande, la predicción es más estable, aunque menos específica. Esta es una forma concreta del equilibrio entre sesgo y varianza.
+A partir de esa distancia se selecciona el conjunto \(N_k(X_t)\), formado por los \(k\) vecinos más cercanos de \(X_t\) dentro de los datos disponibles para entrenamiento.
 
-Para valorar si la predicción local aporta algo, debe compararse con modelos de referencia. La persistencia es la referencia más simple: asume que el valor futuro será igual al valor actual disponible,
+El predictor local más sencillo asigna como predicción la media de los valores futuros observados después de esos vecinos. Si \(y_j\) representa el valor futuro asociado al estado vecino \(X_j\), la predicción viene dada por
 \begin{equation}
-\hat{y}_{t+h}=x_t.
+    \hat{y}_t=\frac{1}{k}\sum_{j\in N_k(X_t)} y_j.
 \end{equation}
-En la aplicación de volatilidad, esto equivale a usar la volatilidad realizada reciente como predicción de la volatilidad futura. También se consideran modelos autorregresivos como referencia lineal, porque capturan dependencia temporal en media sin usar reconstrucción no lineal.
-
-La evaluación predictiva se realiza fuera de muestra. Algunas métricas habituales son el error absoluto medio,
+Esta formulación tiene una interpretación directa: para estimar qué ocurrirá después del estado actual, se buscan estados históricos parecidos y se promedia lo que ocurrió después de ellos. También existen variantes ponderadas, en las que los vecinos más cercanos reciben más peso:
 \begin{equation}
-MAE=\frac{1}{n}\sum_{i=1}^{n}|y_i-\hat{y}_i|,
+    \hat{y}_t=\sum_{j\in N_k(X_t)} w_j y_j,
+    \qquad
+    \sum_{j\in N_k(X_t)} w_j = 1.
 \end{equation}
-la raíz del error cuadrático medio,
+En este trabajo el enfoque principal se basa en medias locales simples.
+
+El parámetro \(k\) controla el compromiso entre localidad y estabilidad. Con un valor pequeño de \(k\), la predicción se apoya en pocos estados muy próximos. Esto puede captar relaciones locales finas, pero también aumenta la sensibilidad al ruido o a observaciones atípicas. Con un valor grande de \(k\), la predicción se vuelve más estable, ya que promedia más casos, pero pierde especificidad local. Este comportamiento refleja el equilibrio entre varianza y sesgo: usar pocos vecinos reduce el sesgo local, pero puede aumentar la variabilidad de la estimación; usar muchos vecinos reduce la variabilidad, pero puede mezclar estados que no son realmente equivalentes.
+
+La predicción local depende de la calidad de la reconstrucción. Si los parámetros \(\tau\) y \(m\) producen una representación informativa, los vecinos en el espacio reconstruido pueden tener valor predictivo. Si la reconstrucción está dominada por ruido, por una dimensión excesiva o por cambios de régimen, la noción de vecino pierde utilidad. En espacios de dimensión alta aparece además el problema de la dispersión de los datos: las distancias tienden a ser menos informativas porque los puntos quedan más separados entre sí. Por este motivo, la dimensión de reconstrucción debe interpretarse también desde el punto de vista predictivo, no solo geométrico.
+
+Para evitar comparaciones triviales, en predicción local se puede aplicar una ventana de Theiler o una exclusión temporal equivalente. Si se permite elegir como vecino un punto inmediatamente anterior o posterior al instante evaluado, la predicción puede beneficiarse de observaciones casi idénticas por continuidad temporal o por solapamiento de ventanas. Para evitarlo, se excluyen candidatos \(X_j\) tales que
 \begin{equation}
-RMSE=\sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2},
+    |t-j|\leq W,
 \end{equation}
-y el coeficiente de determinación fuera de muestra,
+donde \(W\) es el tamaño de la ventana de exclusión. Esta precaución es especialmente relevante en series de alta frecuencia y en variables como la volatilidad realizada, donde las ventanas consecutivas comparten gran parte de sus observaciones.
+
+La evaluación de un predictor local debe realizarse fuera de muestra. El conjunto de entrenamiento se utiliza para almacenar los estados históricos y sus valores futuros asociados. El conjunto de validación puede emplearse para seleccionar parámetros como \(k\), \(\tau\) o \(m\). El conjunto de prueba debe reservarse para medir el rendimiento final. Esta separación temporal evita que el modelo utilice información futura de forma directa o indirecta.
+
+Para valorar si la predicción local aporta información, debe compararse con modelos de referencia. La referencia más simple es la media histórica del entrenamiento:
 \begin{equation}
-R^2_{\mathrm{OOS}}=1-\frac{\sum_i(y_i-\hat{y}_i)^2}{\sum_i(y_i-\bar{y}_{\mathrm{train}})^2}.
+    \hat{y}_t=\bar{y}_{\mathrm{train}}.
 \end{equation}
-El denominador de \(R^2_{\mathrm{OOS}}\) compara contra una predicción constante basada en la media del entrenamiento, no en información futura.
+Este modelo no utiliza el estado actual; predice siempre el nivel medio observado en el tramo de entrenamiento. Aunque es muy simple, resulta útil como punto mínimo de comparación.
 
-La separación entre entrenamiento, validación y prueba es necesaria para evitar fuga de información. Un modelo que usa datos futuros, aunque sea de forma indirecta, puede parecer más preciso de lo que sería en una situación real. En predicción local también conviene aplicar una ventana de Theiler o una exclusión temporal equivalente, para no elegir como vecino un punto casi idéntico por estar pegado al punto evaluado.
+Otra referencia habitual en series persistentes es la persistencia. En su forma básica, asume que el valor futuro será igual al último valor disponible:
+\begin{equation}
+    \hat{y}_{t+h}=x_t.
+\end{equation}
+En la aplicación a volatilidad realizada, esta referencia equivale a usar la volatilidad realizada reciente como predicción de la volatilidad futura. Si una serie tiene fuerte persistencia, esta referencia puede ser difícil de superar.
 
-Una mejora predictiva moderada no prueba caos. Indica que el modelo ha capturado alguna regularidad útil bajo la partición usada. En datos financieros, esa regularidad puede proceder de persistencia, dependencia en varianza, memoria multiescala o efectos de régimen. Por eso la predicción se interpreta junto con los modelos de referencia y no como evidencia aislada.
+También se emplean modelos autorregresivos lineales como referencia. Un modelo AR(\(p\)) tiene la forma
+\begin{equation}
+    x_t=c+\sum_{i=1}^{p}\phi_i x_{t-i}+\varepsilon_t.
+\end{equation}
+Este modelo captura dependencia lineal en media mediante una combinación de retardos. Su papel en este trabajo es servir como comparación frente a los métodos locales en el espacio reconstruido. Si un método no lineal no mejora a una referencia autorregresiva, su ventaja predictiva no queda justificada aunque pueda ser útil como herramienta de análisis.
 
+El rendimiento predictivo se mide comparando los valores observados \(y_i\) con las predicciones \(\hat{y}_i\). Una métrica habitual es el error absoluto medio:
+\begin{equation}
+    MAE=\frac{1}{n}\sum_{i=1}^{n}|y_i-\hat{y}_i|.
+\end{equation}
+El \(MAE\) mide el tamaño medio del error en la misma escala que la variable objetivo. Al usar valor absoluto, penaliza de forma lineal las desviaciones.
+
+Otra métrica frecuente es la raíz del error cuadrático medio:
+\begin{equation}
+    RMSE=\sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2}.
+\end{equation}
+El \(RMSE\) penaliza más los errores grandes porque eleva las diferencias al cuadrado antes de promediarlas. Por esta razón puede ser más sensible a episodios extremos que el \(MAE\).
+
+También puede utilizarse un coeficiente de determinación fuera de muestra. En este trabajo se expresa como
+\begin{equation}
+    R^2_{\mathrm{OOS}}
+    =
+    1-
+    \frac{\sum_i(y_i-\hat{y}_i)^2}
+    {\sum_i(y_i-\bar{y}_{\mathrm{train}})^2}.
+\end{equation}
+El denominador compara contra una predicción constante basada en la media del entrenamiento. Si \(R^2_{\mathrm{OOS}}>0\), el modelo mejora esa referencia constante. Si \(R^2_{\mathrm{OOS}}<0\), el modelo predice peor que usar la media histórica del entrenamiento.
+
+Una mejora predictiva moderada no prueba caos determinista. Indica que el modelo ha capturado alguna regularidad útil bajo una partición temporal concreta. En datos financieros, esa regularidad puede proceder de persistencia, heterocedasticidad, memoria multiescala o cambios de régimen. Por ello, la predicción local se interpreta junto con los modelos de referencia y con el resto de indicadores del análisis. Su valor principal es comprobar si la reconstrucción del espacio de estados contiene información práctica para anticipar parcialmente la volatilidad futura.
 \section{Modelo HAR-logRV para volatilidad realizada}\label{sec:har-logrv-teoria}
 
 El modelo HAR, de \emph{Heterogeneous Autoregressive model}, es un modelo práctico para volatilidad realizada. No es un modelo de caos ni pretende reconstruir un espacio de estados. Su idea principal es que la volatilidad puede depender de varias escalas temporales: lo ocurrido en la última hora, en las últimas horas y en el último día puede aportar información distinta sobre la volatilidad futura.

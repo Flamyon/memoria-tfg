@@ -26,10 +26,16 @@
     \input{resumen}
     \input{agradecimientos}	
 
+    % REDUCIR ESPACIO SOLO EN EL ÍNDICE 
+    \clearpage
+    \setlength{\parskip}{0ex} % Quita el espacio extra entre párrafos para el índice
 	\tableofcontents % Índice de contenidos
  	\listoftables % Índice de cuadros
  	\listoffigures % Índice de figuras
  	\lstlistoflistings %Índice de códigos
+    \clearpage
+    \setlength{\parskip}{0.7em} % Devuelve el espacio original para el resto del documento
+    % FIN DE REDUCIR ESPACIO SOLO EN EL ÍNDICE
 
  \mainmatter  
     

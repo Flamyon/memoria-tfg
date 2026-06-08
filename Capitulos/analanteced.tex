@@ -453,28 +453,49 @@ En conjunto, estacionariedad, heterocedasticidad y no linealidad deben analizars
 
 \section{Reconstrucción del espacio de estados}\label{sec:reconstruccion-espacio}
 
-La reconstrucción del espacio de estados intenta resolver una dificultad frecuente: se observa una sola variable de un sistema, pero el sistema real puede depender de más componentes. En una economía o en un mercado, no se observan todos los factores que intervienen. La idea de la reconstrucción por retardos es usar valores pasados de la propia serie como coordenadas de un estado aproximado.
+La reconstrucción del espacio de estados intenta resolver una dificultad habitual en el análisis de series temporales observadas: se dispone de una sola variable medida, pero el sistema que genera la serie puede depender de más componentes. En un mercado financiero, por ejemplo, el precio o la volatilidad observada reflejan la interacción de liquidez, expectativas, volumen, información externa, actividad de distintos agentes y cambios de régimen. La mayor parte de esos factores no se observa directamente. La reconstrucción por retardos propone construir una representación aproximada del estado del sistema utilizando valores pasados de la propia serie.
 
-Si la serie observada es \(x_t\), se construye un vector de retardos:
+Sea \(\{x_t\}_{t=1}^{T}\) una serie escalar observada. En lugar de estudiar cada valor \(x_t\) de forma aislada, se construye un vector formado por valores retardados:
 \begin{equation}
-X_t=\left(x_t,x_{t-\tau},x_{t-2\tau},\ldots,x_{t-(m-1)\tau}\right).
+    X_t=\left(x_t,x_{t-\tau},x_{t-2\tau},\ldots,x_{t-(m-1)\tau}\right).
 \end{equation}
-Aquí \(\tau\) es el tiempo de retardo y \(m\) es la dimensión de embedding. Cada punto \(X_t\) no es ya un valor escalar, sino una representación del estado reconstruido a partir de la historia reciente de la serie.
+El parámetro \(\tau\) es el tiempo de retardo y \(m\) es la dimensión de reconstrucción. Cada vector \(X_t\) pertenece a \(\mathbb{R}^m\) y representa un estado reconstruido a partir de la historia de la serie. Al variar \(t\), los vectores \(X_t\) forman una nube de puntos en el espacio reconstruido.
 
-La base teórica de esta idea procede del teorema de Takens, tratado en la tesis de referencia dentro del estudio de reconstrucción de series temporales \cite{olmedo2001}. El resultado establece, bajo condiciones ideales, que la dinámica de un sistema puede reconstruirse a partir de observaciones retardadas de una variable. En datos financieros reales esas condiciones no se cumplen plenamente: hay ruido, muestra finita, cambios de régimen y variables omitidas. Por tanto, en este TFG la reconstrucción se interpreta como una representación operativa, no como prueba de haber recuperado el verdadero atractor del sistema.
-% TODO: añadir referencias bibliográficas sobre reconstrucción por retardos: Takens, Fraser y Swinney, Kennel y Cao.
+La idea geométrica es sencilla. Si el valor actual de la serie no contiene por sí solo suficiente información sobre la situación del sistema, se añaden valores pasados como coordenadas adicionales. De este modo, dos instantes se consideran parecidos no solo porque tengan un valor \(x_t\) similar, sino porque presentan una configuración histórica parecida. Esta representación permite estudiar recurrencias, vecindades, trayectorias locales y predicción en un espacio de estados aproximado.
 
-La elección de \(\tau\) busca evitar dos extremos. Si el retardo es demasiado pequeño, las coordenadas del vector se parecen demasiado entre sí y aportan poca información nueva. Si es demasiado grande, pueden ser casi independientes y perder relación dinámica. Para orientar esta elección se usa la información mutua media. Para dos variables discretizadas \(X\) e \(Y\), puede escribirse como
+La base teórica de esta construcción procede del teorema de Takens, que establece condiciones bajo las cuales la dinámica de un sistema determinista puede reconstruirse mediante coordenadas retardadas de una variable observada \cite{takens1981}. En términos intuitivos, el teorema justifica que, bajo hipótesis adecuadas, una única medición escalar puede contener información suficiente para representar la geometría de la dinámica subyacente. La tesis de Olmedo Fernández recoge esta idea dentro del estudio de reconstrucción de series temporales económicas \cite{olmedo2001}.
+
+Las condiciones ideales del teorema no se cumplen plenamente en una serie financiera. En los datos de mercado hay ruido, muestra finita, cambios de régimen, heterocedasticidad, variables omitidas y posibles errores de medición. Por esta razón, en este TFG la reconstrucción no se interpreta como recuperación exacta del verdadero espacio de estados del mercado. Se utiliza como una representación operativa para estudiar dependencia temporal, estructura local y capacidad predictiva.
+
+La elección del retardo \(\tau\) es importante. Si \(\tau\) es demasiado pequeño, las coordenadas \(x_t\), \(x_{t-\tau}\), \(x_{t-2\tau}\) serán muy parecidas entre sí. En ese caso, el vector reconstruido contiene información redundante y la nube de puntos queda cerca de una diagonal. Si \(\tau\) es demasiado grande, las coordenadas pueden perder relación dinámica y comportarse como valores casi desconectados. El objetivo es elegir un retardo que reduzca redundancia sin destruir la dependencia temporal útil.
+
+Un criterio habitual para orientar esta elección es la información mutua media. Para dos variables discretizadas \(X\) e \(Y\), la información mutua se define como
 \begin{equation}
-I(X;Y)=\sum_{x,y}p(x,y)\log\frac{p(x,y)}{p(x)p(y)}.
+    I(X;Y)=\sum_{x,y}p(x,y)\log\frac{p(x,y)}{p(x)p(y)}.
 \end{equation}
-Esta cantidad mide cuánta información aporta una variable sobre la otra. En reconstrucción, se calcula entre la serie y sus retardos para buscar un retardo que no genere coordenadas ni redundantes ni desconectadas.
+Esta cantidad mide cuánta información aporta una variable sobre la otra. Si \(X\) e \(Y\) son independientes, entonces \(p(x,y)=p(x)p(y)\) y la información mutua es nula. Si existe dependencia, la información mutua toma valores positivos. En reconstrucción por retardos se calcula la información mutua entre \(x_t\) y \(x_{t-\tau}\) para distintos valores de \(\tau\). Fraser y Swinney proponen usar el primer mínimo de esta función como criterio práctico para seleccionar el retardo, porque busca un compromiso entre redundancia y pérdida de relación dinámica \cite{fraser1986}.
 
-La elección de \(m\) intenta determinar cuántas coordenadas retardadas son necesarias. El método de falsos vecinos parte de una idea geométrica: dos puntos pueden parecer cercanos en baja dimensión solo porque la representación comprime la geometría. Al aumentar la dimensión, esos puntos dejan de ser vecinos. Si al crecer \(m\) el porcentaje de falsos vecinos cae, se interpreta que la representación empieza a desplegar mejor la geometría observada. El método de Cao proporciona un contraste adicional para estudiar cuándo añadir dimensiones deja de cambiar de forma relevante la estructura de vecinos.
+La elección de la dimensión \(m\) plantea un problema distinto. Si \(m\) es demasiado pequeño, la reconstrucción puede comprimir la geometría del sistema y hacer que puntos alejados parezcan cercanos. Si \(m\) es demasiado grande, el espacio se vuelve más disperso, aumenta el coste computacional y las distancias entre vecinos pueden perder significado práctico. Esta dificultad es especialmente relevante en datos financieros, donde el ruido y los cambios de régimen pueden degradar la noción de vecindad.
 
-También se emplea una ventana de Theiler. Esta ventana excluye como vecinos a puntos demasiado próximos en el tiempo. La razón es sencilla: dos puntos consecutivos de una serie suelen ser parecidos por continuidad temporal, no necesariamente porque representen estados dinámicamente equivalentes. Excluir esos vecinos evita coincidencias triviales.
+El método de falsos vecinos se basa en una idea geométrica. Dos puntos pueden parecer cercanos en una reconstrucción de baja dimensión porque la proyección ha plegado la geometría. Al aumentar la dimensión, esos puntos dejan de ser vecinos. Si \(X_t^{(m)}\) representa el vector reconstruido en dimensión \(m\), y \(X_j^{(m)}\) es uno de sus vecinos próximos, se compara la distancia en dimensión \(m\) con la distancia tras añadir una coordenada adicional:
+\begin{equation}
+    X_t^{(m+1)}=\left(x_t,x_{t-\tau},\ldots,x_{t-m\tau}\right).
+\end{equation}
+Si la distancia aumenta de forma desproporcionada al pasar de \(m\) a \(m+1\), el vecino se considera falso. A medida que \(m\) crece, el porcentaje de falsos vecinos debería disminuir si la reconstrucción despliega adecuadamente la geometría. Este método fue propuesto por Kennel, Brown y Abarbanel como un criterio práctico para determinar una dimensión mínima de reconstrucción \cite{kennel1992}.
 
-En resumen, \(\tau\) y \(m\) son parámetros de una representación. En el mapa logístico pueden aproximar una dinámica conocida; en Bitcoin deben leerse como elecciones prácticas para analizar dependencia y predicción, no como dimensiones reales demostradas de un sistema financiero.
+El método de Cao proporciona un contraste adicional para estudiar la dimensión de reconstrucción \cite{cao1997}. Su idea es analizar cómo cambian las relaciones entre vecinos al aumentar \(m\), utilizando cocientes de distancias entre puntos próximos. Si al incrementar la dimensión la estructura de vecindad deja de cambiar de forma relevante, se interpreta que la dimensión es suficiente para la reconstrucción. Este método resulta útil como complemento de los falsos vecinos, aunque tampoco debe interpretarse como una prueba absoluta de dimensión real en datos ruidosos.
+
+En la práctica, también se introduce una ventana de Theiler. Esta ventana impide que puntos demasiado próximos en el tiempo sean considerados vecinos válidos. La razón es que dos observaciones consecutivas suelen parecerse por continuidad temporal o por solapamiento de información, no necesariamente porque representen estados dinámicamente equivalentes. Si se permitiesen esos vecinos inmediatos, las estimaciones de vecindad, dimensión o divergencia local podrían resultar artificialmente optimistas. Theiler mostró que los algoritmos de dimensión pueden producir estimaciones espurias cuando se aplican sin controlar la correlación temporal en series finitas \cite{theiler1986}.
+
+Formalmente, si se busca un vecino de \(X_t\), se excluyen candidatos \(X_j\) tales que
+\begin{equation}
+    |t-j| \leq W,
+\end{equation}
+donde \(W\) es la ventana de Theiler. Así se evita comparar un punto con observaciones casi consecutivas. Esta precaución es relevante cuando se trabaja con series de alta frecuencia y con variables construidas mediante ventanas solapadas, como ocurre con la volatilidad realizada.
+
+La reconstrucción por retardos se usa después como base para distintos análisis. En primer lugar, permite visualizar la serie en dos o tres coordenadas retardadas. En segundo lugar, permite estudiar medidas de complejidad dinámica, como dimensión de correlación, divergencia local o entropía. En tercer lugar, permite formular predicción local: si dos estados reconstruidos son próximos, se puede comparar qué ocurrió después de estados parecidos en el pasado.
+
+La interpretación de esta reconstrucción debe mantenerse dentro de sus límites. En un sistema sintético, como el mapa logístico, la regla generadora es conocida y la reconstrucción puede evaluarse frente a una dinámica controlada. En una serie financiera como la volatilidad realizada de Bitcoin, los parámetros \(\tau\) y \(m\) deben leerse como elecciones prácticas de representación. Su selección puede estar apoyada por información mutua, falsos vecinos y el método de Cao, pero no demuestra que se haya identificado el verdadero atractor de un sistema financiero. En este trabajo, la reconstrucción se utiliza como herramienta de análisis y predicción, no como prueba directa de caos determinista.
 
 \section{Cuantificación de dinámicas complejas}\label{sec:cuantificacion-dinamicas}
 

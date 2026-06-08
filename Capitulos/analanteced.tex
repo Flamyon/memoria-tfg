@@ -633,6 +633,7 @@ También puede utilizarse un coeficiente de determinación fuera de muestra. En 
 El denominador compara contra una predicción constante basada en la media del entrenamiento. Si \(R^2_{\mathrm{OOS}}>0\), el modelo mejora esa referencia constante. Si \(R^2_{\mathrm{OOS}}<0\), el modelo predice peor que usar la media histórica del entrenamiento.
 
 Una mejora predictiva moderada no prueba caos determinista. Indica que el modelo ha capturado alguna regularidad útil bajo una partición temporal concreta. En datos financieros, esa regularidad puede proceder de persistencia, heterocedasticidad, memoria multiescala o cambios de régimen. Por ello, la predicción local se interpreta junto con los modelos de referencia y con el resto de indicadores del análisis. Su valor principal es comprobar si la reconstrucción del espacio de estados contiene información práctica para anticipar parcialmente la volatilidad futura.
+
 \section{Modelo HAR-logRV para volatilidad realizada}\label{sec:har-logrv-teoria}
 
 El modelo HAR, de \emph{Heterogeneous Autoregressive model}, es un modelo práctico para volatilidad realizada. No es un modelo de caos ni pretende reconstruir un espacio de estados. Su idea principal es que la volatilidad puede depender de varias escalas temporales: lo ocurrido en la última hora, en las últimas horas y en el último día puede aportar información distinta sobre la volatilidad futura.

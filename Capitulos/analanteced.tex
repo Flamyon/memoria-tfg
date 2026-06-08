@@ -203,24 +203,53 @@ El análisis realizado en este TFG se mueve deliberadamente en los tres primeros
 
 \section{Sistemas dinámicos y mapa logístico}\label{sec:sistemas-dinamicos-logistico}
 
-Un sistema dinámico describe cómo evoluciona un estado a lo largo del tiempo. El estado es la información mínima que se usa para representar la situación del sistema en un instante. El conjunto de todos los estados posibles se denomina espacio de estados. Cuando el sistema evoluciona, va generando una sucesión de estados; esa sucesión recibe el nombre de trayectoria u órbita.
+Un sistema dinámico es una representación matemática de la evolución de un estado a lo largo del tiempo. El estado contiene las variables necesarias para describir la situación del sistema en un instante determinado. El conjunto de todos los estados posibles recibe el nombre de espacio de estados. Cuando el sistema evoluciona, genera una sucesión de estados; esa sucesión se denomina trayectoria u órbita.
 
-Los sistemas dinámicos pueden formularse en tiempo continuo o en tiempo discreto. En tiempo continuo, la evolución se describe para todo instante mediante ecuaciones diferenciales. En tiempo discreto, la evolución se observa paso a paso. Este trabajo se centra en series discretas, porque los datos financieros se registran en intervalos de cinco minutos y los sistemas sintéticos usados para comprobación también se simulan por iteraciones.
-
-Una forma general de sistema dinámico discreto unidimensional es
+En un sistema dinámico continuo, el tiempo se considera una variable continua y la evolución suele describirse mediante ecuaciones diferenciales. Si \(x(t)\) representa el estado del sistema en el instante \(t\), una formulación general puede escribirse como
 \begin{equation}
-x_{t+1}=f(x_t).
+    \frac{dx(t)}{dt} = F(x(t)),
 \end{equation}
-La regla \(f\) transforma el estado actual en el estado siguiente. Aunque esta expresión sea simple, su comportamiento puede ser muy distinto según la forma de \(f\).
+donde \(F\) determina la velocidad de cambio del estado. Esta forma es habitual en modelos físicos, biológicos o económicos formulados en tiempo continuo.
 
-El mapa logístico es un ejemplo clásico de sistema discreto no lineal:
+En un sistema dinámico discreto, el tiempo avanza por pasos. Si \(x_t\) representa el estado en el paso \(t\), la evolución se expresa mediante una regla de iteración:
 \begin{equation}
-x_{t+1}=r x_t(1-x_t),
+    x_{t+1} = f(x_t).
 \end{equation}
-donde \(x_t\) suele tomar valores entre 0 y 1, y \(r\) es un parámetro que controla la dinámica. Para ciertos valores de \(r\), la serie converge a un punto fijo; para otros, oscila periódicamente; y para valores como \(r=4\), puede mostrar comportamiento caótico.
+La función \(f\) transforma el estado actual en el estado siguiente. Esta formulación es adecuada cuando los datos se observan en instantes separados o cuando el propio modelo se define por iteraciones. En este TFG se trabaja con series discretas, ya que los datos financieros se registran en intervalos de cinco minutos y el sistema sintético utilizado para comprobación también se genera mediante iteraciones.
 
-En este TFG el mapa logístico se utiliza como comprobación sintética del procedimiento. Su función no es representar un mercado financiero, sino servir como caso controlado: se conoce la regla generadora y se sabe que, para determinados parámetros, existe una dinámica caótica. Si el procedimiento no respondiera de forma razonable ante este ejemplo, su aplicación a datos financieros sería más dudosa. La comparación también ayuda a interpretar Bitcoin: en el mapa logístico la dinámica es conocida; en BTC solo se observa una serie ruidosa producida por un sistema real mucho más abierto.
-Esta forma de usar un sistema dinámico sencillo como referencia conceptual está alineada con el papel que la tesis de Olmedo concede a los ejemplos deterministas antes de pasar a series económicas reales \cite{olmedo2001}.
+En dimensión mayor que uno, el estado deja de ser un escalar y pasa a ser un vector. Si el sistema tiene \(m\) componentes, puede escribirse como
+\begin{equation}
+    X_t = (x_{1,t}, x_{2,t}, \ldots, x_{m,t}) \in \mathbb{R}^m,
+\end{equation}
+y la evolución adopta la forma
+\begin{equation}
+    X_{t+1} = F(X_t).
+\end{equation}
+Esta notación permite interpretar la dinámica como movimiento dentro de un espacio de estados. En cada instante, el sistema ocupa un punto de ese espacio; al evolucionar, va trazando una trayectoria.
+
+El mapa logístico es uno de los ejemplos más conocidos de sistema dinámico discreto no lineal. Se define mediante la ecuación
+\begin{equation}
+    x_{t+1} = r x_t(1-x_t),
+\end{equation}
+donde normalmente \(x_t \in [0,1]\) y \(r\) es un parámetro positivo que controla la dinámica. A pesar de su forma sencilla, este sistema puede mostrar comportamientos muy distintos según el valor de \(r\). Para ciertos valores, la sucesión converge a un punto fijo. Para otros, oscila entre varios valores de forma periódica. Para valores suficientemente altos, como \(r=4\), puede generar una trayectoria irregular y sensible a las condiciones iniciales \cite{may1976}.
+
+La no linealidad del mapa logístico procede del término \(x_t(1-x_t)\). Este término hace que el efecto de \(x_t\) sobre \(x_{t+1}\) no sea proporcional en todo el intervalo. Cuando \(x_t\) es pequeño, el producto puede aumentar en la siguiente iteración; cuando \(x_t\) se acerca a 1, el factor \(1-x_t\) reduce el valor siguiente. Esta interacción produce una dinámica que no puede entenderse como una simple relación lineal entre el estado actual y el futuro.
+
+La sensibilidad a las condiciones iniciales puede ilustrarse comparando dos trayectorias del mapa logístico que parten de valores casi iguales. Si \(x_0\) y \(\tilde{x}_0\) son dos condiciones iniciales próximas, la separación inicial puede escribirse como
+\begin{equation}
+    \delta_0 = |x_0-\tilde{x}_0|.
+\end{equation}
+Tras varias iteraciones, la separación será
+\begin{equation}
+    \delta_t = |x_t-\tilde{x}_t|.
+\end{equation}
+En un régimen sensible a las condiciones iniciales, una diferencia inicial muy pequeña puede crecer hasta producir trayectorias claramente distintas. Esta propiedad no implica ausencia de regla: ambas trayectorias siguen la misma ecuación. La dificultad aparece porque un pequeño error en la condición inicial se amplifica con el tiempo.
+
+El mapa logístico tiene una función concreta dentro de esta memoria. No se utiliza como modelo de Bitcoin ni como representación de un mercado financiero. Su papel es servir como sistema de control. Al conocerse la regla generadora, puede comprobarse si el procedimiento de análisis responde de forma razonable cuando se aplica a una dinámica determinista no lineal conocida. Esta comprobación es útil antes de aplicar las mismas herramientas a una serie financiera real, donde la regla generadora no se observa y los datos contienen ruido, cambios de régimen y heterocedasticidad.
+
+La comparación entre el mapa logístico y la serie de Bitcoin también ayuda a delimitar el alcance de las conclusiones. En el mapa logístico, el investigador conoce la ecuación que produce la serie. En Bitcoin, solo se dispone de observaciones de mercado. Por tanto, un resultado claro en el sistema sintético no autoriza a trasladar automáticamente la misma interpretación al caso financiero. La utilidad del ejemplo sintético está en validar el comportamiento del procedimiento, no en demostrar que la serie real tenga la misma naturaleza.
+
+Esta forma de usar sistemas dinámicos sencillos como referencia conceptual está alineada con el papel que la tesis de Olmedo Fernández concede a los ejemplos deterministas antes de pasar al estudio de series económicas reales \cite{olmedo2001}. En este TFG se conserva esa lógica, pero se separa explícitamente el caso controlado del caso empírico.
 
 \section{Series temporales financieras y volatilidad realizada}\label{sec:series-financieras-volatilidad}
 

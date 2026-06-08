@@ -17,11 +17,13 @@ Para alcanzar el objetivo general se plantean los siguientes objetivos específi
 \begin{enumerate}
 \item Presentar de forma autocontenida los conceptos necesarios para el trabajo, incluyendo volatilidad realizada, dependencia temporal, no linealidad, reconstrucción por retardos, exponentes de Lyapunov, entropía y predicción local, sin asumir que el lector conoce previamente estas herramientas.
 
-\item Construir una base de datos limpia y validada a partir de velas de cinco minutos de BTCUSDT, comprobando integridad temporal, huecos, duplicados, valores nulos, valores no positivos y consistencia de precios.
+\item Comprobar el procedimiento sobre un sistema sintético conocido, en particular el mapa logístico, para verificar si las herramientas responden de forma coherente cuando se aplican a una dinámica caótica controlada.
 
-\item Definir la variable principal del estudio mediante el cálculo de retornos logarítmicos y volatilidad realizada, diferenciando entre volatilidad pasada disponible en cada instante y volatilidad futura utilizada como variable objetivo.
+\item Aplicar el procedimiento a un caso real de datos financieros, construyendo una base de datos limpia y validada a partir de velas de cinco minutos de BTCUSDT. Esta aplicación comprueba integridad temporal, huecos, duplicados, valores nulos, valores no positivos y consistencia de precios.
 
-\item Realizar una caracterización inicial de la serie mediante análisis gráfico, estadísticos descriptivos, estudio de estacionariedad, autocorrelación, autocorrelación parcial y análisis espectral.
+\item Definir la variable principal de la aplicación empírica mediante el cálculo de retornos logarítmicos y volatilidad realizada, diferenciando entre volatilidad pasada disponible en cada instante y volatilidad futura utilizada como variable objetivo.
+
+\item Caracterizar inicialmente la serie empírica mediante gráficos, estadísticos descriptivos, estacionariedad, autocorrelaciones y análisis espectral.
 
 \item Estudiar la presencia de dependencia temporal e indicios de no linealidad mediante gráficos de recurrencia, filtrado lineal, análisis de residuos y contrastes complementarios.
 
@@ -30,8 +32,6 @@ Para alcanzar el objetivo general se plantean los siguientes objetivos específi
 \item Cuantificar de forma exploratoria la dinámica reconstruida mediante estimaciones aproximadas de dimensión de correlación, exponentes de Lyapunov y entropía de permutación, comparando los resultados con series barajadas y series sustitutas.
 
 \item Evaluar la utilidad predictiva de la reconstrucción mediante métodos locales basados en vecinos y comparar su rendimiento con persistencia, modelos autorregresivos y HAR-logRV.
-
-\item Validar el procedimiento sobre un sistema sintético conocido, en particular el mapa logístico, para comprobar si las herramientas utilizadas responden de forma coherente cuando se aplican a una dinámica caótica controlada.
 
 \item Diseñar e implementar un MVP web que integre la carga de datos, el cálculo de variables, la ejecución de modelos y la visualización de resultados, manteniendo independencia en tiempo de ejecución respecto al repositorio de investigación.
 
@@ -42,6 +42,8 @@ Para alcanzar el objetivo general se plantean los siguientes objetivos específi
 \section{Alcance del trabajo}\label{sec:alcance}
 
 El alcance del trabajo se organiza en torno a una metodología y dos contextos de uso. El primer contexto es sintético: el mapa logístico permite comprobar el comportamiento de las herramientas cuando la dinámica subyacente es conocida. El segundo contexto es empírico: la volatilidad realizada de Bitcoin en un horizonte horario, utilizando datos intradía de cinco minutos. En este segundo caso, la variable estudiada no es el precio del activo ni la dirección futura del mercado, sino una medida de variabilidad construida a partir de retornos observados. Esta delimitación centra el problema en la intensidad del movimiento, no en si el precio subirá o bajará.
+
+Aunque el procedimiento se plantea de forma general y podría aplicarse a otras series temporales, en esta memoria solo se desarrollan completamente el control sintético con el mapa logístico y la aplicación empírica a Bitcoin. Otros activos, otras frecuencias o nuevas funciones sintéticas quedan como extensiones naturales del trabajo.
 
 El estudio incluye una parte experimental y una parte de implementación. En la parte experimental se desarrollan las fases de validación de datos, construcción de variables, análisis descriptivo, estudio lineal, análisis no lineal, reconstrucción del espacio de estados, cuantificación dinámica, predicción local, validación sintética y comparación final de modelos. En la parte de implementación se desarrolla una aplicación web que utiliza los artefactos generados por el estudio técnico y permite ejecutar predicciones recientes sobre datos descargados de Binance, datos de ejemplo o ficheros cargados por el usuario.
 
@@ -55,7 +57,7 @@ El trabajo presenta varias limitaciones que deben tenerse en cuenta al interpret
 
 La segunda limitación afecta a la interpretación de las herramientas de dinámica no lineal. La reconstrucción del espacio de estados, la dimensión de correlación, los exponentes de Lyapunov o la entropía de permutación pueden aportar información sobre la estructura de una serie, pero no constituyen por sí solos una demostración de caos determinista en una serie económica real. En el mapa logístico se conoce la regla generadora y, por tanto, se puede usar como control; en Bitcoin solo se pueden defender indicios y comparaciones empíricas.
 
-La tercera limitación se refiere a la predicción. Aunque algunos modelos mejoran a referencias simples como la persistencia, las diferencias entre modelos son moderadas y deben interpretarse en términos de error estadístico, no como una ventaja operativa directa en mercado. El estudio predice volatilidad realizada, no rentabilidad ni dirección del precio. Por tanto, sus resultados no deben entenderse como señales de compra o venta.
+La tercera limitación se refiere a la predicción. Aunque algunos modelos mejoran a referencias simples como la persistencia, las diferencias entre modelos son moderadas y deben interpretarse en términos de error estadístico, no como una ventaja operativa directa en mercado. En la aplicación a Bitcoin se predice volatilidad realizada, no rentabilidad ni dirección del precio. Por tanto, sus resultados no deben entenderse como señales de compra o venta.
 
 La cuarta limitación está relacionada con el MVP web. El prototipo permite ejecutar modelos y visualizar resultados, pero no incorpora intervalos de confianza, gestión de riesgo, costes de transacción ni validación en tiempo real prolongada. Tampoco pretende sustituir a una plataforma profesional de análisis financiero. Su finalidad es demostrar la viabilidad técnica de integrar el estudio en una aplicación funcional y comprensible.
 

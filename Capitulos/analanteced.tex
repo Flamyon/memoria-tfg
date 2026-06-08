@@ -3,40 +3,299 @@
 \chapter{Antecedentes y marco teórico}\label{cap:antecedentes}
 
 \section{Conceptos básicos para un lector no especialista}\label{sec:conceptos-basicos}
-% TODO: redactar este apartado.
+
+Una serie temporal es una sucesión de observaciones ordenadas en el tiempo. Si se denota por \(x_t\) el valor observado en el instante \(t\), una serie de longitud \(T\) puede escribirse como
+\begin{equation}
+x_1, x_2, \ldots, x_T.
+\end{equation}
+El orden de los datos no es un detalle secundario. En una tabla sin tiempo, dos observaciones pueden intercambiarse sin cambiar demasiado el problema. En una serie temporal, en cambio, cambiar el orden destruye parte de la información, porque el valor actual puede depender de valores anteriores.
+
+En el análisis de una serie temporal conviene distinguir tres tareas. La primera es describir la serie: representar sus valores, resumir su nivel medio, su variabilidad y sus episodios extremos. La segunda es modelizarla: construir una representación simplificada de cómo se relacionan sus observaciones. La tercera es predecir: usar información disponible hasta un instante determinado para estimar un valor futuro. Estas tres tareas están relacionadas, pero no son equivalentes. Una serie puede estar bien descrita y, aun así, ser difícil de predecir.
+
+La dependencia temporal aparece cuando las observaciones no se comportan como valores aislados. Si los valores altos tienden a ir seguidos de valores altos, o si los episodios de variabilidad se agrupan, la serie contiene información en su propio pasado. Esta idea es central en el trabajo: antes de hablar de no linealidad o de caos, hay que comprobar si existe dependencia temporal y qué parte de ella puede explicarse con modelos sencillos.
+
+Un modelo es una simplificación. No reproduce todos los mecanismos reales que generan los datos, sino que intenta capturar una parte útil de su comportamiento. En una serie financiera, por ejemplo, el precio observado depende de noticias, liquidez, expectativas, actividad de mercado y muchos factores que no se observan directamente. Un modelo de la serie no pretende reconstruir todos esos factores; pretende representar alguna regularidad que pueda medirse y evaluarse.
+
+También resulta útil separar de forma intuitiva señal y ruido. La señal es la parte del comportamiento que tiene cierta regularidad aprovechable; el ruido es la variación que no se explica con la información disponible o que se comporta como perturbación. Esta distinción no siempre es clara. En datos reales, una misma oscilación puede parecer ruido con un modelo simple y convertirse en señal cuando se dispone de una descripción mejor.
+
+Los modelos pueden ser deterministas o estocásticos. En un modelo determinista, conocido el estado actual y conocida la regla de evolución, el valor siguiente queda fijado. En un modelo estocástico interviene un componente aleatorio, de modo que el mismo estado puede conducir a distintos resultados posibles. Esta diferencia no debe confundirse con la regularidad visual de la serie: un sistema determinista puede generar trayectorias irregulares, y un modelo estocástico puede producir patrones aparentes.
+
+En este TFG la predicción se entiende siempre como predicción a corto plazo y bajo una separación temporal estricta entre datos usados para ajustar modelos y datos usados para evaluarlos. Además, la aplicación financiera no busca predecir la dirección del precio de Bitcoin. La variable de interés es la volatilidad realizada futura, es decir, la intensidad esperada de variación durante un horizonte corto. Esta elección delimita el problema: no se intenta anticipar si el precio subirá o bajará, sino estudiar una magnitud que suele presentar más persistencia temporal.
 
 \section{Complejidad, no linealidad y caos determinista}\label{sec:complejidad-caos}
-% TODO: redactar este apartado.
+
+En este trabajo se usa el término complejidad en un sentido concreto. Una serie no es compleja simplemente porque sea difícil de mirar o porque tenga muchos datos. La complejidad se refiere a comportamientos como dependencia del pasado, cambios de régimen, irregularidad persistente o interacción entre componentes que no pueden resumirse bien con una regla lineal simple. En series económicas y financieras, esta situación es habitual: los periodos tranquilos y los periodos de alta variabilidad no se alternan de forma completamente uniforme.
+
+La linealidad es una propiedad matemática asociada a proporcionalidad y superposición. De forma intuitiva, un modelo lineal responde de manera proporcional a los cambios de entrada y permite sumar efectos por separado. Un ejemplo sencillo de evolución lineal en tiempo discreto es
+\begin{equation}
+x_{t+1}=a x_t+b,
+\end{equation}
+donde el valor siguiente depende del valor actual mediante una relación afín. En cambio, una relación no lineal puede escribirse de forma genérica como
+\begin{equation}
+x_{t+1}=f(x_t),
+\end{equation}
+donde la función \(f\) no cumple la propiedad de superposición. En ese caso, pequeñas diferencias en \(x_t\) pueden tener efectos que dependen de la zona del espacio en la que se encuentre el sistema.
+
+La no linealidad es necesaria para el caos determinista, pero no es suficiente. Muchos sistemas no lineales no son caóticos. Pueden converger a un equilibrio, oscilar de forma periódica o mostrar respuestas suaves. Por eso, detectar no linealidad en una serie no equivale a detectar caos.
+
+El caos determinista describe una situación más específica: un sistema gobernado por reglas deterministas genera trayectorias irregulares y sensibles a las condiciones iniciales. La sensibilidad significa que dos trayectorias que empiezan muy cerca pueden separarse rápidamente. Una forma habitual de expresar esta idea es
+\begin{equation}
+|\delta_t| \approx e^{\lambda t}|\delta_0|,
+\end{equation}
+donde \(\delta_0\) es una pequeña separación inicial, \(\delta_t\) la separación tras \(t\) pasos y \(\lambda\) mide la tasa media de divergencia. Cuando \(\lambda>0\), la separación crece de forma exponencial en el tramo en que la aproximación es válida.
+
+La tesis de Olmedo Fernández toma esta distinción como punto de partida para estudiar series económicas desde la dinámica no lineal \cite{olmedo2001}. Este TFG conserva esa idea, pero la aplica con cautela. En una serie financiera real se pueden estudiar dependencia, no linealidad, sensibilidad local y capacidad predictiva limitada. Lo que no se debe hacer es pasar de esos indicios a una afirmación directa de caos determinista.
 
 \section{Indicios de caos en series económicas}\label{sec:indicios-caos-series-economicas}
-% TODO: redactar este apartado.
+
+En una serie económica real rara vez puede demostrarse caos de forma precisa. A diferencia de un sistema sintético, no se conoce la regla generadora de los datos. Además, las observaciones están afectadas por ruido, errores de medida, agregación temporal, cambios institucionales o de régimen, heterocedasticidad y factores externos no observados. Por este motivo, el lenguaje adecuado no es el de la demostración, sino el de los indicios y las comparaciones.
+
+Un indicio puede ser la aparición de sensibilidad local, la existencia de cierta estructura al reconstruir el espacio de estados, una dimensión efectiva relativamente baja en algún rango de escalas, una entropía menor que la de una serie barajada o una mejora de la predicción local a corto plazo frente a modelos de referencia. Ninguno de estos elementos, por separado, prueba caos. Su interés está en que permiten preguntar si la serie contiene algo más que ruido independiente o dependencia lineal elemental.
+
+La dificultad aumenta en series financieras. La varianza suele cambiar con el tiempo, los episodios extremos no se distribuyen de manera uniforme y la estructura de mercado puede variar durante la muestra. Una señal compatible con no linealidad puede deberse a heterocedasticidad, a cambios de régimen o a una mezcla de mecanismos estocásticos y deterministas. Por eso son necesarios controles como el filtrado lineal, las series barajadas y las series sustitutas.
+
+En esta memoria se mantienen separadas cuatro ideas. La primera es dependencia temporal: el pasado contiene información sobre el presente o el futuro próximo. La segunda es no linealidad: esa dependencia no se explica completamente con relaciones lineales. La tercera es dinámica compleja: la serie muestra patrones compatibles con una organización temporal más rica que la de una sucesión independiente. La cuarta es caos determinista: una propiedad fuerte de ciertos sistemas deterministas. Para Bitcoin, este trabajo estudia las tres primeras con cautela; no afirma la cuarta.
 
 \section{Sistemas dinámicos y mapa logístico}\label{sec:sistemas-dinamicos-logistico}
-% TODO: redactar este apartado.
+
+Un sistema dinámico describe cómo evoluciona un estado a lo largo del tiempo. El estado es la información mínima que se usa para representar la situación del sistema en un instante. El conjunto de todos los estados posibles se denomina espacio de estados. Cuando el sistema evoluciona, va generando una sucesión de estados; esa sucesión recibe el nombre de trayectoria u órbita.
+
+Los sistemas dinámicos pueden formularse en tiempo continuo o en tiempo discreto. En tiempo continuo, la evolución se describe para todo instante mediante ecuaciones diferenciales. En tiempo discreto, la evolución se observa paso a paso. Este trabajo se centra en series discretas, porque los datos financieros se registran en intervalos de cinco minutos y los sistemas sintéticos usados para comprobación también se simulan por iteraciones.
+
+Una forma general de sistema dinámico discreto unidimensional es
+\begin{equation}
+x_{t+1}=f(x_t).
+\end{equation}
+La regla \(f\) transforma el estado actual en el estado siguiente. Aunque esta expresión sea simple, su comportamiento puede ser muy distinto según la forma de \(f\).
+
+El mapa logístico es un ejemplo clásico de sistema discreto no lineal:
+\begin{equation}
+x_{t+1}=r x_t(1-x_t),
+\end{equation}
+donde \(x_t\) suele tomar valores entre 0 y 1, y \(r\) es un parámetro que controla la dinámica. Para ciertos valores de \(r\), la serie converge a un punto fijo; para otros, oscila periódicamente; y para valores como \(r=4\), puede mostrar comportamiento caótico.
+
+En este TFG el mapa logístico se utiliza como comprobación sintética del procedimiento. Su función no es representar un mercado financiero, sino servir como caso controlado: se conoce la regla generadora y se sabe que, para determinados parámetros, existe una dinámica caótica. Si el procedimiento no respondiera de forma razonable ante este ejemplo, su aplicación a datos financieros sería más dudosa. La comparación también ayuda a interpretar Bitcoin: en el mapa logístico la dinámica es conocida; en BTC solo se observa una serie ruidosa producida por un sistema real mucho más abierto.
+Esta forma de usar un sistema dinámico sencillo como referencia conceptual está alineada con el papel que la tesis de Olmedo concede a los ejemplos deterministas antes de pasar a series económicas reales \cite{olmedo2001}.
 
 \section{Series temporales financieras y volatilidad realizada}\label{sec:series-financieras-volatilidad}
-% TODO: redactar este apartado.
+
+Una serie financiera de precios puede representarse como \(P_t\), donde cada valor es el precio observado en el instante \(t\). En datos de velas, el precio de cierre resume el último precio negociado dentro de cada intervalo. Aunque el precio es la variable más visible, no siempre es la más adecuada para el análisis temporal directo: puede tener tendencias, cambios de escala y niveles muy distintos a lo largo de la muestra.
+
+Por este motivo se trabaja habitualmente con retornos. El retorno logarítmico entre dos instantes consecutivos se define como
+\begin{equation}
+r_t=\log(P_t)-\log(P_{t-1}).
+\end{equation}
+Esta transformación mide variación relativa y facilita comparar cambios ocurridos en distintos niveles de precio. En el contexto de este trabajo, los retornos son el punto de partida para construir medidas de volatilidad.
+
+La volatilidad no mide si el precio sube o baja, sino la intensidad de sus variaciones. Una forma empírica de medirla es la volatilidad realizada, que acumula retornos al cuadrado dentro de una ventana temporal. Para una ventana pasada de \(h\) observaciones, se define como
+\begin{equation}
+RV_t^{(h)}=\sum_{i=0}^{h-1} r_{t-i}^2.
+\end{equation}
+En la implementación del proyecto se usa esta suma de retornos al cuadrado, no una media normalizada. Para trabajar con una escala más estable se aplica una transformación logarítmica con una constante positiva pequeña:
+\begin{equation}
+v_t=\log\left(RV_t^{(h)}+\varepsilon\right).
+\end{equation}
+La constante \(\varepsilon\) evita problemas numéricos cuando la suma de cuadrados es muy pequeña.
+
+La aplicación empírica de esta memoria se centra en ventanas de doce velas de cinco minutos, es decir, una hora. La serie principal es la volatilidad realizada pasada transformada logarítmicamente. El objetivo predictivo es la volatilidad realizada futura sobre la hora siguiente, que de forma análoga puede escribirse como
+\begin{equation}
+RV_{t,+}^{(h)}=\sum_{i=1}^{h} r_{t+i}^2.
+\end{equation}
+Esta definición exige separar con cuidado las variables disponibles en el instante \(t\) de las variables futuras usadas solo para evaluar o entrenar modelos.
+
+Una propiedad habitual de las series financieras es el agrupamiento de volatilidad: periodos de alta variabilidad tienden a ir seguidos de otros periodos de alta variabilidad, y lo mismo ocurre con periodos tranquilos. Esta persistencia convierte la volatilidad realizada en una variable más razonable para la predicción a corto plazo que la dirección del precio. La principal limitación es que las ventanas de volatilidad pueden solaparse. Ese solapamiento introduce dependencia adicional entre observaciones próximas y debe recordarse al interpretar contrastes y métricas.
+% TODO: añadir referencias bibliográficas estándar sobre volatilidad realizada.
 
 \section{Caracterización lineal de series temporales}\label{sec:caracterizacion-lineal}
-% TODO: redactar este apartado.
+
+La caracterización lineal busca describir una serie mediante medidas básicas de nivel, dispersión y dependencia lineal. Antes de aplicar herramientas no lineales conviene realizar este análisis, porque muchas regularidades aparentes pueden explicarse con autocorrelación o con ciclos simples.
+
+La media muestral resume el nivel medio de una serie:
+\begin{equation}
+\bar{x}=\frac{1}{T}\sum_{t=1}^{T}x_t.
+\end{equation}
+La varianza muestral resume la dispersión alrededor de esa media:
+\begin{equation}
+s^2=\frac{1}{T-1}\sum_{t=1}^{T}(x_t-\bar{x})^2.
+\end{equation}
+Estas dos medidas no usan todavía el orden temporal. Para incorporar el tiempo se emplea la autocovarianza a retardo \(k\):
+\begin{equation}
+\gamma(k)=\mathrm{Cov}(x_t,x_{t-k}).
+\end{equation}
+Si \(\gamma(k)\) es positiva, valores altos tienden a aparecer junto a valores altos \(k\) pasos antes. Si es negativa, valores altos tienden a aparecer junto a valores bajos. Para expresar esta relación en una escala comparable se usa la autocorrelación:
+\begin{equation}
+\rho(k)=\frac{\gamma(k)}{\gamma(0)}.
+\end{equation}
+
+La función de autocorrelación, ACF, representa \(\rho(k)\) para distintos retardos. Permite observar si la serie conserva memoria lineal de su pasado. En una serie financiera de cinco minutos, por ejemplo, retardos de 12, 288 o 2016 observaciones corresponden aproximadamente a una hora, un día y una semana. Esta traducción ayuda a interpretar los gráficos: un pico en un retardo no es solo un número, sino una posible repetición temporal.
+
+La función de autocorrelación parcial, PACF, mide la relación entre \(x_t\) y \(x_{t-k}\) eliminando el efecto lineal de los retardos intermedios. Su uso es habitual al estudiar modelos autorregresivos, porque ayuda a distinguir si una dependencia a retardo alto es directa o aparece inducida por retardos más cortos.
+
+El periodograma estudia la serie en el dominio de frecuencias. En lugar de preguntar si \(x_t\) se parece a \(x_{t-k}\), pregunta si la serie contiene oscilaciones que se repiten con cierta periodicidad. Una frecuencia alta corresponde a cambios rápidos; una frecuencia baja corresponde a ciclos más lentos. En datos financieros intradía, este análisis puede sugerir patrones horarios, diarios o semanales, aunque debe interpretarse con prudencia porque los mercados no son sistemas periódicos cerrados.
+
+ACF, PACF y periodograma son herramientas de caracterización lineal o espectral. Sirven para ordenar el análisis inicial y para construir modelos de referencia, pero no detectan caos por sí mismas. Esta es la razón por la que aparecen antes de la reconstrucción del espacio de estados: primero se comprueba qué parte de la serie puede explicarse con dependencias más simples \cite{olmedo2001}.
 
 \section{Estacionariedad, heterocedasticidad y no linealidad}\label{sec:estacionariedad-heterocedasticidad}
-% TODO: redactar este apartado.
+
+Una serie es débilmente estacionaria cuando sus propiedades principales no cambian con el tiempo. En términos habituales, se exige media constante, varianza constante y autocovarianza dependiente solo del retardo:
+\begin{equation}
+E[x_t]=\mu,\qquad \mathrm{Var}(x_t)=\sigma^2,\qquad \mathrm{Cov}(x_t,x_{t-k})=\gamma(k).
+\end{equation}
+Esta definición no implica que la serie sea constante, sino que sus fluctuaciones se producen alrededor de una estructura estadística estable.
+
+La estacionariedad importa porque muchas técnicas de series temporales asumen, de forma explícita o implícita, que el comportamiento estadístico no cambia radicalmente durante la muestra. Si una serie tiene tendencia, cambios de escala o rupturas de régimen, un contraste puede interpretar esos cambios como dependencia o como estructura dinámica cuando en realidad reflejan una muestra no homogénea.
+
+En este trabajo se consideran dos contrastes clásicos de estacionariedad de forma complementaria. El contraste ADF se usa para analizar la presencia de raíz unitaria, asociada a comportamientos no estacionarios persistentes. El contraste KPSS plantea la hipótesis de estacionariedad alrededor de un nivel o de una tendencia. Leídos conjuntamente, ambos ayudan a evitar una conclusión basada en un solo punto de vista. Su resultado no debe tratarse como una etiqueta absoluta, especialmente en series financieras largas y con cambios de régimen.
+
+La heterocedasticidad aparece cuando la varianza no es constante en el tiempo. En finanzas es un fenómeno muy relevante: los retornos pueden tener media cercana a cero y, aun así, alternar periodos de baja y alta variabilidad. Los modelos ARCH capturan precisamente dependencia temporal en la varianza, es decir, la posibilidad de que los errores grandes tiendan a agruparse.
+
+Para separar dependencia lineal en media de otros efectos se puede ajustar un modelo autorregresivo de orden \(p\):
+\begin{equation}
+x_t=c+\sum_{i=1}^{p}\phi_i x_{t-i}+\varepsilon_t.
+\end{equation}
+Este modelo expresa el valor actual como combinación lineal de valores pasados más un residuo. Si después de ajustar el modelo los residuos siguen mostrando estructura, esa estructura no se explica completamente por la dependencia lineal incluida.
+
+El filtrado lineal antes de algunos contrastes es una precaución metodológica. Si se aplica directamente un contraste de no linealidad a una serie con fuerte autocorrelación lineal, el rechazo puede deberse simplemente a esa autocorrelación. Por eso se analizan tanto la serie original como los residuos del modelo lineal.
+
+El contraste de Ljung-Box se utiliza para preguntar si existe autocorrelación conjunta hasta ciertos retardos. Aplicado a residuos, evalúa si queda dependencia lineal en media. Aplicado a cuadrados de residuos, ayuda a detectar dependencia en varianza. El contraste BDS se usa como contraste de independencia y posible no linealidad, pero tampoco prueba caos. Su rechazo indica que la serie no se comporta como una sucesión independiente bajo las condiciones del contraste; la interpretación concreta requiere mirar el resto del análisis.
+% TODO: añadir referencia bibliográfica sobre el contraste BDS y contrastes de independencia no lineal.
 
 \section{Reconstrucción del espacio de estados}\label{sec:reconstruccion-espacio}
-% TODO: redactar este apartado.
+
+La reconstrucción del espacio de estados intenta resolver una dificultad frecuente: se observa una sola variable de un sistema, pero el sistema real puede depender de más componentes. En una economía o en un mercado, no se observan todos los factores que intervienen. La idea de la reconstrucción por retardos es usar valores pasados de la propia serie como coordenadas de un estado aproximado.
+
+Si la serie observada es \(x_t\), se construye un vector de retardos:
+\begin{equation}
+X_t=\left(x_t,x_{t-\tau},x_{t-2\tau},\ldots,x_{t-(m-1)\tau}\right).
+\end{equation}
+Aquí \(\tau\) es el tiempo de retardo y \(m\) es la dimensión de embedding. Cada punto \(X_t\) no es ya un valor escalar, sino una representación del estado reconstruido a partir de la historia reciente de la serie.
+
+La base teórica de esta idea procede del teorema de Takens, tratado en la tesis de referencia dentro del estudio de reconstrucción de series temporales \cite{olmedo2001}. El resultado establece, bajo condiciones ideales, que la dinámica de un sistema puede reconstruirse a partir de observaciones retardadas de una variable. En datos financieros reales esas condiciones no se cumplen plenamente: hay ruido, muestra finita, cambios de régimen y variables omitidas. Por tanto, en este TFG la reconstrucción se interpreta como una representación operativa, no como prueba de haber recuperado el verdadero atractor del sistema.
+% TODO: añadir referencias bibliográficas sobre reconstrucción por retardos: Takens, Fraser y Swinney, Kennel y Cao.
+
+La elección de \(\tau\) busca evitar dos extremos. Si el retardo es demasiado pequeño, las coordenadas del vector se parecen demasiado entre sí y aportan poca información nueva. Si es demasiado grande, pueden ser casi independientes y perder relación dinámica. Para orientar esta elección se usa la información mutua media. Para dos variables discretizadas \(X\) e \(Y\), puede escribirse como
+\begin{equation}
+I(X;Y)=\sum_{x,y}p(x,y)\log\frac{p(x,y)}{p(x)p(y)}.
+\end{equation}
+Esta cantidad mide cuánta información aporta una variable sobre la otra. En reconstrucción, se calcula entre la serie y sus retardos para buscar un retardo que no genere coordenadas ni redundantes ni desconectadas.
+
+La elección de \(m\) intenta determinar cuántas coordenadas retardadas son necesarias. El método de falsos vecinos parte de una idea geométrica: dos puntos pueden parecer cercanos en baja dimensión solo porque la representación comprime la geometría. Al aumentar la dimensión, esos puntos dejan de ser vecinos. Si al crecer \(m\) el porcentaje de falsos vecinos cae, se interpreta que la representación empieza a desplegar mejor la geometría observada. El método de Cao proporciona un contraste adicional para estudiar cuándo añadir dimensiones deja de cambiar de forma relevante la estructura de vecinos.
+
+También se emplea una ventana de Theiler. Esta ventana excluye como vecinos a puntos demasiado próximos en el tiempo. La razón es sencilla: dos puntos consecutivos de una serie suelen ser parecidos por continuidad temporal, no necesariamente porque representen estados dinámicamente equivalentes. Excluir esos vecinos evita coincidencias triviales.
+
+En resumen, \(\tau\) y \(m\) son parámetros de una representación. En el mapa logístico pueden aproximar una dinámica conocida; en Bitcoin deben leerse como elecciones prácticas para analizar dependencia y predicción, no como dimensiones reales demostradas de un sistema financiero.
 
 \section{Cuantificación de dinámicas complejas}\label{sec:cuantificacion-dinamicas}
-% TODO: redactar este apartado.
+
+Una vez reconstruido el espacio de estados, pueden calcularse medidas que intentan describir su geometría o su irregularidad. Estas medidas proceden de la teoría de sistemas dinámicos y aparecen en la tesis de referencia como parte de la cuantificación de dinámicas complejas \cite{olmedo2001}. En este TFG se usan como indicadores exploratorios. Su lectura aislada no basta para afirmar caos en una serie financiera.
+
+La dimensión de correlación estudia cómo crece el número de vecinos al aumentar el radio alrededor de cada punto reconstruido. Si se dispone de \(N\) puntos \(X_i\), la suma de correlación puede definirse como
+\begin{equation}
+C(r)=\frac{2}{N(N-1)}\sum_{i<j}\mathbf{1}\left\{\|X_i-X_j\|<r\right\}.
+\end{equation}
+La función \(C(r)\) mide la proporción de pares de puntos cuya distancia es menor que \(r\). En ciertos rangos de escala, la dimensión de correlación se aproxima mediante la pendiente
+\begin{equation}
+D_2 \approx \frac{d\log C(r)}{d\log r}.
+\end{equation}
+La interpretación intuitiva es geométrica: si al aumentar el radio aparecen vecinos muy deprisa, la nube ocupa un espacio más amplio; si aparecen más lentamente, puede haber una estructura más concentrada. En datos reales esta estimación depende de la muestra, del ruido, de la escala elegida y de la correlación temporal entre puntos.
+
+El exponente máximo de Lyapunov intenta medir la divergencia media de trayectorias cercanas. Si dos estados reconstruidos empiezan próximos y después se separan, puede aproximarse su distancia media por
+\begin{equation}
+d(k)\approx d(0)e^{\lambda k}.
+\end{equation}
+Un valor positivo de \(\lambda\) es compatible con sensibilidad a condiciones iniciales. Sin embargo, en datos financieros también puede aparecer divergencia por ruido, cambios de régimen o mala reconstrucción. Por eso el exponente no se interpreta como prueba aislada de caos. En la práctica se usan métodos como el de Rosenstein para estimar esa divergencia sobre puntos reconstruidos.
+
+La entropía de permutación mide regularidad o irregularidad a partir de patrones ordinales. En lugar de fijarse en los valores exactos de la serie, observa el orden relativo de grupos de observaciones consecutivas. Si \(p(\pi)\) es la frecuencia de un patrón ordinal \(\pi\), la entropía puede escribirse como
+\begin{equation}
+H=-\sum_{\pi}p(\pi)\log p(\pi).
+\end{equation}
+Para compararla entre configuraciones se normaliza dividiendo por el máximo posible:
+\begin{equation}
+H_{\mathrm{norm}}=\frac{H}{\log(m!)}.
+\end{equation}
+Valores cercanos a uno indican alta diversidad de patrones ordinales; valores menores indican mayor regularidad relativa.
+
+Las series barajadas y las series sustitutas sirven como controles. Una serie barajada conserva la distribución marginal de valores, pero destruye el orden temporal. Si una métrica cambia mucho al barajar, parte de lo observado depende del orden. Las series sustitutas buscan controles más exigentes: por ejemplo, la aleatorización de fases conserva aproximadamente la estructura espectral lineal, mientras que AAFT intenta conservar tanto la distribución marginal como una estructura lineal aproximada. Estos controles reducen el riesgo de atribuir a caos lo que podría explicarse por distribución marginal, autocorrelación o heterocedasticidad.
+% TODO: añadir referencias bibliográficas sobre dimensión de correlación, Lyapunov, Theiler, Rosenstein y entropía de permutación.
 
 \section{Predicción local y modelos de referencia}\label{sec:prediccion-modelos-referencia}
-% TODO: redactar este apartado.
+
+La reconstrucción del espacio de estados también puede usarse para predecir, siguiendo la lectura de la predicción como caracterización indirecta de una serie temporal \cite{olmedo2001}. La idea es directa: si dos estados reconstruidos son cercanos, sus futuros a corto plazo podrían parecerse. Esta hipótesis no requiere afirmar que el sistema sea caótico; basta con que la representación capture alguna dependencia útil.
+
+Un predictor local basado en vecinos busca, para el estado actual \(X_t\), los \(k\) estados más cercanos dentro del conjunto de entrenamiento. Si \(N_k(X_t)\) denota ese conjunto de vecinos y \(y_j\) el valor futuro observado asociado al vecino \(j\), una predicción sencilla es
+\begin{equation}
+\hat{y}_t=\frac{1}{k}\sum_{j\in N_k(X_t)} y_j.
+\end{equation}
+El parámetro \(k\) controla el compromiso entre localidad y estabilidad. Con un \(k\) pequeño, la predicción se apoya en estados muy parecidos, pero puede ser sensible al ruido. Con un \(k\) grande, la predicción es más estable, aunque menos específica. Esta es una forma concreta del equilibrio entre sesgo y varianza.
+
+Para valorar si la predicción local aporta algo, debe compararse con modelos de referencia. La persistencia es la referencia más simple: asume que el valor futuro será igual al valor actual disponible,
+\begin{equation}
+\hat{y}_{t+h}=x_t.
+\end{equation}
+En la aplicación de volatilidad, esto equivale a usar la volatilidad realizada reciente como predicción de la volatilidad futura. También se consideran modelos autorregresivos como referencia lineal, porque capturan dependencia temporal en media sin usar reconstrucción no lineal.
+
+La evaluación predictiva se realiza fuera de muestra. Algunas métricas habituales son el error absoluto medio,
+\begin{equation}
+MAE=\frac{1}{n}\sum_{i=1}^{n}|y_i-\hat{y}_i|,
+\end{equation}
+la raíz del error cuadrático medio,
+\begin{equation}
+RMSE=\sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2},
+\end{equation}
+y el coeficiente de determinación fuera de muestra,
+\begin{equation}
+R^2_{\mathrm{OOS}}=1-\frac{\sum_i(y_i-\hat{y}_i)^2}{\sum_i(y_i-\bar{y}_{\mathrm{train}})^2}.
+\end{equation}
+El denominador de \(R^2_{\mathrm{OOS}}\) compara contra una predicción constante basada en la media del entrenamiento, no en información futura.
+
+La separación entre entrenamiento, validación y prueba es necesaria para evitar fuga de información. Un modelo que usa datos futuros, aunque sea de forma indirecta, puede parecer más preciso de lo que sería en una situación real. En predicción local también conviene aplicar una ventana de Theiler o una exclusión temporal equivalente, para no elegir como vecino un punto casi idéntico por estar pegado al punto evaluado.
+
+Una mejora predictiva moderada no prueba caos. Indica que el modelo ha capturado alguna regularidad útil bajo la partición usada. En datos financieros, esa regularidad puede proceder de persistencia, dependencia en varianza, memoria multiescala o efectos de régimen. Por eso la predicción se interpreta junto con los modelos de referencia y no como evidencia aislada.
 
 \section{Modelo HAR-logRV para volatilidad realizada}\label{sec:har-logrv-teoria}
-% TODO: redactar este apartado.
+
+El modelo HAR, de \emph{Heterogeneous Autoregressive model}, es un modelo práctico para volatilidad realizada. No es un modelo de caos ni pretende reconstruir un espacio de estados. Su idea principal es que la volatilidad puede depender de varias escalas temporales: lo ocurrido en la última hora, en las últimas horas y en el último día puede aportar información distinta sobre la volatilidad futura.
+
+En este TFG se utiliza una versión HAR-logRV, es decir, un modelo lineal sobre volatilidades realizadas transformadas logarítmicamente. Adaptado a velas de cinco minutos y a la notación del proyecto, puede escribirse como
+\begin{equation}
+y_t=\beta_0+\beta_1 \log RV_t^{(12)}+\beta_2 \log RV_t^{(48)}+\beta_3 \log RV_t^{(288)}+\varepsilon_t.
+\end{equation}
+Aquí \(y_t\) representa la volatilidad realizada futura transformada logarítmicamente. Las 12 velas equivalen a una hora, las 48 velas a cuatro horas y las 288 velas a un día completo de datos de cinco minutos.
+
+La utilidad del modelo HAR-logRV está en su sencillez. Combina memoria a varias escalas sin introducir una arquitectura compleja, sus coeficientes son interpretables y puede exportarse con facilidad a una aplicación web. En el estudio se usa como cierre predictivo práctico y como comparación frente a modelos basados en reconstrucción. Sus resultados concretos se discuten más adelante; en este capítulo basta con fijar su papel: un modelo de referencia multiescala, no una prueba de dinámica caótica \cite{corsi2009}.
 
 \section{Relación con la tesis de referencia}\label{sec:tesis-referencia}
-% TODO: redactar este apartado.
+
+La tesis de Olmedo Fernández proporciona el marco metodológico general de este trabajo \cite{olmedo2001}. Su recorrido parte de conceptos de determinismo, azar, complejidad y caos; continúa con sistemas dinámicos y herramientas de caracterización; introduce la reconstrucción del espacio de estados; estudia estacionariedad y no linealidad; y finalmente aborda cuantificación y predicción en una aplicación económica.
+
+Este TFG no reproduce la tesis ni intenta trasladarla punto por punto. Toma su lógica de trabajo y la adapta a un problema computacional actual. La diferencia principal está en el enfoque: aquí se desarrolla un procedimiento reproducible, se comprueba primero sobre un sistema sintético conocido y después se aplica a una serie financiera de alta frecuencia. La tesis trabaja con desempleo mensual en España; este trabajo usa volatilidad realizada de Bitcoin construida a partir de velas de cinco minutos.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{0.38\textwidth}p{0.50\textwidth}}
+\hline
+\textbf{Elemento en Olmedo} & \textbf{Adaptación en este TFG} \\
+\hline
+Marco de complejidad, no linealidad y caos & Lectura prudente orientada a indicios, no a demostración de caos en BTC \\
+Caracterización de series temporales & Validación, visualización, ACF, PACF, periodograma y recurrencia sobre volatilidad realizada \\
+Reconstrucción por retardos & Selección operativa de \(\tau\) y \(m\) con información mutua, falsos vecinos y Cao \\
+Cuantificación dinámica & Dimensión de correlación, Lyapunov y entropía comparadas con series barajadas y series sustitutas \\
+Predicción & Comparación fuera de muestra con persistencia, modelos autorregresivos, predicción local y HAR-logRV \\
+Aplicación empírica económica & Aplicación financiera de alta frecuencia y prototipo web autónomo \\
+\hline
+\end{tabular}
+\caption{Relación entre la tesis de referencia y la adaptación realizada en este trabajo.}
+\label{tab:relacion-olmedo-tfg}
+\end{table}
+
+La adaptación también introduce controles propios de un proyecto de ingeniería: separación temporal entre entrenamiento, validación y prueba, validación explícita de datos, generación de artefactos reproducibles y construcción de un MVP web. Esta parte no aparece en la tesis de referencia, pero resulta coherente con la naturaleza del grado y con el objetivo de convertir el análisis en una herramienta utilizable.
 
 \section{Aportación realizada respecto a los antecedentes}\label{sec:aportacion-antecedentes}
-% TODO: redactar este apartado.
+
+La aportación de este TFG no consiste en proponer una nueva teoría de caos ni en afirmar una propiedad fuerte sobre Bitcoin. La aportación está en integrar y adaptar una metodología de análisis de series temporales mediante dinámica no lineal a un caso financiero de alta frecuencia, manteniendo una lectura prudente de los resultados.
+
+El trabajo aporta un procedimiento reproducible que empieza con validación de datos, construcción de variables y caracterización lineal; continúa con contrastes de dependencia, reconstrucción por retardos y cuantificación exploratoria; y termina con comparación predictiva y exportación a una aplicación web. La comprobación con el mapa logístico permite observar cómo responde el procedimiento ante una dinámica caótica conocida. La aplicación a Bitcoin muestra qué parte de ese flujo sigue siendo útil cuando los datos son reales, ruidosos y heterocedásticos.
+
+Otro elemento diferencial es la comparación explícita con series barajadas, series sustitutas y modelos de referencia. Estos controles ayudan a no confundir distribución marginal, autocorrelación lineal o persistencia de volatilidad con caos determinista. También se incorpora HAR-logRV como modelo práctico de cierre, porque la volatilidad financiera presenta memoria a varias escalas y porque un modelo sencillo e interpretable puede ser más útil para una implementación final que un método más difícil de justificar.
+
+Por último, el MVP web convierte parte del estudio en una herramienta demostrable. La aplicación no proporciona asesoramiento financiero, no predice la dirección del mercado y no demuestra caos. Su papel es mostrar que el procedimiento puede integrarse en un sistema autónomo capaz de cargar datos, calcular variables, ejecutar modelos y visualizar predicciones de volatilidad. Con este marco teórico quedan fijados los conceptos necesarios para interpretar los capítulos siguientes sin anticipar conclusiones fuertes sobre la serie de BTC.

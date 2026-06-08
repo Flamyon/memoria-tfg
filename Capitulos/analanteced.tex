@@ -315,32 +315,72 @@ Además de la ventana principal de una hora, en el trabajo se consideran escalas
 
 \section{Caracterización lineal de series temporales}\label{sec:caracterizacion-lineal}
 
-La caracterización lineal busca describir una serie mediante medidas básicas de nivel, dispersión y dependencia lineal. Antes de aplicar herramientas no lineales conviene realizar este análisis, porque muchas regularidades aparentes pueden explicarse con autocorrelación o con ciclos simples.
+La caracterización lineal estudia una serie temporal mediante medidas que describen su nivel, su dispersión y la relación lineal entre observaciones separadas por distintos retardos. Este análisis debe realizarse antes de aplicar herramientas no lineales, ya que una parte importante de la estructura observada en una serie puede deberse a autocorrelación, persistencia o ciclos simples \cite{brockwell2002,box2015}.
 
-La media muestral resume el nivel medio de una serie:
+Sea \(\{x_t\}_{t=1}^{T}\) una serie temporal. La media muestral resume el nivel promedio de la serie:
 \begin{equation}
-\bar{x}=\frac{1}{T}\sum_{t=1}^{T}x_t.
+    \bar{x}=\frac{1}{T}\sum_{t=1}^{T}x_t.
 \end{equation}
-La varianza muestral resume la dispersión alrededor de esa media:
+La varianza muestral mide la dispersión de los valores alrededor de esa media:
 \begin{equation}
-s^2=\frac{1}{T-1}\sum_{t=1}^{T}(x_t-\bar{x})^2.
+    s^2=\frac{1}{T-1}\sum_{t=1}^{T}(x_t-\bar{x})^2.
 \end{equation}
-Estas dos medidas no usan todavía el orden temporal. Para incorporar el tiempo se emplea la autocovarianza a retardo \(k\):
+Estas dos magnitudes no utilizan todavía el orden temporal de las observaciones. Una serie y una permutación aleatoria de esa misma serie tendrían la misma media y la misma varianza. Para estudiar la dependencia temporal es necesario introducir medidas que comparen la serie consigo misma en distintos retardos.
+
+La autocovarianza a retardo \(k\) mide la relación lineal entre \(x_t\) y \(x_{t-k}\). En términos poblacionales se define como
 \begin{equation}
-\gamma(k)=\mathrm{Cov}(x_t,x_{t-k}).
+    \gamma(k)=\operatorname{Cov}(x_t,x_{t-k})
+    =\mathbb{E}\left[(x_t-\mu)(x_{t-k}-\mu)\right],
 \end{equation}
-Si \(\gamma(k)\) es positiva, valores altos tienden a aparecer junto a valores altos \(k\) pasos antes. Si es negativa, valores altos tienden a aparecer junto a valores bajos. Para expresar esta relación en una escala comparable se usa la autocorrelación:
+donde \(\mu=\mathbb{E}[x_t]\), suponiendo que la media no depende del tiempo. En una muestra finita, una estimación habitual es
 \begin{equation}
-\rho(k)=\frac{\gamma(k)}{\gamma(0)}.
+    \hat{\gamma}(k)=\frac{1}{T}\sum_{t=k+1}^{T}(x_t-\bar{x})(x_{t-k}-\bar{x}).
 \end{equation}
+Si \(\hat{\gamma}(k)>0\), los valores altos tienden a aparecer junto a valores altos \(k\) pasos antes, y los valores bajos junto a valores bajos. Si \(\hat{\gamma}(k)<0\), los valores altos tienden a aparecer junto a valores bajos separados por ese retardo. Si \(\hat{\gamma}(k)\) está cerca de cero, no se aprecia una relación lineal clara a ese retardo.
 
-La función de autocorrelación, ACF, representa \(\rho(k)\) para distintos retardos. Permite observar si la serie conserva memoria lineal de su pasado. En una serie financiera de cinco minutos, por ejemplo, retardos de 12, 288 o 2016 observaciones corresponden aproximadamente a una hora, un día y una semana. Esta traducción ayuda a interpretar los gráficos: un pico en un retardo no es solo un número, sino una posible repetición temporal.
+La autocorrelación normaliza la autocovarianza para expresarla en una escala comparable:
+\begin{equation}
+    \rho(k)=\frac{\gamma(k)}{\gamma(0)}.
+\end{equation}
+Como \(\gamma(0)\) es la varianza de la serie, \(\rho(k)\) mide la intensidad de la dependencia lineal a retardo \(k\) en una escala adimensional. Su estimador muestral es
+\begin{equation}
+    \hat{\rho}(k)=\frac{\hat{\gamma}(k)}{\hat{\gamma}(0)}.
+\end{equation}
+Los valores de \(\hat{\rho}(k)\) se encuentran entre \(-1\) y \(1\). Valores próximos a \(1\) indican fuerte persistencia lineal positiva; valores próximos a \(-1\) indican alternancia lineal; valores próximos a cero indican ausencia de dependencia lineal apreciable a ese retardo.
 
-La función de autocorrelación parcial, PACF, mide la relación entre \(x_t\) y \(x_{t-k}\) eliminando el efecto lineal de los retardos intermedios. Su uso es habitual al estudiar modelos autorregresivos, porque ayuda a distinguir si una dependencia a retardo alto es directa o aparece inducida por retardos más cortos.
+La función de autocorrelación, ACF, es la representación de \(\hat{\rho}(k)\) para una colección de retardos \(k=1,2,\ldots,K\). Su objetivo es mostrar cómo se relaciona la serie con su propio pasado. Una ACF que decrece lentamente indica persistencia: los valores actuales conservan memoria de observaciones anteriores durante muchos retardos. Una ACF que cae rápidamente hacia cero sugiere que la dependencia lineal desaparece pronto. Si aparecen picos en retardos concretos, puede existir una periodicidad o repetición temporal asociada a esos retardos.
 
-El periodograma estudia la serie en el dominio de frecuencias. En lugar de preguntar si \(x_t\) se parece a \(x_{t-k}\), pregunta si la serie contiene oscilaciones que se repiten con cierta periodicidad. Una frecuencia alta corresponde a cambios rápidos; una frecuencia baja corresponde a ciclos más lentos. En datos financieros intradía, este análisis puede sugerir patrones horarios, diarios o semanales, aunque debe interpretarse con prudencia porque los mercados no son sistemas periódicos cerrados.
+En datos de cinco minutos, la interpretación de los retardos debe traducirse a tiempo físico. Un retardo \(k=12\) equivale aproximadamente a una hora; un retardo \(k=288\), a un día; y un retardo \(k=2016\), a una semana. Por tanto, un pico de autocorrelación en \(k=288\) no es solo un rasgo numérico del gráfico: puede indicar una regularidad diaria. Esta traducción es necesaria para interpretar correlogramas en series intradía.
 
-ACF, PACF y periodograma son herramientas de caracterización lineal o espectral. Sirven para ordenar el análisis inicial y para construir modelos de referencia, pero no detectan caos por sí mismas. Esta es la razón por la que aparecen antes de la reconstrucción del espacio de estados: primero se comprueba qué parte de la serie puede explicarse con dependencias más simples \cite{olmedo2001}.
+La ACF mide dependencia lineal total entre \(x_t\) y \(x_{t-k}\). Sin embargo, una autocorrelación alta en un retardo grande no implica necesariamente que exista una relación directa entre esos dos valores. Puede ocurrir que la dependencia aparezca inducida por retardos intermedios. Por ejemplo, si \(x_t\) depende de \(x_{t-1}\), y \(x_{t-1}\) depende de \(x_{t-2}\), entonces puede observarse relación entre \(x_t\) y \(x_{t-2}\) aunque el efecto directo de \(x_{t-2}\) desaparezca al tener en cuenta \(x_{t-1}\).
+
+La función de autocorrelación parcial, PACF, intenta separar estos efectos. La autocorrelación parcial a retardo \(k\) mide la relación lineal entre \(x_t\) y \(x_{t-k}\) después de eliminar el efecto lineal de los retardos intermedios \(x_{t-1},x_{t-2},\ldots,x_{t-k+1}\). Una forma de definirla es mediante la regresión autorregresiva de orden \(k\):
+\begin{equation}
+    x_t = c + \phi_{k,1}x_{t-1}+\phi_{k,2}x_{t-2}+\cdots+\phi_{k,k}x_{t-k}+u_t.
+\end{equation}
+La autocorrelación parcial a retardo \(k\) es el coeficiente asociado al último retardo:
+\begin{equation}
+    \alpha(k)=\phi_{k,k}.
+\end{equation}
+Este coeficiente mide la contribución lineal adicional de \(x_{t-k}\) una vez considerados los retardos anteriores. Por eso la PACF es útil para estudiar modelos autorregresivos: ayuda a valorar cuántos retardos aportan información directa sobre el valor actual.
+
+La diferencia entre ACF y PACF es importante. La ACF responde a la pregunta: ``¿se parece la serie a sí misma \(k\) pasos antes?''. La PACF responde a una pregunta más restrictiva: ``¿aporta el retardo \(k\) información lineal adicional una vez incluidos los retardos más recientes?''. En modelos autorregresivos lineales, esta distinción permite identificar dependencias directas y evitar interpretar como independientes relaciones que se explican por la propagación de retardos más cortos.
+
+Un modelo autorregresivo lineal de orden \(p\), denotado AR(\(p\)), se escribe como
+\begin{equation}
+    x_t = c+\sum_{i=1}^{p}\phi_i x_{t-i}+\varepsilon_t.
+\end{equation}
+En este modelo, el valor actual se explica como combinación lineal de sus \(p\) valores anteriores. La ACF y la PACF proporcionan información preliminar sobre la memoria lineal de la serie y sobre la posible elección del orden \(p\). No sustituyen a criterios de selección formal, como AIC o BIC, pero ayudan a interpretar la estructura temporal antes del ajuste del modelo.
+
+Otra herramienta de caracterización lineal es el análisis espectral. Mientras la ACF estudia la serie en el dominio temporal, el análisis espectral estudia cómo se reparte la variabilidad de la serie entre distintas frecuencias. Una frecuencia alta corresponde a oscilaciones rápidas; una frecuencia baja corresponde a movimientos más lentos. Si una serie contiene ciclos aproximadamente repetidos, parte de su variabilidad se concentrará en las frecuencias asociadas a esos ciclos.
+
+El periodograma es una estimación muestral de esa distribución de potencia por frecuencias \cite{brockwell2002,priestley1981}.
+\begin{equation}
+    I(\omega)=\frac{1}{T}\left|\sum_{t=1}^{T} x_t e^{-i\omega t}\right|^2.
+\end{equation}
+Esta expresión mide la intensidad con la que la serie contiene una oscilación asociada a la frecuencia \(\omega\). En datos financieros intradía, el periodograma puede sugerir patrones horarios, diarios o semanales. Estos patrones no deben interpretarse como periodicidad exacta, ya que los mercados no son sistemas cerrados ni perfectamente periódicos, pero sí pueden indicar regularidades temporales relevantes.
+
+ACF, PACF y periodograma son herramientas de caracterización lineal o espectral. Permiten identificar persistencia, memoria lineal, posibles ciclos y escalas temporales relevantes. También sirven para construir modelos de referencia y para comprobar qué parte de la estructura observada puede explicarse antes de recurrir a técnicas no lineales. Esta es la razón por la que aparecen antes de la reconstrucción del espacio de estados y de los contrastes de no linealidad \cite{brockwell2002,olmedo2001}.
 
 \section{Estacionariedad, heterocedasticidad y no linealidad}\label{sec:estacionariedad-heterocedasticidad}
 

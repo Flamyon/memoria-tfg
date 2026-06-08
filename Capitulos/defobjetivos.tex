@@ -4,34 +4,34 @@
 
 \section{Objetivo general}\label{sec:objetivo-general}
 
-El objetivo general de este Trabajo de Fin de Grado es estudiar la volatilidad realizada intradía de Bitcoin desde una perspectiva de series temporales, dinámica no lineal e ingeniería del software. Para ello se parte de datos reales de mercado, se construye una variable de volatilidad realizada horaria a partir de velas de cinco minutos y se analiza si dicha serie presenta dependencia temporal, indicios de no linealidad y capacidad predictiva parcial.
+El objetivo general de este Trabajo de Fin de Grado es estudiar la volatilidad realizada intradía de Bitcoin desde una perspectiva de series temporales, dinámica no lineal e ingeniería del software. El trabajo parte de datos reales del par BTCUSDT en velas de cinco minutos, construye una medida horaria de volatilidad realizada y analiza si dicha serie contiene dependencia temporal, indicios de no linealidad y capacidad predictiva parcial.
 
-El trabajo no pretende demostrar que la volatilidad de Bitcoin siga una dinámica caótica determinista. Su finalidad es más concreta: aplicar de forma ordenada un conjunto de herramientas de caracterización, reconstrucción y predicción para evaluar qué estructura puede extraerse de la serie y hasta qué punto esa estructura mejora modelos de referencia simples. La comparación entre métodos es, por tanto, una parte esencial del objetivo general.
+El trabajo no pretende demostrar que la volatilidad de Bitcoin siga una dinámica caótica determinista. La finalidad es más concreta: aplicar de forma ordenada herramientas de caracterización, reconstrucción y predicción para evaluar qué estructura se puede extraer de la serie y hasta qué punto esa información mejora referencias simples. La comparación entre métodos forma parte del objetivo desde el inicio, no aparece solo como un paso final.
 
-Además del estudio técnico, el trabajo busca trasladar los resultados obtenidos a un prototipo software funcional. Este prototipo permite consultar datos recientes, calcular las variables necesarias, ejecutar varios modelos predictivos y visualizar los resultados de forma interactiva. De este modo, el proyecto combina análisis matemático, validación empírica y desarrollo de una aplicación web autónoma.
+Además del estudio técnico, el proyecto traslada los resultados a un prototipo web funcional. La aplicación permite cargar datos recientes, calcular las variables necesarias, ejecutar varios modelos predictivos y visualizar los resultados de forma interactiva. Así, el TFG combina análisis matemático, validación empírica y desarrollo de una herramienta software autónoma.
 
 \section{Objetivos específicos}\label{sec:objetivos-especificos}
 
 Para alcanzar el objetivo general se plantean los siguientes objetivos específicos:
 
 \begin{enumerate}
-\item Construir una base de datos limpia y validada a partir de velas de cinco minutos de BTCUSDT, comprobando la integridad temporal de la serie, la existencia de huecos, duplicados, valores nulos y posibles inconsistencias en los precios.
+\item Construir una base de datos limpia y validada a partir de velas de cinco minutos de BTCUSDT, comprobando integridad temporal, huecos, duplicados, valores nulos, valores no positivos y consistencia de precios.
 
 \item Definir la variable principal del estudio mediante el cálculo de retornos logarítmicos y volatilidad realizada, diferenciando entre volatilidad pasada disponible en cada instante y volatilidad futura utilizada como variable objetivo.
 
 \item Realizar una caracterización inicial de la serie mediante análisis gráfico, estadísticos descriptivos, estudio de estacionariedad, autocorrelación, autocorrelación parcial y análisis espectral.
 
-\item Estudiar la presencia de dependencia temporal y posibles indicios de no linealidad mediante gráficos de recurrencia, filtrado lineal, análisis de residuos y contrastes complementarios.
+\item Estudiar la presencia de dependencia temporal e indicios de no linealidad mediante gráficos de recurrencia, filtrado lineal, análisis de residuos y contrastes complementarios.
 
-\item Reconstruir un espacio de estados a partir de la serie de volatilidad realizada utilizando retardos temporales, información mutua, falsos vecinos y el método de Cao, interpretando los parámetros obtenidos como elecciones operativas y no como prueba directa de una dinámica determinista de baja dimensión.
+\item Reconstruir un espacio de estados a partir de la serie de volatilidad realizada usando retardos temporales, información mutua, falsos vecinos y el método de Cao. Los parámetros obtenidos se interpretan como elecciones operativas, no como prueba directa de una dinámica determinista de baja dimensión.
 
 \item Cuantificar de forma exploratoria la dinámica reconstruida mediante estimaciones aproximadas de dimensión de correlación, exponentes de Lyapunov y entropía de permutación, comparando los resultados con series barajadas y series sustitutas.
 
-\item Evaluar la utilidad predictiva de la reconstrucción mediante métodos locales basados en vecinos, y comparar su rendimiento con modelos de referencia como persistencia, modelos autorregresivos y HAR-logRV.
+\item Evaluar la utilidad predictiva de la reconstrucción mediante métodos locales basados en vecinos y comparar su rendimiento con persistencia, modelos autorregresivos y HAR-logRV.
 
 \item Validar el procedimiento sobre un sistema sintético conocido, en particular el mapa logístico, para comprobar si las herramientas utilizadas responden de forma coherente cuando se aplican a una dinámica caótica controlada.
 
-\item Diseñar e implementar un MVP web que integre la carga de datos, el cálculo de variables, la ejecución de modelos y la visualización de resultados, manteniendo independencia respecto al repositorio de investigación.
+\item Diseñar e implementar un MVP web que integre la carga de datos, el cálculo de variables, la ejecución de modelos y la visualización de resultados, manteniendo independencia en tiempo de ejecución respecto al repositorio de investigación.
 
 \item Documentar las limitaciones metodológicas y prácticas del estudio, especialmente en lo relativo a la interpretación de indicadores de no linealidad, la predicción financiera y el uso del prototipo como herramienta informativa.
 
@@ -39,17 +39,17 @@ Para alcanzar el objetivo general se plantean los siguientes objetivos específi
 
 \section{Alcance del trabajo}\label{sec:alcance}
 
-El alcance del trabajo se limita al análisis de la volatilidad realizada de Bitcoin en un horizonte horario, utilizando datos intradía de cinco minutos. La variable estudiada no es el precio del activo ni la dirección futura del mercado, sino una medida de variabilidad construida a partir de retornos observados. Esta delimitación es relevante, ya que permite centrar el problema en la predicción de intensidad de movimiento y no en la predicción direccional.
+El alcance del trabajo se limita al análisis de la volatilidad realizada de Bitcoin en un horizonte horario, utilizando datos intradía de cinco minutos. La variable estudiada no es el precio del activo ni la dirección futura del mercado, sino una medida de variabilidad construida a partir de retornos observados. Esta delimitación centra el problema en la intensidad del movimiento, no en si el precio subirá o bajará.
 
-El estudio incluye tanto una parte experimental como una parte de implementación. En la parte experimental se desarrollan las fases de validación de datos, construcción de variables, análisis descriptivo, estudio lineal, análisis no lineal, reconstrucción del espacio de estados, cuantificación dinámica, predicción local, validación sintética y comparación final de modelos. En la parte de implementación se desarrolla una aplicación web que utiliza los artefactos generados por el estudio técnico y permite ejecutar predicciones recientes sobre datos actualizados o cargados por el usuario.
+El estudio incluye una parte experimental y una parte de implementación. En la parte experimental se desarrollan las fases de validación de datos, construcción de variables, análisis descriptivo, estudio lineal, análisis no lineal, reconstrucción del espacio de estados, cuantificación dinámica, predicción local, validación sintética y comparación final de modelos. En la parte de implementación se desarrolla una aplicación web que utiliza los artefactos generados por el estudio técnico y permite ejecutar predicciones recientes sobre datos descargados de Binance, datos de ejemplo o ficheros cargados por el usuario.
 
-El trabajo se centra en modelos relativamente interpretables y defendibles dentro del marco del proyecto. Se consideran modelos simples de referencia, modelos autorregresivos, métodos locales en el espacio reconstruido y HAR-logRV. No se persigue construir el modelo predictivo más complejo posible, sino comparar enfoques con distinto grado de complejidad y analizar qué aporta cada uno. Esta decisión permite mantener una relación clara entre teoría, experimentación y aplicación software.
+El trabajo se centra en modelos interpretables y coherentes con el marco del proyecto. Se consideran referencias simples, modelos autorregresivos, métodos locales en el espacio reconstruido y HAR-logRV. No se busca construir el modelo predictivo más complejo posible, sino comparar enfoques con distinto grado de complejidad y analizar qué aporta cada uno. Esta decisión mantiene una relación clara entre teoría, experimentación y aplicación software.
 
-Quedan dentro del alcance la validación de datos, la separación temporal entre entrenamiento, validación y prueba, la comparación out-of-sample de modelos y la documentación de las limitaciones del prototipo. También queda dentro del alcance la construcción de un sistema reproducible, con scripts, informes, figuras y ficheros auxiliares que permiten justificar las decisiones tomadas durante el desarrollo.
+Quedan dentro del alcance la validación de datos, la separación temporal entre entrenamiento, validación y prueba, la comparación out-of-sample de modelos y la documentación de las limitaciones del prototipo. También queda dentro del alcance la construcción de un sistema reproducible, con scripts, informes, figuras y ficheros auxiliares que justifican las decisiones tomadas durante el desarrollo.
 
 \section{Limitaciones del trabajo}\label{sec:limitaciones-objetivos}
 
-El trabajo presenta varias limitaciones que deben tenerse en cuenta al interpretar sus resultados. La primera es propia del objeto de estudio: las series financieras reales son ruidosas, no estacionarias en sentido estricto y están sometidas a cambios de régimen. Esto dificulta separar con claridad dependencia lineal, no linealidad, heterocedasticidad y efectos externos no observados.
+El trabajo presenta varias limitaciones que deben tenerse en cuenta al interpretar sus resultados. La primera procede del propio objeto de estudio: las series financieras reales son ruidosas, no estacionarias en sentido estricto y están sometidas a cambios de régimen. Esto dificulta separar con claridad dependencia lineal, no linealidad, heterocedasticidad y efectos externos no observados.
 
 La segunda limitación afecta a la interpretación de las herramientas de dinámica no lineal. La reconstrucción del espacio de estados, la dimensión de correlación, los exponentes de Lyapunov o la entropía de permutación pueden aportar información sobre la estructura de la serie, pero no constituyen por sí solos una demostración de caos determinista. En este trabajo se utilizan como instrumentos exploratorios y comparativos, no como pruebas concluyentes.
 
@@ -61,12 +61,12 @@ Por último, el trabajo se limita a Bitcoin y a un horizonte horario concreto. L
 
 \section{Aportación principal del TFG}\label{sec:aportacion-principal}
 
-La aportación principal del TFG consiste en desarrollar un estudio completo y reproducible de la volatilidad realizada intradía de Bitcoin, combinando técnicas de análisis de series temporales, dinámica no lineal y desarrollo software. El trabajo no se limita a aplicar modelos predictivos de forma aislada, sino que construye una secuencia metodológica que parte de la validación del dato y termina en un prototipo web funcional.
+La aportación principal del TFG consiste en desarrollar un estudio reproducible de la volatilidad realizada intradía de Bitcoin, combinando análisis de series temporales, dinámica no lineal y desarrollo software. El trabajo no se limita a aplicar modelos predictivos de forma aislada, sino que construye una secuencia metodológica que parte de la validación del dato y termina en un prototipo web funcional.
 
 Desde el punto de vista metodológico, la aportación está en adaptar herramientas inspiradas en el análisis de sistemas dinámicos al estudio de una serie financiera de alta frecuencia. Esta adaptación se realiza con cautela: se buscan señales de dependencia, no linealidad y predictibilidad parcial, pero se evita presentar los resultados como una prueba de caos determinista. La comparación con series barajadas, series sustitutas y un sistema sintético conocido refuerza esta lectura prudente.
 
-Desde el punto de vista predictivo, el trabajo muestra que la volatilidad realizada de Bitcoin contiene información temporal aprovechable, aunque no necesariamente en la forma de una dinámica determinista simple. Los métodos locales basados en reconstrucción mejoran a referencias básicas, pero los modelos lineales y multiescala siguen siendo competitivos. En particular, HAR-logRV aparece como una solución práctica por su equilibrio entre rendimiento, simplicidad e interpretabilidad.
+Desde el punto de vista predictivo, el trabajo muestra que la volatilidad realizada de Bitcoin contiene información temporal aprovechable, aunque no necesariamente en forma de una dinámica determinista simple. Los métodos locales basados en reconstrucción mejoran a referencias básicas, pero los modelos lineales y multiescala siguen siendo competitivos. En particular, HAR-logRV aparece como una solución práctica por su equilibrio entre rendimiento, simplicidad e interpretabilidad.
 
 Desde el punto de vista software, la aportación consiste en trasladar el estudio técnico a una aplicación web autónoma. El MVP permite cargar datos, calcular variables, ejecutar modelos, comparar predicciones y mostrar resultados de forma accesible. Esta parte convierte el análisis en una herramienta demostrable y cierra el trabajo desde la perspectiva de la ingeniería del software.
 
-En conjunto, el TFG aporta una aproximación integrada al problema: estudia una serie financiera real con herramientas matemáticas avanzadas, evalúa modelos de predicción con criterios empíricos y construye una aplicación que permite utilizar los resultados obtenidos. Su contribución no está en afirmar una propiedad fuerte de la volatilidad de Bitcoin, sino en mostrar qué puede analizarse, qué puede predecirse parcialmente y qué límites deben respetarse al aplicar dinámica no lineal a datos financieros reales.
+En conjunto, el TFG aporta una aproximación integrada al problema: estudia una serie financiera real con herramientas de series temporales y dinámica no lineal, evalúa modelos de predicción con criterios empíricos y construye una aplicación que permite utilizar los resultados obtenidos. Su contribución no está en afirmar una propiedad fuerte de la volatilidad de Bitcoin, sino en mostrar qué puede analizarse, qué puede predecirse parcialmente y qué límites deben respetarse al aplicar dinámica no lineal a datos financieros reales.

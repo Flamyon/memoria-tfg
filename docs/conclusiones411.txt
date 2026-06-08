@@ -1,0 +1,22 @@
+En conclusión, podemos decir que la serie de desempleo en España durante los
+últimos 36 años tiene las siguientes características:
+
+
+tiene un comportamiento no lineal determinista con un cierto nivel de ruido
+existen indicios de dinámica caótica, ya que el máximo exponente de
+Liapunov tiene signo positivo
+la estabilización de la dimensión de correlación, el máximo exponente de
+Liapunov y las medidas del análisis cuantitativo de recurrencia, así como los
+criterios de falsos vecinos y Cao sugieren una dimensión de absorción de
+valor alrededor de seis
+el comportamiento de la estimación de la entropía KS sugiere un
+comportamiento caótico con ruido
+los resultados no varían de manera significativa con el filtrado lineal, aunque
+parece que éste introduce más ruido en la serie
+la evidencia de no linealidad y caos, así como la estabilización de la
+dimensión de correlación desaparece cuando se trabaja con datos permutados
+el contraste de datos subrogados descarta que la serie proceda de un ruido
+correlado, o de un filtro lineal del mismo
+el comportamiento de las distintas técnicas de predicción utilizadas y su
+mejora con respecto a la predicción lineal, así como el número de vecinos y la
+dimensión óptimos a considerar corroboran los resultados anteriores

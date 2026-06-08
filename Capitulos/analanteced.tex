@@ -95,30 +95,62 @@ La evaluación debe respetar el orden temporal. Si el conjunto de observaciones 
 Los datos de entrenamiento se utilizan para ajustar el modelo, los de validación para seleccionar parámetros y los de prueba para medir el rendimiento final. Esta separación reproduce la situación real de predicción: al estimar el futuro, las observaciones posteriores al instante de decisión todavía no están disponibles.
 
 En este TFG la predicción se entiende como una estimación a corto plazo bajo esta restricción temporal. La aplicación financiera se centra en la volatilidad realizada futura, es decir, en la intensidad de variación esperada durante un horizonte breve. La dirección del precio queda fuera del objetivo del trabajo. Esta delimitación permite estudiar una magnitud con mayor persistencia temporal y reduce la ambigüedad entre predicción de variabilidad y predicción de rentabilidad.
+
 \section{Complejidad, no linealidad y caos determinista}\label{sec:complejidad-caos}
 
-En este trabajo se usa el término complejidad en un sentido concreto. Una serie no es compleja simplemente porque sea difícil de mirar o porque tenga muchos datos. La complejidad se refiere a comportamientos como dependencia del pasado, cambios de régimen, irregularidad persistente o interacción entre componentes que no pueden resumirse bien con una regla lineal simple. En series económicas y financieras, esta situación es habitual: los periodos tranquilos y los periodos de alta variabilidad no se alternan de forma completamente uniforme.
+En este trabajo el término complejidad se utiliza en un sentido técnico. Una serie no se considera compleja únicamente por tener muchos datos o por presentar una gráfica difícil de interpretar. La complejidad aparece cuando el comportamiento observado no queda descrito de forma satisfactoria mediante una regla simple, estable y lineal. En series económicas y financieras esto puede manifestarse mediante dependencia del pasado, cambios de régimen, agrupamiento de episodios extremos, variabilidad no constante o relaciones que cambian según el estado del sistema.
 
-La linealidad es una propiedad matemática asociada a proporcionalidad y superposición. De forma intuitiva, un modelo lineal responde de manera proporcional a los cambios de entrada y permite sumar efectos por separado. Un ejemplo sencillo de evolución lineal en tiempo discreto es
+La idea de linealidad puede formularse de manera precisa. Un operador \(L\) es lineal si, para cualesquiera valores \(x\), \(y\) y escalares \(\alpha\), \(\beta\), se cumple
 \begin{equation}
-x_{t+1}=a x_t+b,
+    L(\alpha x + \beta y) = \alpha L(x) + \beta L(y).
 \end{equation}
-donde el valor siguiente depende del valor actual mediante una relación afín. En cambio, una relación no lineal puede escribirse de forma genérica como
+Esta propiedad recoge dos principios: proporcionalidad y superposición. La proporcionalidad indica que multiplicar la entrada por una constante multiplica la salida por esa misma constante. La superposición indica que el efecto conjunto de dos entradas puede obtenerse sumando los efectos que produciría cada una por separado.
+
+En tiempo discreto, una evolución lineal elemental puede escribirse como
 \begin{equation}
-x_{t+1}=f(x_t),
+    x_{t+1} = a x_t,
 \end{equation}
-donde la función \(f\) no cumple la propiedad de superposición. En ese caso, pequeñas diferencias en \(x_t\) pueden tener efectos que dependen de la zona del espacio en la que se encuentre el sistema.
-
-La no linealidad es necesaria para el caos determinista, pero no es suficiente. Muchos sistemas no lineales no son caóticos. Pueden converger a un equilibrio, oscilar de forma periódica o mostrar respuestas suaves. Por eso, detectar no linealidad en una serie no equivale a detectar caos.
-
-El caos determinista describe una situación más específica: un sistema gobernado por reglas deterministas genera trayectorias irregulares y sensibles a las condiciones iniciales. La sensibilidad significa que dos trayectorias que empiezan muy cerca pueden separarse rápidamente. Una forma habitual de expresar esta idea es
+donde el valor futuro depende proporcionalmente del valor actual. En la práctica también se utilizan modelos afines, de la forma
 \begin{equation}
-|\delta_t| \approx e^{\lambda t}|\delta_0|,
+    x_{t+1} = a x_t + b,
 \end{equation}
-donde \(\delta_0\) es una pequeña separación inicial, \(\delta_t\) la separación tras \(t\) pasos y \(\lambda\) mide la tasa media de divergencia. Cuando \(\lambda>0\), la separación crece de forma exponencial en el tramo en que la aproximación es válida.
+que incorporan un término constante \(b\). Aunque estrictamente una relación afín no cumple la propiedad de linealidad si \(b \neq 0\), en el contexto de series temporales suele incluirse dentro de la familia de modelos lineales con constante.
 
-La tesis de Olmedo Fernández toma esta distinción como punto de partida para estudiar series económicas desde la dinámica no lineal \cite{olmedo2001}. Este TFG conserva esa idea, pero la aplica con cautela. En una serie financiera real se pueden estudiar dependencia, no linealidad, sensibilidad local y capacidad predictiva limitada. Lo que no se debe hacer es pasar de esos indicios a una afirmación directa de caos determinista.
+Una relación no lineal no cumple la propiedad de superposición. En forma general puede escribirse como
+\begin{equation}
+    x_{t+1} = f(x_t),
+\end{equation}
+donde \(f\) no es una función lineal. Un ejemplo clásico es el mapa logístico,
+\begin{equation}
+    x_{t+1} = r x_t(1-x_t),
+\end{equation}
+en el que el término \(x_t(1-x_t)\) introduce una interacción multiplicativa del estado consigo mismo. Esta clase de relaciones puede generar comportamientos muy distintos según el valor de los parámetros y la región del espacio en la que se encuentre el sistema.
 
+La no linealidad puede aparecer en distintos aspectos de una serie temporal. Una posibilidad es que afecte a la media condicional, es decir, al valor esperado de la serie dado su pasado:
+\begin{equation}
+    \mathbb{E}[x_t \mid \mathcal{F}_{t-1}].
+\end{equation}
+Otra posibilidad, especialmente relevante en series financieras, es que afecte a la varianza condicional:
+\begin{equation}
+    \operatorname{Var}(x_t \mid \mathcal{F}_{t-1}).
+\end{equation}
+En este segundo caso, el nivel esperado de la serie puede no mostrar una dependencia clara, mientras que la intensidad de sus fluctuaciones sí depende del pasado. Este fenómeno está relacionado con la heterocedasticidad y con el agrupamiento de volatilidad: periodos de alta variabilidad tienden a estar próximos a otros periodos de alta variabilidad, y lo mismo ocurre con los periodos de baja variabilidad.
+
+La distinción entre irregularidad, aleatoriedad y caos es esencial. Una serie irregular es aquella cuya evolución no sigue un patrón visual sencillo. Esa irregularidad puede modelizarse mediante un componente aleatorio, como ocurre en muchos modelos estocásticos. Sin embargo, también puede surgir de una regla determinista no lineal. En ese caso, el sistema no contiene ruido en su definición, pero sus trayectorias pueden parecer desordenadas.
+
+El caos determinista describe esta situación particular: un sistema gobernado por reglas deterministas genera trayectorias irregulares, acotadas y sensibles a las condiciones iniciales. La sensibilidad a las condiciones iniciales significa que dos estados iniciales muy próximos pueden evolucionar hacia trayectorias muy diferentes. Si \(\delta_0\) representa una pequeña separación inicial entre dos trayectorias y \(\delta_t\) la separación tras \(t\) pasos, una forma habitual de expresar esta divergencia es
+\begin{equation}
+    |\delta_t| \approx e^{\lambda t}|\delta_0|,
+\end{equation}
+donde \(\lambda\) representa una tasa media de separación. Cuando \(\lambda > 0\), la distancia entre trayectorias cercanas crece exponencialmente durante el intervalo en el que la aproximación es válida. Esta propiedad limita la predicción a largo plazo, aunque puede permitir predicción local a corto plazo.
+
+En algunos sistemas dinámicos, las trayectorias no recorren todo el espacio posible, sino que quedan confinadas en una región hacia la que el sistema tiende. Esa región se denomina atractor. En sistemas simples, el atractor puede ser un punto fijo o un ciclo periódico. En sistemas caóticos, la geometría puede ser más irregular y dar lugar a lo que se conoce como atractor extraño. En series observadas reales, sin embargo, la existencia de una nube de puntos estructurada o de patrones recurrentes no basta para afirmar que se ha identificado un atractor determinista.
+
+La no linealidad es una condición necesaria para el caos determinista, pero no es suficiente. Muchos sistemas no lineales convergen a un equilibrio, oscilan de forma periódica o presentan comportamientos regulares. Por tanto, un contraste que detecte no linealidad no demuestra caos. Del mismo modo, una estimación positiva de divergencia local, una dimensión de correlación aparentemente baja o una mejora de predicción local deben interpretarse como indicios parciales, no como pruebas aisladas.
+
+Esta cautela es especialmente necesaria en series financieras. Los datos de mercado combinan ruido, cambios de régimen, heterocedasticidad, dependencia temporal, efectos de liquidez y posibles errores de medición. Además, el proceso generador no se observa directamente. Por ello, al estudiar una serie como la volatilidad realizada de Bitcoin, resulta más adecuado hablar de dependencia temporal, no linealidad, estructura compatible con dinámica compleja y utilidad predictiva parcial.
+
+La tesis de Olmedo Fernández utiliza esta distinción como punto de partida para estudiar series económicas desde la dinámica no lineal \cite{olmedo2001}. Este TFG adopta esa línea metodológica, pero mantiene una interpretación conservadora. Los métodos de análisis permiten buscar indicios de comportamiento complejo y comparar modelos de predicción, pero esos indicios no autorizan, por sí solos, una afirmación de caos determinista en Bitcoin.
 \section{Indicios de caos en series económicas}\label{sec:indicios-caos-series-economicas}
 
 En una serie económica real rara vez puede demostrarse caos de forma precisa. A diferencia de un sistema sintético, no se conoce la regla generadora de los datos. Además, las observaciones están afectadas por ruido, errores de medida, agregación temporal, cambios institucionales o de régimen, heterocedasticidad y factores externos no observados. Por este motivo, el lenguaje adecuado no es el de la demostración, sino el de los indicios y las comparaciones.

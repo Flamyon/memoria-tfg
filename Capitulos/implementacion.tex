@@ -1,6 +1,9 @@
 % !TEX root = ../proyect.tex
 
-\chapter{Implementación del pipeline de validación del modelo}\label{cap:implementacion-pipeline}
+\chapter{Implementación del procedimiento de análisis}\label{cap:implementacion-procedimiento}
+
+\section{Estructura general del procedimiento}\label{sec:estructura-procedimiento}
+El procedimiento implementado se organiza como una cadena reproducible de análisis. Primero se definen y explican las herramientas; después se comprueba su comportamiento en un sistema sintético conocido, el mapa logístico; finalmente se aplican a una serie financiera real de volatilidad realizada de Bitcoin. Esta separación es importante porque el mapa logístico permite verificar que la metodología responde ante una dinámica caótica controlada, mientras que Bitcoin sirve para estudiar qué ocurre cuando la señal aparece mezclada con ruido, persistencia, heterocedasticidad y cambios de régimen.
 
 \section{Entorno de desarrollo y herramientas utilizadas}\label{sec:entorno-desarrollo}
 % TODO: redactar este apartado.
@@ -46,8 +49,8 @@ La Fase 0 valida este CSV antes de construir cualquier variable derivada: column
 \section{Experimentos de robustez y configuraciones alternativas}\label{sec:experimentos-robustez}
 % TODO: redactar este apartado.
 
-\section{Validación metodológica con mapa logístico}\label{sec:validacion-logistica}
-La Fase 13 replica el pipeline sobre un mapa logístico con parámetro caótico conocido. Esta fase no utiliza datos de Bitcoin, sino una serie sintética que permite comprobar si las herramientas de reconstrucción, cuantificación y predicción local responden cuando existe una dinámica no lineal controlada. El contraste es importante para la memoria: si el pipeline detecta estructura en el mapa logístico pero ofrece resultados más ambiguos en BTC, la conclusión prudente no se debe a un fallo directo de implementación, sino a la naturaleza financiera y ruidosa de la serie real.
+\section{Comprobación sintética con mapa logístico}\label{sec:validacion-logistica}
+La Fase 13 replica el procedimiento sobre un mapa logístico con parámetro caótico conocido. Esta fase no utiliza datos de Bitcoin, sino una serie sintética que permite comprobar si las herramientas de reconstrucción, cuantificación y predicción local responden cuando existe una dinámica no lineal controlada. El contraste es importante para la memoria: si el procedimiento detecta estructura en el mapa logístico pero ofrece resultados más ambiguos en BTC, la conclusión prudente no se debe a un fallo directo de implementación, sino a la naturaleza financiera y ruidosa de la serie real.
 
 \section{Modelo HAR-logRV y exportación al MVP}\label{sec:har-logrv-exportacion}
 La Fase 14 introduce un modelo HAR-logRV compacto como cierre predictivo operativo. El modelo estima la volatilidad futura a una hora a partir de tres memorias de volatilidad realizada: 1 hora, 4 horas y 1 día. Sus coeficientes se ajustan solo en train y se evalúan en validation y test sin recalibración. Además, el modelo se exporta como artefacto JSON para que el MVP web pueda ejecutarlo sin importar código del repositorio técnico.

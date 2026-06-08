@@ -2,13 +2,19 @@
 
 \chapter{Resultados y discusión}\label{cap:resultados}
 
+\section{Resultados de la comprobación sintética}\label{sec:resultados-comprobacion-sintetica}
+El mapa logístico confirma que el procedimiento detecta estructura cuando la dinámica subyacente es determinista, no lineal y conocida. En la serie limpia aparece una reconstrucción geométrica más nítida que en Bitcoin, una divergencia positiva de trayectorias y una predicción local claramente superior a las referencias lineales. En términos de error, el mejor kNN reduce el RMSE de la referencia AR(0)/media de 0,3565 a 0,0982 en la serie limpia. Al añadir ruido, la reconstrucción se difumina y las estimaciones de Lyapunov pierden nitidez, aunque la predicción local sigue siendo competitiva.
+
+\section{Resultados de la aplicación empírica a Bitcoin}\label{sec:resultados-aplicacion-bitcoin}
+% TODO: redactar este apartado.
+
 \section{Resultados de la caracterización inicial}\label{sec:resultados-caracterizacion}
 % TODO: redactar este apartado.
 
 \section{Resultados del filtrado lineal}\label{sec:resultados-filtrado}
 % TODO: redactar este apartado.
 
-\section{Evidencia de dependencia no lineal}\label{sec:evidencia-no-lineal}
+\section{Indicios de dependencia no lineal}\label{sec:evidencia-no-lineal}
 % TODO: redactar este apartado.
 
 \section{Resultados de la reconstrucción del espacio de estados}\label{sec:resultados-reconstruccion}
@@ -31,7 +37,7 @@ La comparación final incorpora HAR-logRV como modelo práctico de memoria multi
 
 Este resultado también matiza la lectura de las fases de reconstrucción: el kNN confirma cierta utilidad predictiva de la estructura local, pero en BTC la persistencia multiescala de la volatilidad queda mejor resumida por un modelo HAR simple. Por tanto, HAR-logRV se interpreta como cierre práctico del estudio, no como evidencia adicional de caos determinista.
 
-\section{Discusión sobre la existencia de caos determinista}\label{sec:discusion-caos}
+\section{Discusión: indicios frente a demostración de caos determinista}\label{sec:discusion-caos}
 % TODO: redactar este apartado.
 
 \section{Interpretación global de los resultados}\label{sec:interpretacion-global}

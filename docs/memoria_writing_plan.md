@@ -1,7 +1,7 @@
 # Plan operativo de escritura de la memoria del TFG
 
-**Título:** Explorando la complejidad y el caos en series temporales económicas  
-**Caso de estudio:** volatilidad intradía de Bitcoin (`log_rv_past_12`, velas de 5 minutos)  
+**Título actualizado:** Explorando la complejidad y el caos en series temporales económicas  
+**Enfoque:** desarrollo de una metodología/herramienta de análisis, validada con mapa logístico y aplicada después a volatilidad intradía de Bitcoin (`log_rv_past_12`, velas de 5 minutos)  
 **Referencia metodológica:** Olmedo Fernández (2001)  
 **Repositorios del proyecto:**
 
@@ -23,7 +23,7 @@ La documentación auxiliar ya debe tratar el proyecto como compuesto por tres pi
 | `Resumen_tesis_por_capitulos.md` | Actualizado para incluir HAR-logRV, MVP y diferencias frente a la tesis |
 | Este plan | Guía operativa para pasar de documentación auxiliar a capítulos LaTeX |
 
-**Acción pendiente ya dentro de la memoria:** trasladar esta estructura a los capítulos `.tex`, especialmente Fase 13, Fase 14, comparación HAR y MVP. Añadir Corsi (2009) o referencia equivalente HAR en bibliografía.
+**Acción pendiente ya dentro de la memoria:** redactar los capítulos manteniendo la jerarquía correcta: primero herramienta/metodología, después comprobación sintética con mapa logístico, después aplicación empírica a Bitcoin, cierre HAR y MVP.
 
 ---
 
@@ -34,6 +34,7 @@ La documentación auxiliar ya debe tratar el proyecto como compuesto por tres pi
 | Bloque | Estado | Evidencia principal |
 |--------|--------|---------------------|
 | Formación teórica (Olmedo + dinámica no lineal) | Documentada en docs de mapeo; **no integrada** en capítulos LaTeX | `docs/Fases_segun_tesis.md`, `docs/Resumen_tesis_por_capitulos.md` |
+| Comprobación sintética | **Completada** con mapa logístico limpio y con ruido | `phase13_logistic_map_validation_report.md` |
 | Validación experimental | **Completada (14 fases)** | `btc-volatility/reports/FASES.md`, `phase0`–`phase14_*_report.md` |
 | MVP web | **Implementado y funcional** | `mvp-web/` (Streamlit, tests, artefactos exportados) |
 | Escritura memoria | Estructura LaTeX definida; **contenido pendiente** | Capítulos con `% TODO`; solo `resumen.tex` con borrador |
@@ -51,7 +52,7 @@ mvp-web (aplicación)
        │
        ▼
 tfg-memoria (documentación académica)
-  pipeline + resultados + MVP + conclusiones
+  metodología + comprobación sintética + aplicación BTC + MVP + conclusiones
 ```
 
 ### 1.3. Índice actual de la memoria (`proyect.tex`)
@@ -63,7 +64,7 @@ tfg-memoria (documentación académica)
 5. Planificación (`analtemporal.tex`)  
 6. Requisitos  
 7. Diseño  
-8. Implementación del pipeline (fases 0–14)  
+8. Implementación del procedimiento de análisis  
 9. Resultados y discusión  
 10. Implementación del MVP web  
 11. Pruebas y verificación  
@@ -72,7 +73,7 @@ tfg-memoria (documentación académica)
 14. Anexos  
 15. Bibliografía  
 
-**Desajuste LaTeX detectado:** `implementacion.tex` tiene secciones hasta fase 12 + “resultado final”, pero **faltan secciones explícitas** para Fase 13 (mapa logístico) y Fase 14 (HAR-logRV). Conviene añadirlas al `.tex` antes de redactar.
+**Enfoque del índice:** no presentar Bitcoin como objetivo único. El índice debe separar: conceptos, procedimiento, comprobación sintética, aplicación empírica a BTC, cierre predictivo HAR y MVP.
 
 ### 1.4. Serie principal, modelos y roles narrativos
 
@@ -86,7 +87,7 @@ tfg-memoria (documentación académica)
 | AR(49) | Benchmark lineal fuerte (filtro fase 6 + predicción) | Fases 6, 11 |
 | kNN local | Predictor no lineal experimental; \(k=50\) (fase 11), \(k=200\) (fase 12, MVP) | Fases 11–12, MVP |
 | **HAR-logRV compacto** | **Cierre predictivo operativo**; memoria 1 h / 4 h / 24 h | **Fase 14**, MVP |
-| Mapa logístico | Validación metodológica del pipeline | Fase 13 |
+| Mapa logístico | Comprobación sintética de la metodología | Fase 13 |
 
 **Modelos finales del estudio** (texto de `FASES.md`): AR(49), Embedding(\(\tau=137, m=5\)), kNN (\(k=50\)–\(200\)), **HAR-logRV compacto exportable al MVP**.
 
@@ -99,7 +100,7 @@ No afirmar caos determinista en BTC. Distinción obligatoria:
 | **(a) Dependencia temporal** | Persistencia fuerte de volatilidad | ACF `log_rv_past_12` lag 1 ≈ 0,98 (Fase 4) |
 | **(b) No linealidad / heterocedasticidad** | Dependencia en varianza, BDS, ARCH | Fases 2, 7 |
 | **(c) Compatible con dinámica compleja** | AMI, PE, Lyapunov vs barajado; surrogados mixtos | Fases 8–10 |
-| **(d) Caos determinista** | **No en BTC**; sí pipeline cualitativo en logístico | Fase 13 |
+| **(d) Caos determinista** | **No en BTC**; en logístico se comprueba que el procedimiento responde ante una dinámica conocida | Fase 13 |
 
 **Predicción out-of-sample (muestra comparable, 5000 puntos, Fase 14):**
 
@@ -114,7 +115,7 @@ Mejora HAR vs AR(49): ΔRMSE ≈ 0,0033 (~0,4 %). **No exagerar:** la diferenc
 
 **Matiz Fase 10 (surrogados):** vs barajado hay separación fuerte en PE y Lyapunov; vs phase-randomized/AAFT, Lyapunov y D2 no separan claramente → parte de la señal puede explicarse por estructura lineal/espectral.
 
-**Matiz Fase 13 vs BTC:** en mapa logístico limpio, kNN (RMSE ≈ 0,098) supera AR(0)/media (≈ 0,357); en BTC, AR(49) y HAR capturan mejor la persistencia multiescala financiera que el kNN local.
+**Matiz Fase 13 vs BTC:** en mapa logístico limpio, kNN (RMSE ≈ 0,098) supera AR(0)/media (≈ 0,357), aparece estructura geométrica más nítida y Rosenstein detecta divergencia positiva aunque no estime exactamente \(ln(2)\). En BTC, AR(49) y HAR capturan mejor la persistencia multiescala financiera que el kNN local.
 
 ### 1.6. MVP web (`mvp-web`)
 
@@ -142,20 +143,17 @@ Recorrido de la tesis: marco → herramientas → reconstrucción → estacionar
 **Adaptación al TFG (directa, sin tono filosófico largo):**
 
 ```text
-Motivación financiera (volatilidad, clustering, alta frecuencia)
-→ Objetivos (explorar dinámica no lineal; NO demostrar caos en BTC)
-→ Marco teórico mínimo (solo lo usado)
-→ Datos y variable (fases 0–1)
-→ Caracterización lineal (fases 2–4)
-→ Estructura no trivial (fases 5–7)
-→ Reconstrucción y cuantificación (fases 8–10)
+Objetivo metodológico: desarrollar herramientas de análisis de series
+→ Marco teórico autocontenido (sin dar conceptos por sabidos)
+→ Comprobación sintética con mapa logístico (fase 13)
+→ Aplicación empírica a BTC: datos y variable (fases 0–1)
+→ Caracterización lineal y no lineal de BTC (fases 2–10)
 → Predicción local y robustez (fases 11–12)
-→ Validación sintética (fase 13)
 → Cierre predictivo HAR + MVP (fase 14 + mvp-web)
-→ Conclusiones separando análisis dinámico vs herramienta práctica
+→ Conclusiones separando metodología, logístico, BTC, HAR y MVP
 ```
 
-**Aportación respecto a Olmedo:** alta frecuencia BTC; pipeline reproducible anti-leakage; fase 13 sintética; **Fase 14 HAR**; **MVP Streamlit**; interpretación más prudente sobre caos.
+**Aportación respecto a Olmedo:** formulación como herramienta reproducible; comprobación sintética separada; aplicación a alta frecuencia BTC; anti-leakage; **Fase 14 HAR**; **MVP Streamlit**; interpretación más prudente sobre caos.
 
 ---
 
@@ -189,8 +187,8 @@ Referencia maestra: `btc-volatility/reports/FASES.md`. Detalle: `reports/phaseN_
 
 | Campo | Contenido |
 |-------|-----------|
-| Objetivo | 1 página: problema, método en 3 bloques (dinámica no lineal + HAR + MVP), hallazgos prudentes |
-| Actualizar | Añadir Fase 14 y MVP; corregir si dice que AR(49) es el mejor sin matiz HAR |
+| Objetivo | 1 página: metodología, comprobación logística, aplicación BTC, HAR y MVP |
+| Actualizar | Mantener BTC como aplicación empírica, no como objetivo único; no exagerar HAR ni caos |
 | Archivos | Sección 1.5; `phase14_har_logrv_mvp_report.md`; `mvp-web/README.md` |
 
 ---
@@ -199,9 +197,9 @@ Referencia maestra: `btc-volatility/reports/FASES.md`. Detalle: `reports/phaseN_
 
 | Campo | Contenido |
 |-------|-----------|
-| Objetivo | Contexto financiero BTC; pregunta: ¿hasta dónde ayudan herramientas de dinámica no lineal frente a modelos de volatilidad más simples? |
-| Secciones | Contexto; Planteamiento; Naturaleza del trabajo (teórico + 14 fases + MVP); Estructura |
-| Teoría | Breve: complejidad ≠ caos; volatilidad realizada |
+| Objetivo | Presentar el TFG como desarrollo de herramienta/metodología y aplicación real |
+| Secciones | Contexto; Planteamiento; Naturaleza del trabajo (teoría + logístico + BTC + MVP); Estructura |
+| Teoría | Breve: complejidad ≠ caos; volatilidad realizada; por qué en economía solo hay indicios |
 | Figuras | Opcional: diagrama tres repositorios |
 | Advertencias | No prometer señales de trading ni caos en BTC |
 
@@ -209,20 +207,21 @@ Referencia maestra: `btc-volatility/reports/FASES.md`. Detalle: `reports/phaseN_
 
 ### 4.3. Objetivos (`defobjetivos.tex`)
 
-**Objetivo general sugerido:** explorar complejidad y dinámica no lineal en volatilidad intradía de BTC; construir pipeline reproducible; cerrar con modelo HAR exportable y MVP demostrativo.
+**Objetivo general sugerido:** desarrollar y validar una metodología computacional para analizar series temporales con herramientas de dinámica no lineal; comprobarla con mapa logístico; aplicarla a volatilidad intradía de BTC; cerrar con modelo HAR exportable y MVP demostrativo.
 
 **Objetivos específicos (alineados con fases):**
 
-1. Validar y construir series de volatilidad realizada (0–1).  
-2. Caracterizar dependencia lineal y estacionariedad (2–4).  
-3. Contrastar no linealidad y reconstruir espacio de estados (5–8).  
-4. Cuantificar indicadores con controles surrogados (9–10).  
-5. Evaluar predicción local kNN vs benchmarks (11–12).  
-6. Validar pipeline en mapa logístico (13).  
-7. **Implementar HAR-logRV y exportarlo al MVP (14).**  
-8. **Desarrollar MVP web autónomo para predicción operativa (`mvp-web`).**
+1. Explicar los conceptos sin asumir tribunal especialista.  
+2. Validar la metodología con mapa logístico (13).  
+3. Validar y construir series de volatilidad realizada para BTC (0–1).  
+4. Caracterizar dependencia lineal y estacionariedad (2–4).  
+5. Contrastar no linealidad y reconstruir espacio de estados (5–8).  
+6. Cuantificar indicadores con controles surrogados (9–10).  
+7. Evaluar predicción local kNN vs benchmarks (11–12).  
+8. **Implementar HAR-logRV y exportarlo al MVP (14).**  
+9. **Desarrollar MVP web autónomo para predicción operativa (`mvp-web`).**
 
-**Aportación principal:** adaptación metodológica Olmedo → BTC alta frecuencia + control sintético + **separación análisis dinámico / cierre HAR / MVP**.
+**Aportación principal:** herramienta metodológica reproducible inspirada en Olmedo → control sintético + BTC alta frecuencia + **separación análisis dinámico / cierre HAR / MVP**.
 
 ---
 
@@ -275,7 +274,7 @@ Referencia maestra: `btc-volatility/reports/FASES.md`. Detalle: `reports/phaseN_
 
 ---
 
-### 4.8. Implementación pipeline (`implementacion.tex`)
+### 4.8. Implementación del procedimiento (`implementacion.tex`)
 
 **Añadir secciones LaTeX pendientes:**
 
@@ -323,7 +322,7 @@ Referencia maestra: `btc-volatility/reports/FASES.md`. Detalle: `reports/phaseN_
 - HAR mejora ligeramente a AR(49) y claramente a kNN en muestra comparable.  
 - kNN confirma predictibilidad local pero no domina en BTC.  
 - Reconstrucción + cuantificación: evidencia (c), no (d).  
-- Logístico: pipeline detecta estructura cuando la dinámica es conocida.
+- Logístico: el procedimiento detecta estructura cuando la dinámica es conocida.
 
 **Advertencias:** no presentar HAR como prueba de caos; no ocultar mejora marginal HAR vs AR; mencionar solapamiento `rv_past`/`rv_future`.
 
@@ -489,7 +488,7 @@ El Bloque 5 dice que kNN no supera AR (correcto para fases 11–12). En el Bloqu
 
 ### 8.7. Frase guía
 
-> El TFG explora dinámica no lineal y caos como **marco metodológico** sobre volatilidad de BTC, contrasta indicadores con rigor prudente, valida el pipeline en un sistema caótico conocido y cierra con un **modelo HAR exportable** y un **MVP web** que no sustituyen la demostración de caos determinista en datos reales.
+> El TFG desarrolla una metodología de análisis de series temporales con dinámica no lineal, la comprueba en un sistema caótico conocido, la aplica con cautela a volatilidad de BTC y cierra con un **modelo HAR exportable** y un **MVP web**. En BTC no se demuestra caos determinista; se documentan indicios, utilidad predictiva parcial y límites.
 
 ---
 

@@ -1,8 +1,6 @@
 \cdpchapter{Resumen}
 
 \begingroup
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{0.8\baselineskip}
 
 Este Trabajo Fin de Grado analiza la complejidad y la posible presencia de estructura no lineal en series temporales financieras, tomando como caso de estudio la volatilidad intradía de Bitcoin. El objetivo es estudiar hasta qué punto herramientas propias de la dinámica no lineal permiten caracterizar mejor este tipo de series, evaluar su utilidad predictiva frente a referencias lineales y cerrar el análisis con un modelo práctico exportable.
 
@@ -10,7 +8,7 @@ El trabajo parte de datos reales de mercado de Bitcoin en intervalos de 5 minuto
 
 Posteriormente, se aplica un filtrado lineal y distintos contrastes de no linealidad para determinar si la dependencia observada en los datos puede explicarse mediante modelos lineales o si persiste una dinámica más compleja.
 
-El núcleo metodológico del trabajo consiste en la reconstrucción del espacio de estados de la serie temporal mediante coordenadas retardadas. Para ello se seleccionan los parámetros de reconstrucción utilizando información mutua, falsos vecinos y el método de Cao. A partir de esta reconstrucción se estudian diversas medidas de complejidad dinámica y se implementan técnicas de predicción local en el espacio de estados, comparando su comportamiento con modelos base de carácter lineal.
+El núcleo metodológico del trabajo es la reconstrucción del espacio de estados de la serie de volatilidad mediante coordenadas retardadas. Los parámetros se seleccionan con información mutua, falsos vecinos y el método de Cao, interpretándolos como una elección operativa. Esta reconstrucción sirve después como base para estudiar medidas de complejidad dinámica y aplicar predicción local frente a modelos lineales de referencia.
 
 El estudio se valida además sobre un mapa logístico, utilizado como sistema sintético conocido para comprobar que el pipeline detecta estructura cuando la dinámica subyacente sí es caótica. 
 

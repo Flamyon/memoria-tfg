@@ -384,28 +384,72 @@ ACF, PACF y periodograma son herramientas de caracterización lineal o espectral
 
 \section{Estacionariedad, heterocedasticidad y no linealidad}\label{sec:estacionariedad-heterocedasticidad}
 
-Una serie es débilmente estacionaria cuando sus propiedades principales no cambian con el tiempo. En términos habituales, se exige media constante, varianza constante y autocovarianza dependiente solo del retardo:
+Una serie temporal es débilmente estacionaria cuando sus propiedades estadísticas de primer y segundo orden no cambian con el tiempo. De forma habitual, esto se expresa exigiendo media constante, varianza constante y autocovarianza dependiente solo del retardo:
 \begin{equation}
-E[x_t]=\mu,\qquad \mathrm{Var}(x_t)=\sigma^2,\qquad \mathrm{Cov}(x_t,x_{t-k})=\gamma(k).
+    \mathbb{E}[x_t]=\mu,\qquad 
+    \operatorname{Var}(x_t)=\sigma^2,\qquad 
+    \operatorname{Cov}(x_t,x_{t-k})=\gamma(k).
 \end{equation}
-Esta definición no implica que la serie sea constante, sino que sus fluctuaciones se producen alrededor de una estructura estadística estable.
+Esta definición no implica que la serie sea constante ni que sus valores sean fácilmente predecibles. Una serie estacionaria puede fluctuar de forma intensa; lo relevante es que esas fluctuaciones se produzcan alrededor de una estructura estadística estable.
 
-La estacionariedad importa porque muchas técnicas de series temporales asumen, de forma explícita o implícita, que el comportamiento estadístico no cambia radicalmente durante la muestra. Si una serie tiene tendencia, cambios de escala o rupturas de régimen, un contraste puede interpretar esos cambios como dependencia o como estructura dinámica cuando en realidad reflejan una muestra no homogénea.
+La estacionariedad es importante porque muchas herramientas de series temporales se interpretan bajo la hipótesis de que la serie mantiene un comportamiento relativamente homogéneo durante la muestra. Si una serie presenta tendencia, cambios de escala o rupturas de régimen, algunas medidas pueden ser engañosas. Por ejemplo, una autocorrelación elevada puede deberse a una tendencia común y no a una relación dinámica estable entre observaciones. Del mismo modo, un contraste de no linealidad puede detectar cambios de régimen o variabilidad no constante en lugar de una estructura dinámica no lineal.
 
-En este trabajo se consideran dos contrastes clásicos de estacionariedad de forma complementaria. El contraste ADF se usa para analizar la presencia de raíz unitaria, asociada a comportamientos no estacionarios persistentes. El contraste KPSS plantea la hipótesis de estacionariedad alrededor de un nivel o de una tendencia. Leídos conjuntamente, ambos ayudan a evitar una conclusión basada en un solo punto de vista. Su resultado no debe tratarse como una etiqueta absoluta, especialmente en series financieras largas y con cambios de régimen.
-
-La heterocedasticidad aparece cuando la varianza no es constante en el tiempo. En finanzas es un fenómeno muy relevante: los retornos pueden tener media cercana a cero y, aun así, alternar periodos de baja y alta variabilidad. Los modelos ARCH capturan precisamente dependencia temporal en la varianza, es decir, la posibilidad de que los errores grandes tiendan a agruparse.
-
-Para separar dependencia lineal en media de otros efectos se puede ajustar un modelo autorregresivo de orden \(p\):
+En la práctica no existe una única prueba definitiva de estacionariedad. Por este motivo suelen utilizarse contrastes con hipótesis nulas distintas. El contraste aumentado de Dickey-Fuller, ADF, parte de una regresión auxiliar en la que se estudia si la serie contiene una raíz unitaria \cite{dickey1979}. Una forma simplificada de la regresión es
 \begin{equation}
-x_t=c+\sum_{i=1}^{p}\phi_i x_{t-i}+\varepsilon_t.
+    \Delta x_t = \alpha + \beta t + \rho x_{t-1}
+    + \sum_{i=1}^{p}\psi_i \Delta x_{t-i} + u_t,
 \end{equation}
-Este modelo expresa el valor actual como combinación lineal de valores pasados más un residuo. Si después de ajustar el modelo los residuos siguen mostrando estructura, esa estructura no se explica completamente por la dependencia lineal incluida.
+donde \(\Delta x_t=x_t-x_{t-1}\). La hipótesis de raíz unitaria se asocia al caso \(\rho=0\). Si se rechaza, se obtiene evidencia contra una forma persistente de no estacionariedad.
 
-El filtrado lineal antes de algunos contrastes es una precaución metodológica. Si se aplica directamente un contraste de no linealidad a una serie con fuerte autocorrelación lineal, el rechazo puede deberse simplemente a esa autocorrelación. Por eso se analizan tanto la serie original como los residuos del modelo lineal.
+El contraste KPSS adopta el punto de vista contrario: su hipótesis nula es la estacionariedad alrededor de un nivel o de una tendencia \cite{kpss1992}. Esta diferencia es útil. Si ADF no rechaza raíz unitaria y KPSS rechaza estacionariedad, la evidencia apunta a no estacionariedad. Si ADF rechaza raíz unitaria y KPSS no rechaza estacionariedad, la serie parece más compatible con estacionariedad. En series financieras reales, los resultados pueden ser mixtos, especialmente cuando hay cambios de régimen, episodios extremos o varianza variable. Por ello, estos contrastes deben interpretarse junto con gráficos, momentos móviles y conocimiento del problema.
 
-El contraste de Ljung-Box se utiliza para preguntar si existe autocorrelación conjunta hasta ciertos retardos. Aplicado a residuos, evalúa si queda dependencia lineal en media. Aplicado a cuadrados de residuos, ayuda a detectar dependencia en varianza. El contraste BDS se usa como contraste de independencia y posible no linealidad, pero tampoco prueba caos. Su rechazo indica que la serie no se comporta como una sucesión independiente bajo las condiciones del contraste; la interpretación concreta requiere mirar el resto del análisis.
-% TODO: añadir referencia bibliográfica sobre el contraste BDS y contrastes de independencia no lineal.
+La heterocedasticidad aparece cuando la varianza de una serie no es constante en el tiempo. En un modelo con residuos \(\varepsilon_t\), la homocedasticidad exigiría
+\begin{equation}
+    \operatorname{Var}(\varepsilon_t \mid \mathcal{F}_{t-1}) = \sigma^2.
+\end{equation}
+En cambio, si la varianza condicional depende de la información pasada, se tiene
+\begin{equation}
+    \operatorname{Var}(\varepsilon_t \mid \mathcal{F}_{t-1}) = \sigma_t^2,
+\end{equation}
+donde \(\sigma_t^2\) puede variar con \(t\). Esta situación es habitual en series financieras: los retornos pueden tener media cercana a cero y, al mismo tiempo, alternar periodos de baja y alta variabilidad.
+
+Los modelos ARCH formalizan esta dependencia temporal en la varianza \cite{engle1982}. En su forma básica, un modelo ARCH(\(q\)) puede escribirse como
+\begin{equation}
+    \varepsilon_t = \sigma_t z_t,\qquad z_t \sim iid(0,1),
+\end{equation}
+con
+\begin{equation}
+    \sigma_t^2 = \alpha_0 + \sum_{i=1}^{q}\alpha_i \varepsilon_{t-i}^2.
+\end{equation}
+La idea central es que errores grandes en valor absoluto tienden a ir seguidos de periodos de mayor varianza condicional. En este contexto, no se estudia solo la dependencia de \(x_t\), sino también la dependencia de \(x_t^2\), \(|x_t|\) o de los residuos al cuadrado.
+
+Para separar dependencia lineal en media de otros efectos, puede ajustarse un modelo autorregresivo de orden \(p\):
+\begin{equation}
+    x_t=c+\sum_{i=1}^{p}\phi_i x_{t-i}+\varepsilon_t.
+\end{equation}
+Este modelo expresa el valor actual como combinación lineal de valores pasados más un residuo. Si después del ajuste los residuos \(\varepsilon_t\) siguen mostrando estructura, esa estructura no queda explicada por la dependencia lineal incluida en el modelo. Esta idea es importante antes de aplicar contrastes de no linealidad, porque una serie con fuerte autocorrelación lineal puede provocar rechazos que no necesariamente indican dinámica no lineal.
+
+El contraste de Ljung-Box evalúa si un conjunto de autocorrelaciones hasta cierto retardo puede considerarse conjuntamente nulo \cite{ljung1978}. Para un número máximo de retardos \(m\), el estadístico se define como
+\begin{equation}
+    Q = T(T+2)\sum_{k=1}^{m}\frac{\hat{\rho}_k^2}{T-k},
+\end{equation}
+donde \(T\) es el tamaño muestral y \(\hat{\rho}_k\) es la autocorrelación muestral a retardo \(k\). Aplicado a residuos, el contraste permite analizar si queda dependencia lineal en media. Aplicado a residuos al cuadrado, ayuda a detectar dependencia en varianza. Esta segunda aplicación es especialmente relevante en series financieras, donde la autocorrelación de los retornos puede ser reducida mientras que la de los cuadrados resulta significativa.
+
+La no linealidad, en este contexto, se refiere a dependencias que no quedan descritas adecuadamente por una combinación lineal de retardos. Puede aparecer en la media condicional, en la varianza condicional o en relaciones más generales entre observaciones. Por ello, rechazar un modelo lineal no identifica automáticamente un mecanismo caótico. Puede indicar heterocedasticidad, cambios de régimen, asimetrías, efectos umbral o mezcla de procesos.
+
+El contraste BDS, introducido por Brock, Dechert y Scheinkman y desarrollado posteriormente con LeBaron, se utiliza como contraste de independencia basado en la correlación espacial de vectores construidos a partir de la serie \cite{brock1996}. Su lógica consiste en comparar la frecuencia con la que aparecen observaciones cercanas en dimensión \(m\) con lo que cabría esperar si la serie fuera independiente e idénticamente distribuida. De forma simplificada, se construyen vectores
+\begin{equation}
+    X_t^{(m)}=(x_t,x_{t-1},\ldots,x_{t-m+1})
+\end{equation}
+y se calcula una suma de correlación \(C_m(\varepsilon)\), que mide la proporción de pares de vectores situados a distancia menor que \(\varepsilon\). Bajo independencia, se espera aproximadamente
+\begin{equation}
+    C_m(\varepsilon) \approx C_1(\varepsilon)^m.
+\end{equation}
+El estadístico BDS mide la desviación entre ambos términos. Si la desviación es grande, se rechaza la hipótesis de independencia.
+
+La interpretación del BDS requiere cautela. Un rechazo puede indicar dependencia no lineal, pero también puede deberse a dependencia lineal no eliminada, heterocedasticidad, no estacionariedad o cambios de régimen. Por este motivo, en aplicaciones empíricas se suele aplicar tanto a la serie original como a residuos de un modelo lineal. Si el rechazo persiste tras el filtrado lineal, la evidencia de estructura no explicada por el modelo lineal es más fuerte. Aun así, el contraste BDS no prueba caos determinista.
+
+En conjunto, estacionariedad, heterocedasticidad y no linealidad deben analizarse como problemas relacionados. La estacionariedad controla si la estructura estadística de la serie es razonablemente estable; la heterocedasticidad examina si la varianza cambia de forma dependiente del pasado; y los contrastes de no linealidad estudian si queda estructura más allá de relaciones lineales simples. Esta secuencia evita interpretar como caos lo que puede explicarse por persistencia lineal, varianza condicional o cambios de régimen. Esta precaución está en línea con la metodología de análisis de series económicas no lineales expuesta por Olmedo Fernández \cite{olmedo2001}.
 
 \section{Reconstrucción del espacio de estados}\label{sec:reconstruccion-espacio}
 

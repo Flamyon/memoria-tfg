@@ -253,32 +253,65 @@ Esta forma de usar sistemas dinámicos sencillos como referencia conceptual est�
 
 \section{Series temporales financieras y volatilidad realizada}\label{sec:series-financieras-volatilidad}
 
-Una serie financiera de precios puede representarse como \(P_t\), donde cada valor es el precio observado en el instante \(t\). En datos de velas, el precio de cierre resume el último precio negociado dentro de cada intervalo. Aunque el precio es la variable más visible, no siempre es la más adecuada para el análisis temporal directo: puede tener tendencias, cambios de escala y niveles muy distintos a lo largo de la muestra.
+Una serie financiera de precios puede representarse como \(\{P_t\}_{t=1}^{T}\), donde \(P_t\) es el precio observado en el instante \(t\). En datos de velas, cada intervalo temporal contiene varias magnitudes: precio de apertura, máximo, mínimo, cierre, volumen negociado y número de operaciones. En este trabajo se utiliza principalmente el precio de cierre, ya que resume el último precio negociado dentro de cada intervalo de cinco minutos.
 
-Por este motivo se trabaja habitualmente con retornos. El retorno logarítmico entre dos instantes consecutivos se define como
-\begin{equation}
-r_t=\log(P_t)-\log(P_{t-1}).
-\end{equation}
-Esta transformación mide variación relativa y facilita comparar cambios ocurridos en distintos niveles de precio. En el contexto de este trabajo, los retornos son el punto de partida para construir medidas de volatilidad.
+Aunque el precio es la variable más visible, no suele ser la más adecuada para el análisis temporal directo. Una serie de precios puede presentar tendencias, cambios de escala y niveles muy distintos a lo largo de la muestra. Además, comparar una variación de 100 unidades cuando el precio está en 10.000 con la misma variación cuando el precio está en 60.000 no tiene la misma interpretación relativa. Por este motivo, en análisis financiero se trabaja habitualmente con retornos.
 
-La volatilidad no mide si el precio sube o baja, sino la intensidad de sus variaciones. Una forma empírica de medirla es la volatilidad realizada, que acumula retornos al cuadrado dentro de una ventana temporal. Para una ventana pasada de \(h\) observaciones, se define como
+El retorno logarítmico entre dos instantes consecutivos se define como
 \begin{equation}
-RV_t^{(h)}=\sum_{i=0}^{h-1} r_{t-i}^2.
+    r_t = \log(P_t)-\log(P_{t-1}).
 \end{equation}
-En la implementación del proyecto se usa esta suma de retornos al cuadrado, no una media normalizada. Para trabajar con una escala más estable se aplica una transformación logarítmica con una constante positiva pequeña:
+Esta expresión también puede escribirse como
 \begin{equation}
-v_t=\log\left(RV_t^{(h)}+\varepsilon\right).
+    r_t = \log\left(\frac{P_t}{P_{t-1}}\right).
 \end{equation}
-La constante \(\varepsilon\) evita problemas numéricos cuando la suma de cuadrados es muy pequeña.
+El retorno logarítmico mide la variación relativa del precio entre dos instantes consecutivos. Para variaciones pequeñas, \(r_t\) se aproxima al retorno simple \((P_t-P_{t-1})/P_{t-1}\), pero presenta ventajas algebraicas, ya que los retornos logarítmicos acumulados en varios periodos pueden sumarse.
 
-La aplicación empírica de esta memoria se centra en ventanas de doce velas de cinco minutos, es decir, una hora. La serie principal es la volatilidad realizada pasada transformada logarítmicamente. El objetivo predictivo es la volatilidad realizada futura sobre la hora siguiente, que de forma análoga puede escribirse como
-\begin{equation}
-RV_{t,+}^{(h)}=\sum_{i=1}^{h} r_{t+i}^2.
-\end{equation}
-Esta definición exige separar con cuidado las variables disponibles en el instante \(t\) de las variables futuras usadas solo para evaluar o entrenar modelos.
+La volatilidad mide la intensidad de las variaciones del precio. No indica si el precio sube o baja, sino cuánto fluctúa. Dos periodos pueden tener retornos medios similares y, sin embargo, mostrar niveles de volatilidad muy distintos. En mercados financieros esta distinción es relevante porque la incertidumbre, el riesgo y la actividad de mercado suelen estar más relacionados con la magnitud de los movimientos que con su signo.
 
-Una propiedad habitual de las series financieras es el agrupamiento de volatilidad: periodos de alta variabilidad tienden a ir seguidos de otros periodos de alta variabilidad, y lo mismo ocurre con periodos tranquilos. Esta persistencia convierte la volatilidad realizada en una variable más razonable para la predicción a corto plazo que la dirección del precio. La principal limitación es que las ventanas de volatilidad pueden solaparse. Ese solapamiento introduce dependencia adicional entre observaciones próximas y debe recordarse al interpretar contrastes y métricas.
-% TODO: añadir referencias bibliográficas estándar sobre volatilidad realizada.
+Una forma empírica de medir la variabilidad observada es la volatilidad realizada. Para una ventana de \(h\) observaciones, se construye acumulando retornos al cuadrado. En el caso de una ventana pasada, disponible en el instante \(t\), se define como
+\begin{equation}
+    RV_t^{(h)} = \sum_{i=0}^{h-1} r_{t-i}^{2}.
+\end{equation}
+Esta magnitud resume la variación acumulada durante las últimas \(h\) observaciones. En la implementación de este proyecto se utiliza la suma de retornos al cuadrado, no una media normalizada. Esta elección conserva la interpretación de variación acumulada dentro de la ventana.
+
+La volatilidad realizada está relacionada con la idea de variación cuadrática de un proceso de precios y se utiliza de forma habitual cuando se dispone de datos de alta frecuencia \cite{barndorff2002,andersen2003}. En términos prácticos, permite construir una medida observable de volatilidad a partir de los retornos registrados, sin tener que tratar la volatilidad únicamente como una variable latente.
+
+Para estabilizar la escala de la serie se aplica una transformación logarítmica. En este trabajo se define
+\begin{equation}
+    v_t^{(h)} = \log\left(RV_t^{(h)}+\varepsilon\right),
+\end{equation}
+donde \(\varepsilon>0\) es una constante pequeña introducida por estabilidad numérica. Su función es evitar problemas cuando la suma de cuadrados es muy próxima a cero. Esta transformación reduce la asimetría de la variable y suaviza la influencia de episodios extremos, lo que facilita su tratamiento estadístico.
+
+La aplicación empírica de esta memoria se centra en ventanas de doce velas de cinco minutos. Por tanto, la ventana principal equivale a una hora:
+\begin{equation}
+    h = 12.
+\end{equation}
+La serie principal del estudio es la volatilidad realizada pasada transformada logarítmicamente, \(v_t^{(12)}\). Esta variable se construye únicamente con información disponible hasta el instante \(t\), por lo que puede utilizarse como entrada de modelos predictivos.
+
+El objetivo predictivo es la volatilidad realizada futura sobre la hora siguiente. De forma análoga, para un horizonte de \(h\) observaciones puede definirse como
+\begin{equation}
+    RV_{t,+}^{(h)} = \sum_{i=1}^{h} r_{t+i}^{2}.
+\end{equation}
+Su transformación logarítmica viene dada por
+\begin{equation}
+    y_t^{(h)} = \log\left(RV_{t,+}^{(h)}+\varepsilon\right).
+\end{equation}
+En el caso principal del TFG, \(h=12\), de modo que \(y_t^{(12)}\) representa la volatilidad realizada de la hora posterior a \(t\). Esta variable no está disponible en el instante de predicción; se utiliza como objetivo para entrenar y evaluar los modelos.
+
+La separación entre volatilidad pasada y volatilidad futura es metodológicamente importante. La variable \(v_t^{(h)}\) resume información contenida en \(\mathcal{F}_t\), mientras que \(y_t^{(h)}\) depende de observaciones posteriores. Si un modelo utilizara directa o indirectamente \(y_t^{(h)}\) para predecir en \(t\), se produciría fuga de información. Por ello, la construcción de variables debe respetar estrictamente la dirección temporal de la serie.
+
+Una propiedad habitual de las series financieras es el agrupamiento de volatilidad. Los periodos de alta variabilidad tienden a estar próximos a otros periodos de alta variabilidad, y los periodos tranquilos tienden a agruparse. Esta propiedad puede expresarse de forma intuitiva mediante la dependencia temporal de los cuadrados de los retornos:
+\begin{equation}
+    \operatorname{Cov}(r_t^2,r_{t-k}^2) \neq 0
+\end{equation}
+para algunos retardos \(k>0\). Aunque los retornos \(r_t\) pueden mostrar poca autocorrelación lineal, sus cuadrados o valores absolutos suelen presentar una dependencia más marcada. Esta diferencia justifica estudiar volatilidad en lugar de dirección del precio.
+
+El carácter persistente de la volatilidad realizada permite plantear problemas de predicción a corto plazo. La pregunta no es si el precio subirá o bajará, sino si la variabilidad futura será alta o baja en relación con el comportamiento reciente. Esta formulación es más adecuada para el objetivo del TFG, ya que la volatilidad suele contener más estructura temporal que los retornos direccionales.
+
+La principal limitación de estas variables es el solapamiento de ventanas. Dos valores consecutivos de \(RV_t^{(h)}\) comparten \(h-1\) retornos cuando la ventana se desplaza solo una observación. Por ejemplo, con \(h=12\), las ventanas de volatilidad pasada en \(t\) y \(t+1\) comparten once de los doce retornos utilizados. Este solapamiento introduce dependencia mecánica entre observaciones próximas y debe tenerse en cuenta al interpretar autocorrelaciones, contrastes y métricas predictivas.
+
+Además de la ventana principal de una hora, en el trabajo se consideran escalas temporales más amplias para capturar memoria multiescala. Con datos de cinco minutos, las ventanas \(h=12\), \(h=48\) y \(h=288\) corresponden aproximadamente a una hora, cuatro horas y un día. Esta idea conecta con los modelos HAR de volatilidad realizada, que representan la persistencia de la volatilidad mediante componentes de distintas escalas temporales \cite{corsi2009}. La formulación concreta de HAR-logRV se presenta más adelante.
 
 \section{Caracterización lineal de series temporales}\label{sec:caracterizacion-lineal}
 

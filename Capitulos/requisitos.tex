@@ -2,29 +2,146 @@
 
 \chapter{Análisis de requisitos}\label{cap:requisitos}
 
+Este capítulo fija las condiciones que debe cumplir el trabajo para que el procedimiento desarrollado sea coherente con los objetivos planteados. En este caso, hablar de requisitos no significa únicamente describir funciones de una aplicación, sino también establecer las condiciones mínimas que debe respetar el análisis: calidad de los datos, separación temporal, trazabilidad de resultados, prudencia en la interpretación y correspondencia entre la parte experimental y el prototipo web.
+
+El sistema considerado tiene, por tanto, un alcance más amplio que el MVP. Incluye el procedimiento computacional de análisis, la comprobación sintética con el mapa logístico, la aplicación empírica a la volatilidad intradía de Bitcoin y la herramienta web que permite utilizar parte de los modelos obtenidos. Esta distinción evita confundir el núcleo metodológico del trabajo con su interfaz final.
+
 \section{Requisitos generales del sistema}\label{sec:requisitos-generales}
-% TODO: redactar este apartado.
+
+El trabajo requiere un sistema capaz de analizar una serie temporal financiera desde una perspectiva combinada: caracterización estadística, análisis lineal, herramientas de dinámica no lineal y comparación predictiva. El objetivo no es construir un único modelo, sino disponer de un flujo reproducible que permita pasar de los datos brutos a conclusiones justificadas.
+
+En la aplicación empírica, el sistema trabaja con velas de cinco minutos del par \texttt{BTCUSDT}. A partir de ellas se construyen retornos logarítmicos y medidas de volatilidad realizada. La serie central del análisis no es el precio ni el retorno firmado, sino \(v_t = \texttt{log\_rv\_past\_12}\), que resume en escala logarítmica la volatilidad realizada de la última hora. Esta elección está alineada con el planteamiento del trabajo: estudiar intensidad de movimiento, persistencia y estructura temporal, no dirección futura del precio.
+
+El sistema debe mantener separadas las piezas principales del proyecto. El repositorio técnico contiene el análisis por fases, las tablas, las figuras y los informes. La comprobación sintética con el mapa logístico actúa como control metodológico. La aplicación empírica sobre Bitcoin permite poner a prueba el procedimiento en datos reales. El MVP web, por último, utiliza artefactos exportados desde el estudio y ofrece una versión interactiva de los modelos principales.
+
+Esta separación es un requisito de diseño y también de interpretación. El MVP no sustituye al análisis completo, ni la comprobación sintética demuestra nada sobre Bitcoin. Cada pieza cumple una función distinta dentro del trabajo y debe conservarse esa diferencia durante la lectura de la memoria.
 
 \section{Requisitos conceptuales y de comunicación}\label{sec:requisitos-conceptuales}
-% TODO: redactar este apartado.
+
+El proyecto utiliza conceptos que admiten lecturas demasiado fuertes si se presentan sin matices. Por ello, la comunicación de resultados forma parte de los requisitos del sistema. La presencia de dependencia temporal, heterocedasticidad, estructura ordinal o divergencia local de trayectorias no puede traducirse automáticamente en una afirmación de caos determinista.
+
+La memoria debe distinguir entre no linealidad, complejidad, caos y predictibilidad. La no linealidad es una condición mucho más amplia que el caos. La complejidad observada en una serie financiera puede proceder de ruido, cambios de régimen, dependencia lineal, efectos de volatilidad condicional o propiedades distribucionales. Del mismo modo, una mejora predictiva frente a persistencia o frente a la media histórica no implica por sí sola que se haya reconstruido una dinámica determinista de baja dimensión.
+
+También es necesario separar volatilidad y rentabilidad. El sistema predice \texttt{log\_rv\_future\_12}, es decir, una medida de volatilidad realizada futura a una hora. No predice si el precio de Bitcoin subirá o bajará. Por tanto, las salidas del procedimiento y del MVP deben leerse como estimaciones de intensidad de movimiento, no como señales direccionales de mercado.
+
+El MVP debe mostrar esta limitación de forma explícita. No se plantea como herramienta de inversión, no genera señales de compra o venta, no promete rentabilidad y no demuestra caos en Bitcoin. Esta restricción no es meramente formal: forma parte de la validez técnica del trabajo, porque evita atribuir al sistema un alcance que no tiene.
 
 \section{Requisitos de datos}\label{sec:requisitos-datos}
-% TODO: redactar este apartado.
+
+El primer requisito empírico es disponer de una base temporal limpia. En el estudio se parte de los ficheros mensuales oficiales de Binance Spot para \texttt{BTCUSDT} con frecuencia de cinco minutos. Tras la validación inicial, el fichero \texttt{btc\_5m\_clean.csv} contiene 245.088 observaciones, desde el 1 de enero de 2024 a las 00:00 hasta el 30 de abril de 2026 a las 23:55. La serie está ordenada temporalmente, no contiene duplicados en \texttt{open\_time}, no presenta huecos superiores a cinco minutos, no contiene nulos y no incluye precios, volúmenes, número de operaciones ni \texttt{taker\_buy\_quote} no positivos.
+
+A partir de esa base se construye el conjunto de variables usado en el análisis. El procedimiento calcula \texttt{log\_close}, retornos logarítmicos \texttt{r}, retornos al cuadrado, retornos absolutos, rango \texttt{high-low} logarítmico, transformaciones de volumen y operaciones, volatilidades realizadas pasadas y volatilidades realizadas futuras. Las volatilidades se transforman con logaritmo usando un término \(\varepsilon = 10^{-12}\), con el fin de trabajar en una escala más manejable y reducir el peso relativo de los episodios extremos.
+
+La separación entre variables pasadas y futuras es un requisito crítico. Las variables \texttt{rv\_past\_*} se calculan con información disponible hasta el instante \(t\). Las variables \texttt{rv\_future\_*} se calculan con retornos posteriores, empezando en \(t+1\). De esta forma, el target no entra en las variables explicativas. Esta separación es especialmente importante porque el horizonte principal, \texttt{rv\_future\_12}, corresponde a las doce velas siguientes, es decir, a una hora de mercado.
+
+Después de construir las variables, se eliminan las filas sin histórico suficiente o sin futuro disponible. El dataset procesado \texttt{btc\_5m\_features.csv} contiene 244.752 observaciones, desde el 2 de enero de 2024 a las 00:00 hasta el 30 de abril de 2026 a las 19:55. Las 288 primeras filas se pierden por la ventana histórica diaria y las 48 últimas por la necesidad de calcular volatilidad futura hasta ese horizonte.
+
+Toda normalización empleada en modelos debe ajustarse con datos de entrenamiento. En particular, la serie estandarizada \texttt{z\_log\_rv\_past\_12} se construye usando únicamente media y desviación típica del tramo de entrenamiento. Usar información de validación o prueba para escalar la serie introduciría fuga de información y afectaría a la comparación predictiva.
 
 \section{Requisitos metodológicos}\label{sec:requisitos-metodologicos}
-% TODO: redactar este apartado.
+
+La metodología exige avanzar de lo simple a lo complejo. Antes de aplicar reconstrucción por retardos, exponentes de Lyapunov o predicción local, la serie debe describirse con herramientas básicas: gráficos temporales, estadísticos descriptivos, momentos móviles, contrastes de estacionariedad, autocorrelación, autocorrelación parcial, periodograma y gráficos de recurrencia. Este orden evita atribuir a la dinámica no lineal patrones que pueden explicarse por persistencia lineal, solapamiento de ventanas, cambios de régimen o periodicidades operativas.
+
+La elección de \texttt{log\_rv\_past\_12} como serie principal debe quedar justificada por comparación. El precio y el log-precio conservan cambios persistentes de nivel. Los retornos corrigen ese problema, pero muestran heterocedasticidad. Los retornos absolutos son una aproximación simple a la intensidad de movimiento, aunque más ruidosa. La volatilidad realizada logarítmica de una hora proporciona una serie más adecuada para estudiar persistencia y estructura temporal.
+
+El análisis debe incluir una referencia lineal antes de hablar de estructura residual. En el trabajo se ajustan modelos AR sobre \texttt{z\_log\_rv\_past\_12} usando solo el tramo de entrenamiento, y se selecciona AR(49) mediante BIC. Este modelo sirve como filtro lineal y como benchmark predictivo. Los residuos permiten estudiar si queda dependencia en varianza o comportamiento no i.i.d., pero no se interpretan como evidencia directa de caos.
+
+La reconstrucción del espacio de estados se entiende como una herramienta operativa. El retardo seleccionado es \(\tau=137\), obtenido mediante el primer mínimo local de la información mutua media. La dimensión principal es \(m=5\), elegida como compromiso práctico a partir de falsos vecinos cercanos. El método de Cao sugiere una estabilización más tardía, alrededor de \(m=14\), por lo que la dimensión final no debe presentarse como dimensión real del sistema, sino como una elección útil para las fases posteriores.
+
+Los indicadores dinámicos requieren controles. La dimensión de correlación, la pendiente de Rosenstein y la entropía de permutación se comparan con series barajadas y, posteriormente, con datos subrogados. Esta comparación es necesaria porque en Bitcoin parte de los indicadores puede explicarse por estructura lineal, propiedades espectrales o distribución marginal. La lectura aceptable es prudente: hay estructura temporal no trivial, pero no evidencia suficiente para afirmar caos determinista.
+
+La predicción debe evaluarse siempre frente a referencias. El kNN local en el espacio reconstruido se compara con media histórica, persistencia y AR(49). Además, el modelo HAR-logRV se incorpora como cierre predictivo práctico, al combinar memoria de una hora, cuatro horas y un día. La comparación final debe valorar tanto error fuera de muestra como simplicidad, interpretabilidad y facilidad de exportación al MVP.
 
 \section{Requisitos de la comprobación sintética}\label{sec:requisitos-comprobacion-sintetica}
-% TODO: redactar este apartado.
+
+La comprobación sintética es necesaria para no evaluar el procedimiento solo sobre datos financieros reales, donde la interpretación siempre es ambigua. Se utiliza el mapa logístico en régimen caótico,
+
+\begin{equation}
+    x_{t+1} = r x_t (1 - x_t), \qquad r = 4,
+\end{equation}
+
+como sistema determinista, no lineal y conocido. Se generan 12.000 iteraciones, se descartan 1.000 como transitorio y se conservan 11.000 observaciones útiles. Además de la serie limpia, se estudian dos versiones con ruido observacional: una con ruido pequeño y otra con ruido moderado.
+
+El procedimiento aplicado al mapa logístico debe ser comparable al aplicado a Bitcoin. Incluye selección de retardo mediante información mutua, selección de dimensión mediante falsos vecinos y método de Cao, reconstrucción del espacio de estados, estimación aproximada de divergencia local, entropía de permutación y predicción local mediante vecinos. La referencia lineal se selecciona dentro de la familia AR mediante BIC, incluyendo el caso AR(0), que equivale a la media histórica.
+
+En la serie limpia se espera que el método local capture una relación no lineal que un modelo AR no representa bien. De hecho, en el experimento el kNN medio obtiene un RMSE claramente inferior al AR(0) y a la media histórica. Con ruido, la reconstrucción se vuelve menos nítida y la predicción se degrada, aunque la estructura no desaparece por completo.
+
+Esta comprobación no se utiliza para trasladar conclusiones al mercado. Su papel es más limitado y más importante: comprobar que el pipeline responde ante una dinámica no lineal conocida. La diferencia con Bitcoin ayuda a acotar la interpretación. En el mapa logístico domina una regla determinista explícita; en Bitcoin se mezclan persistencia, ruido, heterocedasticidad y cambios de régimen. Por eso el experimento sintético valida la herramienta, no una hipótesis de caos financiero.
 
 \section{Requisitos funcionales del procedimiento de análisis}\label{sec:requisitos-procedimiento}
-% TODO: redactar este apartado.
+
+El procedimiento de análisis debe cubrir todo el flujo experimental. No basta con entrenar modelos finales: el sistema tiene que conservar las etapas intermedias que justifican la elección de variables, parámetros y comparaciones. La Tabla~\ref{tab:req-func-procedimiento} resume los bloques funcionales principales.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{0.26\textwidth} p{0.64\textwidth}}
+\hline
+\textbf{Bloque} & \textbf{Función dentro del procedimiento} \\
+\hline
+Datos & Cargar, ordenar y validar las velas de mercado, comprobando frecuencia, duplicados, huecos, nulos, valores positivos y consistencia temporal. \\
+Variables & Construir retornos, volatilidades realizadas pasadas y futuras, transformaciones logarítmicas y variables estandarizadas sin usar información futura. \\
+Caracterización & Generar gráficos temporales, estadísticos descriptivos, eventos extremos, momentos móviles, ACF, PACF y periodogramas. \\
+Recurrencia & Construir gráficos de recurrencia en ventanas representativas para comparar retornos, retornos absolutos y volatilidad realizada. \\
+Filtrado lineal & Ajustar modelos AR sobre entrenamiento, seleccionar el orden mediante BIC, obtener residuos y analizar dependencia residual. \\
+Contrastes & Aplicar Ljung-Box sobre cuadrados, ARCH-LM, BDS en ventanas y comparaciones con series barajadas. \\
+Reconstrucción & Seleccionar \(\tau\) y \(m\), construir vectores retardados, aplicar ventana de Theiler y visualizar el espacio reconstruido. \\
+Cuantificación & Calcular dimensión de correlación aproximada, pendiente de Rosenstein y entropía de permutación, comparando con controles. \\
+Predicción & Evaluar media histórica, persistencia, AR(49), vecino más próximo, kNN medio y HAR-logRV con particiones temporales. \\
+Exportación & Guardar tablas, figuras, informes y artefactos reutilizables para memoria y MVP. \\
+\hline
+\end{tabular}
+\caption{Requisitos funcionales del procedimiento de análisis.}
+\label{tab:req-func-procedimiento}
+\end{table}
+
+Cada fase debe dejar resultados persistidos. Las tablas en CSV o JSON, las figuras y los informes permiten relacionar las afirmaciones de la memoria con una ejecución concreta del código. Esta trazabilidad es necesaria porque el análisis contiene decisiones sensibles: ventanas temporales, selección de retardos, dimensión de embedding, número de vecinos, división train-validation-test y elección de modelos de referencia.
+
+En predicción, el procedimiento debe impedir cualquier uso indebido del futuro. En validación, los vecinos del kNN se buscan solo en entrenamiento. En test, los vecinos se buscan únicamente en el histórico permitido. Además, cada candidato debe respetar la condición temporal del horizonte y quedar fuera de la ventana de Theiler. Esta restricción evita que el método local obtenga ventaja por proximidad temporal trivial.
+
+Las conclusiones de cada fase deben incluir su propio límite. Un recurrence plot permite observar textura y recurrencia, pero no prueba caos. El BDS rechaza independencia, no identifica una dinámica determinista. Rosenstein puede detectar divergencia local, aunque en una serie financiera también puede reflejar ruido, persistencia de volatilidad o cambios de régimen. Esta forma de cerrar cada fase es parte del procedimiento, no un añadido posterior.
 
 \section{Requisitos funcionales del MVP web}\label{sec:requisitos-mvp}
-% TODO: redactar este apartado.
+
+El MVP web debe trasladar a una aplicación interactiva los elementos principales del bloque predictivo. No reproduce todas las fases de investigación, sino que permite cargar datos recientes o de ejemplo, calcular variables de volatilidad, ejecutar modelos disponibles, mostrar predicciones y ofrecer diagnósticos básicos de fiabilidad.
+
+La aplicación debe aceptar tres fuentes de datos: Binance API, dataset de ejemplo y CSV subido por el usuario. En todos los casos, los datos se normalizan a una estructura temporal con precio de cierre y se validan aspectos básicos: frecuencia, huecos, nulos, orden temporal y precios positivos. Para CSV de usuario se admiten nombres temporales habituales como \texttt{timestamp}, \texttt{open\_time}, \texttt{date}, \texttt{datetime} o \texttt{time}. Los CSV subidos se limitan a las últimas 2.000 filas y la descarga de Binance utiliza hasta 1.000 velas cerradas recientes.
+
+El MVP calcula:\\
+\texttt{log\_rv\_past\_12}, \texttt{log\_rv\_past\_48}, \texttt{log\_rv\_past\_288} y \texttt{z\_log\_rv\_past\_12}.\\
+Con estas variables genera predicciones de \texttt{log\_rv\_future\_12} mediante cinco modelos: persistencia, kNN local con \(\tau=137\), \(m=5\) y \(k=200\), AR(49), HAR-logRV global y Mini-HAR local.
+
+La interfaz se organiza en cinco páginas. \textit{Inicio} resume la aplicación y comprueba artefactos locales. \textit{Predicción de volatilidad} concentra la carga de datos, el cálculo de variables, la predicción actual, la evaluación walk-forward reciente, gráficos y descargas CSV. \textit{Diagnóstico de datos} muestra fiabilidad, frecuencia, huecos y disponibilidad por modelo. \textit{Comparación de modelos} resume target, modelos, parámetros y figuras históricas relevantes. \textit{Ayuda y limitaciones} explica uso, formato CSV, Binance, UTC y restricciones.
+
+La aplicación debe funcionar de forma autónoma en tiempo de ejecución. No debe importar código del repositorio \texttt{btc-volatility}; si necesita utilizar artefactos, serán preexportados en \texttt{data/model\_artifacts/}, como: \texttt{ar49\_coeff.csv} o \texttt{embedding\_params.json}. Esta decisión reduce el acoplamiento entre investigación y prototipo.
+
+El MVP también debe ofrecer una evaluación walk-forward reciente. En ella, el valor futuro observado se utiliza solo para medir el error una vez disponible, no para generar la predicción. Las salidas incluyen predicción en escala logarítmica, transformación inversa, una escala aproximada de volatilidad de la ventana de una hora, horizonte UTC, métricas de error y descargas CSV.
 
 \section{Requisitos no funcionales}\label{sec:requisitos-no-funcionales}
-% TODO: redactar este apartado.
+
+La reproducibilidad es el requisito no funcional más importante. El análisis debe poder rehacerse a partir de los datos y scripts, generando de nuevo tablas, figuras e informes. Por ese motivo, el proyecto se organiza por fases y persiste sus resultados en ficheros reutilizables.
+
+La trazabilidad está ligada a la reproducibilidad. Las cifras de la memoria deben poder rastrearse hasta tablas o informes concretos. Esto es especialmente necesario en un trabajo con múltiples particiones temporales, submuestras por coste computacional, parámetros de embedding y comparaciones entre modelos.
+
+El sistema también debe ser modular. El repositorio de investigación contiene el análisis completo; el MVP consume artefactos ya preparados; la memoria utiliza resultados consolidados. Esta división evita que una modificación en la aplicación web altere la validez del estudio técnico y, al mismo tiempo, permite que el prototipo funcione sin cargar todo el código experimental.
+
+La eficiencia computacional debe tratarse de forma práctica. Algunas herramientas son costosas sobre más de doscientas mil observaciones. Por ello, el procedimiento admite ventanas representativas, submuestras equiespaciadas o bloques continuos cuando el cálculo completo no es viable o no añade valor interpretativo. Esta decisión aparece, por ejemplo, en gráficos de recurrencia, dimensión de correlación, BDS y predicción local.
+
+El MVP debe ser robusto ante datos insuficientes o mal formados. Si una ventana cargada no permite calcular una variable o ejecutar un modelo, la aplicación debe indicarlo en lugar de producir una salida forzada. La disponibilidad por modelo forma parte del diagnóstico y evita interpretar como predicción válida lo que en realidad sería una ejecución sin datos suficientes.
+
+Por último, la presentación de resultados debe favorecer la interpretabilidad. Los modelos no tienen el mismo papel: persistencia es una referencia básica, AR(49) es un benchmark lineal fuerte, kNN es el modelo local experimental asociado al espacio reconstruido, HAR-logRV es el modelo práctico recomendado y Mini-HAR es una recalibración local de carácter experimental. Mantener esta clasificación ayuda a no confundir análisis metodológico con herramienta operativa.
 
 \section{Criterios de validación}\label{sec:criterios-validacion}
-% TODO: redactar este apartado.
+
+Los requisitos anteriores se consideran satisfechos si se cumplen varios criterios verificables. El primero es la validación de datos. La serie de entrada debe tener orden temporal, frecuencia correcta, ausencia de duplicados, ausencia de huecos, ausencia de nulos y valores de mercado positivos. En el dataset usado para el estudio estas comprobaciones se cumplen sobre 245.088 velas de cinco minutos.
+
+El segundo criterio es la ausencia de fuga de información. Las variables pasadas deben depender solo de información disponible en el instante correspondiente, y los targets futuros deben construirse con retornos posteriores. En las fases predictivas se comprueba la alineación entre \texttt{log\_rv\_future\_12(t)} y \texttt{log\_rv\_past\_12(t+12)}, con diferencia numérica nula salvo redondeo.
+
+El tercer criterio es la coherencia metodológica. La elección de \texttt{log\_rv\_past\_12} como serie principal debe estar apoyada por el análisis descriptivo, la estacionariedad aproximada, la persistencia observada y los gráficos de recurrencia. El filtrado AR debe reducir la dependencia lineal en media antes de aplicar contrastes residuales. La reconstrucción debe usar parámetros seleccionados sin recurrir a información de test y debe interpretarse como representación operativa.
+
+El cuarto criterio corresponde a la comprobación sintética. En el mapa logístico limpio, el procedimiento debe detectar estructura más clara que en Bitcoin, divergencia local positiva y ventaja de la predicción local frente a referencias lineales simples. Las versiones con ruido deben mostrar una degradación razonable, sin que se pierda por completo la información dinámica.
+
+El quinto criterio afecta a la interpretación de Bitcoin. El sistema puede concluir que la volatilidad realizada presenta persistencia, heterocedasticidad, estructura temporal no trivial e información predictiva parcial. No puede concluir que se haya demostrado caos determinista. La comparación con series barajadas, \textit{phase-randomized} y AAFT se utiliza precisamente para limitar esa interpretación.
+
+El sexto criterio es la evaluación predictiva fuera de muestra. La selección de \(k\) en kNN debe realizarse en validación y el test debe reservarse para evaluación final. Los modelos se comparan frente a media histórica, persistencia, AR(49), kNN y HAR-logRV. La elección de HAR-logRV como modelo práctico del MVP se justifica por su rendimiento competitivo, simplicidad, velocidad e interpretabilidad.
+
+Finalmente, el MVP se considera validado si carga datos desde las fuentes previstas, calcula las variables necesarias, ejecuta los modelos disponibles, muestra predicciones actuales, permite una evaluación walk-forward reciente, ofrece diagnóstico de fiabilidad y genera descargas CSV. También debe mantener visibles sus limitaciones: no predice dirección, no genera señales de trading, no anualiza volatilidad, no calcula intervalos de confianza y no demuestra caos en Bitcoin.

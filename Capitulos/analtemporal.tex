@@ -3,25 +3,136 @@
 \chapter{Planificación, metodología de trabajo y costes}\label{cap:planificacion}
 
 \section{Organización general del proyecto}\label{sec:organizacion-proyecto}
-% TODO: redactar este apartado.
+
+El proyecto se organizó en torno a tres bloques de trabajo complementarios. El primero correspondió al estudio técnico y experimental, desarrollado en el repositorio \texttt{btc-volatility}, donde se implementaron las fases de validación de datos, construcción de variables, análisis de la serie, reconstrucción del espacio de estados, cuantificación dinámica, predicción y comparación de modelos. El segundo bloque fue el desarrollo de un prototipo web autónomo, implementado en \texttt{mvp-web}, cuyo objetivo fue trasladar parte de los resultados del estudio a una herramienta interactiva. El tercer bloque correspondió a la redacción de la memoria en \LaTeX{}, mantenida en el repositorio \texttt{tfg-memoria}.
+
+Esta separación permitió distinguir entre investigación, implementación y documentación. El repositorio técnico concentró los scripts, informes, tablas y figuras generados durante el análisis. El prototipo web utilizó artefactos exportados desde el estudio, pero se mantuvo desacoplado para evitar dependencias innecesarias en tiempo de ejecución. Finalmente, la memoria recogió la motivación, el marco teórico, la metodología, los resultados y la interpretación final del trabajo.
 
 \section{Fases principales del trabajo}\label{sec:fases-proyecto}
-% TODO: redactar este apartado.
+
+El desarrollo se estructuró de forma incremental. En primer lugar, se realizó una fase de estudio teórico centrada en series temporales, dinámica no lineal, reconstrucción por retardos, cuantificación de la complejidad y predicción local. Esta fase permitió adaptar la metodología de referencia al contexto del trabajo.
+
+A continuación se construyó el procedimiento experimental sobre la serie financiera. Esta parte incluyó la validación de datos de Bitcoin, la construcción de retornos y volatilidad realizada, el análisis descriptivo, el estudio de estacionariedad, la caracterización lineal mediante autocorrelaciones y periodograma, el análisis de recurrencia, el filtrado lineal, los contrastes de no linealidad, la reconstrucción del espacio de estados, la cuantificación dinámica y la comparación con series barajadas y subrogadas.
+
+Después se incorporó una comprobación sintética mediante el mapa logístico. Esta fase tuvo una función de control metodológico, ya que permitió aplicar el procedimiento a un sistema determinista no lineal con comportamiento conocido antes de interpretar los resultados obtenidos sobre datos financieros reales.
+
+La parte final del estudio se centró en la predicción. Se evaluaron modelos de persistencia, modelos autorregresivos, predicción local basada en vecinos próximos y un modelo HAR-logRV compacto. Este último se utilizó como modelo práctico recomendado por su sencillez, interpretabilidad y facilidad de exportación al prototipo web.
+
+Por último, se desarrolló el MVP web en Streamlit, se añadieron pruebas de verificación y se redactó la memoria del trabajo.
 
 \section{Planificación temporal}\label{sec:planificacion-temporal}
-% TODO: redactar este apartado.
+
+La planificación inicial se realizó tomando como referencia una dedicación total de 300 horas. Esta estimación se distribuyó entre estudio teórico, desarrollo experimental, validación sintética, implementación del prototipo y redacción de la memoria. La Tabla~\ref{tab:planificacion-horas-inicial} muestra la distribución prevista.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l r}
+\hline
+\textbf{Bloque de trabajo} & \textbf{Horas planificadas} \\
+\hline
+Estudio teórico y análisis de la tesis de referencia & 35 \\
+Diseño metodológico y planificación inicial & 20 \\
+Validación de datos y construcción de variables & 25 \\
+Caracterización estadística, lineal y no lineal & 45 \\
+Reconstrucción, cuantificación y contrastes con controles & 55 \\
+Predicción local, robustez y modelo HAR-logRV & 40 \\
+Validación sintética con mapa logístico & 25 \\
+Desarrollo del MVP web & 35 \\
+Escritura, revisión y preparación de la memoria & 20 \\
+\hline
+\textbf{Total} & \textbf{300} \\
+\hline
+\end{tabular}
+\caption{Distribución inicial de horas planificadas.}
+\label{tab:planificacion-horas-inicial}
+\end{table}
 
 \section{Distribución del esfuerzo}\label{sec:distribucion-esfuerzo}
-% TODO: redactar este apartado.
+
+Durante el desarrollo se registró el tiempo dedicado a las distintas tareas mediante Clockify. Este seguimiento permitió comparar la estimación inicial con la dedicación real y detectar los bloques que requirieron mayor esfuerzo del previsto.
+
+La Tabla~\ref{tab:distribucion-esfuerzo-real} recoge la distribución final del esfuerzo. Los valores se obtendrán a partir de la exportación final de Clockify, agrupando las tareas en bloques homogéneos.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l r r r}
+\hline
+\textbf{Bloque de trabajo} & \textbf{Planificado} & \textbf{Real} & \textbf{Desviación} \\
+\hline
+Estudio teórico y análisis de referencia & 35 & -- & -- \\
+Diseño metodológico y planificación & 20 & -- & -- \\
+Datos y variables & 25 & -- & -- \\
+Análisis estadístico y no lineal & 45 & -- & -- \\
+Reconstrucción y cuantificación & 55 & -- & -- \\
+Predicción y modelos finales & 40 & -- & -- \\
+Mapa logístico & 25 & -- & -- \\
+MVP web & 35 & -- & -- \\
+Memoria y revisión & 20 & -- & -- \\
+\hline
+\textbf{Total} & \textbf{300} & \textbf{--} & \textbf{--} \\
+\hline
+\end{tabular}
+\caption{Comparación entre esfuerzo planificado y esfuerzo real registrado.}
+\label{tab:distribucion-esfuerzo-real}
+\end{table}
 
 \section{Herramientas de seguimiento y desarrollo}\label{sec:herramientas-seguimiento}
-% TODO: redactar este apartado.
+
+Para el desarrollo del trabajo se emplearon herramientas orientadas a la reproducibilidad y al seguimiento del esfuerzo. El análisis técnico se implementó principalmente en Python, utilizando scripts separados por fases y generando salidas en formatos reutilizables, como ficheros CSV, JSON, NPZ y figuras SVG. La memoria se redactó en \LaTeX{}, lo que facilitó la organización por capítulos, la inclusión de ecuaciones y la gestión de referencias bibliográficas.
+
+El seguimiento temporal se realizó mediante Clockify, registrando las tareas por bloques de actividad. Esta información se utilizó para contrastar la planificación inicial con el esfuerzo real. Además, la organización en repositorios separados permitió mantener una separación clara entre el estudio experimental, el prototipo web y la documentación académica.
 
 \section{Estimación de costes}\label{sec:estimacion-costes}
-% TODO: redactar este apartado.
+
+La estimación de costes se realizó considerando principalmente el coste de personal, dado que las herramientas utilizadas fueron mayoritariamente de código abierto y no requirieron licencias comerciales. El coste personal se modeló mediante la expresión:
+
+\begin{equation}
+    C_{\text{personal}} = H \cdot c_h,
+\end{equation}
+
+donde \(H\) representa el número de horas dedicadas y \(c_h\) el coste horario estimado. Para la planificación inicial se consideraron 300 horas de trabajo. Tomando como referencia un coste horario estimado de \(15\,\text{€}/h\), el coste planificado del proyecto sería:
+
+\begin{equation}
+    C_{\text{planificado}} = 300 \cdot 15 = 4500\,\text{€}.
+\end{equation}
+
+El coste real podrá obtenerse sustituyendo \(H\) por el número final de horas registradas en Clockify:
+
+\begin{equation}
+    C_{\text{real}} = H_{\text{real}} \cdot 15.
+\end{equation}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l r}
+\hline
+\textbf{Concepto} & \textbf{Coste estimado} \\
+\hline
+Coste de personal planificado & 4500\,€ \\
+Software y librerías de desarrollo & 0\,€ \\
+Servicios externos y APIs & 0\,€ \\
+Infraestructura adicional & 0\,€ \\
+\hline
+\textbf{Total planificado} & \textbf{4500\,€} \\
+\hline
+\end{tabular}
+\caption{Estimación inicial de costes del proyecto.}
+\label{tab:costes-planificados}
+\end{table}
 
 \section{Desviaciones respecto a la planificación inicial}\label{sec:desviaciones}
-% TODO: redactar este apartado.
+
+La dedicación real del proyecto superó la estimación inicial de 300 horas. Esta desviación se explica principalmente por la ampliación del alcance técnico durante el desarrollo. En particular, se incorporó una validación sintética con el mapa logístico, se reforzó la comparación de modelos predictivos, se añadió el modelo HAR-logRV como cierre práctico y se desarrolló un MVP web autónomo para mostrar los resultados de forma interactiva.
+
+Estas ampliaciones no modificaron el objetivo general del trabajo, pero sí aumentaron el esfuerzo necesario para completarlo. La validación sintética permitió comprobar el procedimiento sobre una dinámica conocida antes de interpretar los resultados de Bitcoin. El modelo HAR-logRV aportó un cierre predictivo más simple e interpretable que los modelos no lineales locales. El MVP, por su parte, transformó el estudio experimental en una herramienta demostrativa y reproducible.
 
 \section{Lecciones aprendidas durante el desarrollo}\label{sec:lecciones-aprendidas}
-% TODO: redactar este apartado.
+
+El desarrollo del proyecto puso de manifiesto varias lecciones relevantes. En primer lugar, en un trabajo basado en series temporales la validación de datos y la prevención de fuga de información son tan importantes como la selección de modelos. Un resultado predictivo puede parecer bueno si la construcción de variables utiliza información futura, por lo que fue necesario verificar explícitamente la separación temporal entre datos pasados y futuros.
+
+En segundo lugar, el análisis de dinámica no lineal sobre datos financieros exige prudencia interpretativa. La presencia de dependencia temporal, heterocedasticidad, estructura ordinal o divergencia local no permite afirmar por sí sola la existencia de caos determinista. Por este motivo, el trabajo separó los indicios encontrados en Bitcoin de la comprobación sintética realizada con el mapa logístico.
+
+En tercer lugar, la comparación con modelos simples resultó esencial. Los métodos no lineales locales aportaron información útil frente a referencias básicas, pero los modelos lineales y multiescala ofrecieron un rendimiento muy competitivo. Esta comparación evitó presentar la metodología no lineal como superior por defecto.
+
+Por último, la construcción del MVP mostró la importancia de transformar los resultados experimentales en artefactos reutilizables. La exportación de parámetros y modelos permitió conectar el estudio técnico con una aplicación funcional, manteniendo una separación clara entre investigación, implementación y documentación.
+```

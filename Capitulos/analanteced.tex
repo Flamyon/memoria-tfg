@@ -636,16 +636,73 @@ Una mejora predictiva moderada no prueba caos determinista. Indica que el modelo
 
 \section{Modelo HAR-logRV para volatilidad realizada}\label{sec:har-logrv-teoria}
 
-El modelo HAR, de \emph{Heterogeneous Autoregressive model}, es un modelo práctico para volatilidad realizada. No es un modelo de caos ni pretende reconstruir un espacio de estados. Su idea principal es que la volatilidad puede depender de varias escalas temporales: lo ocurrido en la última hora, en las últimas horas y en el último día puede aportar información distinta sobre la volatilidad futura.
+El modelo HAR, acrónimo de \emph{Heterogeneous Autoregressive model}, es un modelo diseñado para describir y predecir volatilidad realizada a partir de información agregada en varias escalas temporales. Fue propuesto originalmente para capturar la persistencia de la volatilidad mediante una estructura sencilla e interpretable \cite{corsi2009}. Su motivación está relacionada con la heterogeneidad de horizontes en los mercados financieros: distintos participantes operan y reaccionan en escalas temporales diferentes \cite{muller1997}. Algunos agentes reaccionan a movimientos muy recientes, mientras que otros toman decisiones considerando horizontes más amplios. Como consecuencia, la volatilidad futura puede depender simultáneamente de medidas de volatilidad de corto, medio y mayor plazo.
+El modelo HAR no pertenece a la familia de métodos de dinámica caótica. Tampoco reconstruye un espacio de estados ni busca identificar un atractor. Su función en este trabajo es distinta: proporcionar un modelo de referencia multiescala para volatilidad realizada. Esta diferencia es relevante porque permite separar dos objetivos. Por un lado, el análisis de reconstrucción y cuantificación estudia si la serie presenta estructura compatible con dinámica compleja. Por otro, HAR-logRV ofrece una formulación práctica para explotar la persistencia temporal de la volatilidad.
 
-En este TFG se utiliza una versión HAR-logRV, es decir, un modelo lineal sobre volatilidades realizadas transformadas logarítmicamente. Adaptado a velas de cinco minutos y a la notación del proyecto, puede escribirse como
+En su forma general, un modelo HAR para volatilidad realizada expresa la volatilidad futura como combinación lineal de volatilidades realizadas calculadas en distintas ventanas. En este TFG se trabaja con la transformación logarítmica de la volatilidad realizada. Siguiendo la notación introducida anteriormente, sea
 \begin{equation}
-y_t=\beta_0+\beta_1 \log RV_t^{(12)}+\beta_2 \log RV_t^{(48)}+\beta_3 \log RV_t^{(288)}+\varepsilon_t.
+    v_t^{(h)} = \log\left(RV_t^{(h)}+\varepsilon\right)
 \end{equation}
-Aquí \(y_t\) representa la volatilidad realizada futura transformada logarítmicamente. Las 12 velas equivalen a una hora, las 48 velas a cuatro horas y las 288 velas a un día completo de datos de cinco minutos.
+la volatilidad realizada pasada transformada logarítmicamente para una ventana de \(h\) observaciones. El uso de volatilidad realizada se apoya en la literatura de datos financieros de alta frecuencia, donde esta magnitud se emplea como medida observable de variabilidad y como base para modelos de predicción \cite{andersen2003}. La variable objetivo para el horizonte principal se denota por
 
-La utilidad del modelo HAR-logRV está en su sencillez. Combina memoria a varias escalas sin introducir una arquitectura compleja, sus coeficientes son interpretables y puede exportarse con facilidad a una aplicación web. En el estudio se usa como cierre predictivo práctico y como comparación frente a modelos basados en reconstrucción. Sus resultados concretos se discuten más adelante; en este capítulo basta con fijar su papel: un modelo de referencia multiescala, no una prueba de dinámica caótica \cite{corsi2009}.
+\begin{equation}
+    y_t^{(12)} = \log\left(RV_{t,+}^{(12)}+\varepsilon\right),
+\end{equation}
+donde \(RV_{t,+}^{(12)}\) representa la volatilidad realizada de las doce velas posteriores al instante \(t\).
 
+Adaptado a datos de cinco minutos, el modelo HAR-logRV utilizado en este trabajo puede escribirse como
+\begin{equation}
+    y_t^{(12)}
+    =
+    \beta_0
+    + \beta_1 v_t^{(12)}
+    + \beta_2 v_t^{(48)}
+    + \beta_3 v_t^{(288)}
+    + u_t.
+\end{equation}
+En esta ecuación, \(v_t^{(12)}\) resume la volatilidad realizada de la última hora, \(v_t^{(48)}\) resume la volatilidad realizada de las últimas cuatro horas y \(v_t^{(288)}\) resume la volatilidad realizada del último día completo. El término \(u_t\) recoge la parte de la volatilidad futura que no queda explicada por esas tres escalas.
+
+La elección de estas ventanas responde a la frecuencia de los datos. Al trabajar con velas de cinco minutos, doce observaciones equivalen a una hora:
+\begin{equation}
+    12 \times 5 \text{ minutos} = 60 \text{ minutos}.
+\end{equation}
+Del mismo modo, cuarenta y ocho observaciones equivalen a cuatro horas, y 288 observaciones equivalen a un día:
+\begin{equation}
+    48 \times 5 \text{ minutos} = 240 \text{ minutos},
+    \qquad
+    288 \times 5 \text{ minutos} = 1440 \text{ minutos}.
+\end{equation}
+Estas escalas permiten representar memoria reciente, memoria intradía más amplia y memoria diaria dentro de un modelo lineal compacto.
+
+Los coeficientes del modelo tienen una interpretación directa. El parámetro \(\beta_1\) mide la relación entre la volatilidad realizada más reciente y la volatilidad futura. El coeficiente \(\beta_2\) recoge la contribución de una ventana intradía más amplia. El coeficiente \(\beta_3\) incorpora información del último día. Si estos coeficientes son positivos, la interpretación habitual es que niveles altos de volatilidad pasada en esas escalas se asocian con niveles altos de volatilidad futura.
+
+El ajuste del modelo puede realizarse mediante mínimos cuadrados ordinarios. Dado un conjunto de observaciones de entrenamiento, los coeficientes se eligen minimizando la suma de errores cuadráticos:
+\begin{equation}
+    \min_{\beta_0,\beta_1,\beta_2,\beta_3}
+    \sum_{t\in \mathcal{T}_{\mathrm{train}}}
+    \left(
+    y_t^{(12)}
+    -
+    \beta_0
+    -
+    \beta_1 v_t^{(12)}
+    -
+    \beta_2 v_t^{(48)}
+    -
+    \beta_3 v_t^{(288)}
+    \right)^2.
+\end{equation}
+La estimación debe hacerse únicamente con datos de entrenamiento. Una vez ajustados los coeficientes, el modelo se evalúa sobre tramos posteriores sin utilizar información futura en el ajuste.
+
+El modelo HAR-logRV se diferencia de un modelo autorregresivo clásico en la forma de resumir el pasado. Un modelo AR(\(p\)) utiliza valores retardados concretos:
+\begin{equation}
+    x_t = c+\sum_{i=1}^{p}\phi_i x_{t-i}+\varepsilon_t.
+\end{equation}
+En cambio, HAR utiliza agregados de volatilidad sobre ventanas de distinta longitud. Esta decisión reduce el número de parámetros y facilita la interpretación. En lugar de introducir muchos retardos individuales, el modelo resume la información pasada en escalas temporales relevantes.
+
+Esta simplicidad es una de las razones por las que HAR-logRV resulta adecuado como cierre predictivo práctico. El modelo es rápido de ajustar, sus coeficientes son interpretables y su implementación en una aplicación web es directa. Además, al trabajar con variables ya construidas a partir de volatilidad realizada, mantiene una conexión clara con el fenómeno financiero estudiado: la persistencia de la variabilidad.
+
+El papel de HAR-logRV en esta memoria debe entenderse con precisión. No se utiliza como evidencia de caos ni como sustituto del análisis no lineal. Se utiliza como modelo práctico de comparación frente a persistencia, modelos autorregresivos y predicción local en el espacio reconstruido. Sus resultados empíricos se discuten en capítulos posteriores. En este marco teórico basta con fijar su significado: un modelo lineal multiescala para volatilidad realizada, útil por su equilibrio entre sencillez, interpretabilidad y capacidad predictiva.
 \section{Relación con la tesis de referencia}\label{sec:tesis-referencia}
 
 La tesis de Olmedo Fernández proporciona el marco metodológico general de este trabajo \cite{olmedo2001}. Su recorrido parte de conceptos de determinismo, azar, complejidad y caos; continúa con sistemas dinámicos y herramientas de caracterización; introduce la reconstrucción del espacio de estados; estudia estacionariedad y no linealidad; y finalmente aborda cuantificación y predicción en una aplicación económica.

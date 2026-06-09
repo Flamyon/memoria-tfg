@@ -703,11 +703,14 @@ En cambio, HAR utiliza agregados de volatilidad sobre ventanas de distinta longi
 Esta simplicidad es una de las razones por las que HAR-logRV resulta adecuado como cierre predictivo práctico. El modelo es rápido de ajustar, sus coeficientes son interpretables y su implementación en una aplicación web es directa. Además, al trabajar con variables ya construidas a partir de volatilidad realizada, mantiene una conexión clara con el fenómeno financiero estudiado: la persistencia de la variabilidad.
 
 El papel de HAR-logRV en esta memoria debe entenderse con precisión. No se utiliza como evidencia de caos ni como sustituto del análisis no lineal. Se utiliza como modelo práctico de comparación frente a persistencia, modelos autorregresivos y predicción local en el espacio reconstruido. Sus resultados empíricos se discuten en capítulos posteriores. En este marco teórico basta con fijar su significado: un modelo lineal multiescala para volatilidad realizada, útil por su equilibrio entre sencillez, interpretabilidad y capacidad predictiva.
+
 \section{Relación con la tesis de referencia}\label{sec:tesis-referencia}
 
-La tesis de Olmedo Fernández proporciona el marco metodológico general de este trabajo \cite{olmedo2001}. Su recorrido parte de conceptos de determinismo, azar, complejidad y caos; continúa con sistemas dinámicos y herramientas de caracterización; introduce la reconstrucción del espacio de estados; estudia estacionariedad y no linealidad; y finalmente aborda cuantificación y predicción en una aplicación económica.
+La tesis de Olmedo Fernández proporciona la referencia metodológica principal de este trabajo \cite{olmedo2001}. Su estructura recorre los conceptos de determinismo, azar, complejidad y caos; introduce los sistemas dinámicos; desarrolla herramientas de caracterización de series temporales; presenta la reconstrucción del espacio de estados; estudia estacionariedad y no linealidad; y aborda la cuantificación y la predicción en una aplicación económica. Esta secuencia sirve como guía para ordenar el marco teórico y el procedimiento de análisis desarrollado en esta memoria.
 
-Este TFG no reproduce la tesis ni intenta trasladarla punto por punto. Toma su lógica de trabajo y la adapta a un problema computacional actual. La diferencia principal está en el enfoque: aquí se desarrolla un procedimiento reproducible, se comprueba primero sobre un sistema sintético conocido y después se aplica a una serie financiera de alta frecuencia. La tesis trabaja con desempleo mensual en España; este trabajo usa volatilidad realizada de Bitcoin construida a partir de velas de cinco minutos.
+La relación con la tesis no debe entenderse como una reproducción directa. El objeto empírico, la frecuencia de los datos y el enfoque computacional son distintos. La tesis aplica las herramientas a una serie mensual de desempleo en España. Este TFG las adapta a la volatilidad realizada intradía de Bitcoin, construida a partir de velas de cinco minutos. Además, antes de aplicar el procedimiento a la serie financiera, se introduce una comprobación sintética mediante el mapa logístico, que actúa como sistema de control con dinámica conocida.
+
+También cambia el grado de cautela en la interpretación. En la tesis de referencia, los resultados empíricos permiten formular conclusiones relativamente fuertes sobre la existencia de indicios de dinámica caótica en la serie estudiada. En este TFG, la serie de Bitcoin se trata de forma más conservadora. Se analizan dependencia temporal, no linealidad, heterocedasticidad, estructura reconstruida y utilidad predictiva parcial, pero no se afirma que la volatilidad realizada de Bitcoin esté generada por un sistema caótico determinista.
 
 \begin{table}[ht]
 \centering
@@ -715,26 +718,38 @@ Este TFG no reproduce la tesis ni intenta trasladarla punto por punto. Toma su l
 \hline
 \textbf{Elemento en Olmedo} & \textbf{Adaptación en este TFG} \\
 \hline
-Marco de complejidad, no linealidad y caos & Lectura prudente orientada a indicios, no a demostración de caos en BTC \\
-Caracterización de series temporales & Validación, visualización, ACF, PACF, periodograma y recurrencia sobre volatilidad realizada \\
-Reconstrucción por retardos & Selección operativa de \(\tau\) y \(m\) con información mutua, falsos vecinos y Cao \\
-Cuantificación dinámica & Dimensión de correlación, Lyapunov y entropía comparadas con series barajadas y series sustitutas \\
-Predicción & Comparación fuera de muestra con persistencia, modelos autorregresivos, predicción local y HAR-logRV \\
-Aplicación empírica económica & Aplicación financiera de alta frecuencia y prototipo web autónomo \\
+Marco de complejidad, no linealidad y caos & Lectura prudente orientada a indicios, sin afirmar caos determinista en BTC \\
+Caracterización de series temporales & Validación de datos, visualización, estadísticos, ACF, PACF, periodograma y recurrencia sobre volatilidad realizada \\
+Estacionariedad y no linealidad & ADF, KPSS, filtrado autorregresivo, Ljung-Box sobre residuos y cuadrados, ARCH-LM y BDS \\
+Reconstrucción por retardos & Selección operativa de \(\tau\) y \(m\) con información mutua, falsos vecinos y método de Cao \\
+Cuantificación dinámica & Dimensión de correlación, divergencia local y entropía de permutación comparadas con series barajadas y series sustitutas \\
+Predicción local & kNN en el espacio reconstruido, con separación temporal, validación de parámetros y exclusión de vecinos triviales \\
+Aplicación empírica económica & Aplicación financiera de alta frecuencia sobre volatilidad realizada de Bitcoin \\
+Extensión propia & Validación sintética con mapa logístico, modelo HAR-logRV y MVP web autónomo \\
 \hline
 \end{tabular}
 \caption{Relación entre la tesis de referencia y la adaptación realizada en este trabajo.}
 \label{tab:relacion-olmedo-tfg}
 \end{table}
 
-La adaptación también introduce controles propios de un proyecto de ingeniería: separación temporal entre entrenamiento, validación y prueba, validación explícita de datos, generación de artefactos reproducibles y construcción de un MVP web. Esta parte no aparece en la tesis de referencia, pero resulta coherente con la naturaleza del grado y con el objetivo de convertir el análisis en una herramienta utilizable.
+La adaptación introduce elementos propios de un proyecto de ingeniería del software. El análisis se organiza como un procedimiento reproducible, con validación explícita de datos, separación temporal entre entrenamiento, validación y prueba, controles para evitar fuga de información, generación de artefactos y comparación sistemática de modelos. A esto se añade un MVP web independiente del repositorio de investigación, diseñado para ejecutar predicciones de volatilidad y visualizar resultados de forma interactiva.
+
+Por último, se incorpora un cierre predictivo con HAR-logRV. Este modelo no procede de la tesis de Olmedo, sino de la literatura específica sobre volatilidad realizada. Su papel en el TFG es práctico: ofrecer una referencia multiescala sencilla, interpretable y exportable al prototipo. De este modo, el trabajo mantiene la lógica metodológica de la tesis, pero la adapta a un caso financiero de alta frecuencia y a una implementación software autónoma.
 
 \section{Aportación realizada respecto a los antecedentes}\label{sec:aportacion-antecedentes}
 
-La aportación de este TFG no consiste en proponer una nueva teoría de caos ni en afirmar una propiedad fuerte sobre Bitcoin. La aportación está en integrar y adaptar una metodología de análisis de series temporales mediante dinámica no lineal a un caso financiero de alta frecuencia, manteniendo una lectura prudente de los resultados.
+La aportación de este TFG no consiste en proponer una nueva teoría de caos ni en establecer una propiedad fuerte sobre Bitcoin. Su contribución está en adaptar una metodología de análisis de series temporales mediante herramientas de dinámica no lineal a un caso financiero de alta frecuencia, manteniendo una interpretación prudente de los resultados.
 
-El trabajo aporta un procedimiento reproducible que empieza con validación de datos, construcción de variables y caracterización lineal; continúa con contrastes de dependencia, reconstrucción por retardos y cuantificación exploratoria; y termina con comparación predictiva y exportación a una aplicación web. La comprobación con el mapa logístico permite observar cómo responde el procedimiento ante una dinámica caótica conocida. La aplicación a Bitcoin muestra qué parte de ese flujo sigue siendo útil cuando los datos son reales, ruidosos y heterocedásticos.
+Desde el punto de vista metodológico, el trabajo integra en un único procedimiento las fases necesarias para estudiar una serie temporal real: validación de datos, construcción de variables, caracterización lineal, análisis de estacionariedad, contrastes de dependencia, reconstrucción por retardos, cuantificación exploratoria, comparación con series barajadas y sustitutas, y evaluación predictiva. Esta secuencia evita aplicar directamente indicadores de caos sin haber controlado antes problemas básicos como calidad del dato, dependencia lineal, heterocedasticidad o fuga de información.
 
-Otro elemento diferencial es la comparación explícita con series barajadas, series sustitutas y modelos de referencia. Estos controles ayudan a no confundir distribución marginal, autocorrelación lineal o persistencia de volatilidad con caos determinista. También se incorpora HAR-logRV como modelo práctico de cierre, porque la volatilidad financiera presenta memoria a varias escalas y porque un modelo sencillo e interpretable puede ser más útil para una implementación final que un método más difícil de justificar.
+Una aportación relevante es la comprobación sintética con el mapa logístico. La tesis de referencia utiliza este sistema como ejemplo teórico dentro del marco de sistemas dinámicos; en este trabajo se convierte en una fase experimental separada. Al aplicar el mismo procedimiento a una serie generada por una dinámica conocida, se comprueba si las herramientas responden de forma coherente en un entorno controlado. La comparación posterior con Bitcoin ayuda a distinguir entre limitaciones del procedimiento y dificultades propias de los datos financieros reales.
 
-Por último, el MVP web convierte parte del estudio en una herramienta demostrable. La aplicación no proporciona asesoramiento financiero, no predice la dirección del mercado y no demuestra caos. Su papel es mostrar que el procedimiento puede integrarse en un sistema autónomo capaz de cargar datos, calcular variables, ejecutar modelos y visualizar predicciones de volatilidad. Con este marco teórico quedan fijados los conceptos necesarios para interpretar los capítulos siguientes sin anticipar conclusiones fuertes sobre la serie de BTC.
+La aplicación a Bitcoin introduce una diferencia sustancial respecto a la tesis de referencia. La serie analizada no es una magnitud macroeconómica mensual, sino una variable financiera intradía construida a partir de datos de cinco minutos. La variable principal es la volatilidad realizada logarítmica, no el precio. Esta elección desplaza el problema desde la predicción direccional hacia el estudio de la intensidad de las fluctuaciones, una magnitud que suele presentar mayor persistencia temporal.
+
+Otro elemento diferencial es la comparación explícita con modelos de referencia. La predicción local en el espacio reconstruido se evalúa frente a persistencia, media histórica, modelos autorregresivos y HAR-logRV. Esta comparación es necesaria para no atribuir valor predictivo a un método complejo si modelos más simples explican una parte similar de la estructura. En particular, HAR-logRV actúa como cierre práctico del bloque predictivo: no forma parte del análisis caótico, pero resume de forma eficiente la memoria multiescala de la volatilidad realizada.
+
+El trabajo también aporta una dimensión software que no está presente en la tesis de referencia. El MVP web convierte parte del estudio en una herramienta demostrable. La aplicación integra carga de datos, cálculo de variables, ejecución de modelos y visualización de predicciones de volatilidad. Su diseño mantiene independencia respecto al repositorio de investigación y utiliza artefactos exportados, lo que facilita separar el análisis experimental de la ejecución operativa.
+
+Las limitaciones de esta aportación también forman parte del resultado. El prototipo no proporciona asesoramiento financiero, no predice la dirección del mercado, no incorpora intervalos de confianza y no demuestra caos. Su función es mostrar que el procedimiento desarrollado puede trasladarse a una aplicación autónoma, comprensible y verificable. Con ello, el TFG combina tres planos: marco matemático, validación empírica y construcción de software.
+
+En conjunto, la aportación respecto a los antecedentes consiste en una adaptación prudente y reproducible de herramientas de dinámica no lineal a volatilidad financiera de alta frecuencia. La memoria queda así preparada para los capítulos posteriores: primero se presentará el procedimiento implementado, después los resultados obtenidos y finalmente la aplicación web que materializa la parte predictiva del estudio.

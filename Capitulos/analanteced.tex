@@ -715,22 +715,23 @@ También cambia el grado de cautela en la interpretación. En la tesis de refere
 \begin{table}[ht]
 \centering
 \begin{tabular}{p{0.38\textwidth}p{0.50\textwidth}}
-\hline
+\toprule % Línea superior gruesa
 \textbf{Elemento en Olmedo} & \textbf{Adaptación en este TFG} \\
-\hline
-Marco de complejidad, no linealidad y caos & Lectura prudente orientada a indicios, sin afirmar caos determinista en BTC \\
-Caracterización de series temporales & Validación de datos, visualización, estadísticos, ACF, PACF, periodograma y recurrencia sobre volatilidad realizada \\
-Estacionariedad y no linealidad & ADF, KPSS, filtrado autorregresivo, Ljung-Box sobre residuos y cuadrados, ARCH-LM y BDS \\
-Reconstrucción por retardos & Selección operativa de \(\tau\) y \(m\) con información mutua, falsos vecinos y método de Cao \\
-Cuantificación dinámica & Dimensión de correlación, divergencia local y entropía de permutación comparadas con series barajadas y series sustitutas \\
-Predicción local & kNN en el espacio reconstruido, con separación temporal, validación de parámetros y exclusión de vecinos triviales \\
-Aplicación empírica económica & Aplicación financiera de alta frecuencia sobre volatilidad realizada de Bitcoin \\
+\midrule % Línea que separa el título del contenido
+Marco de complejidad, no linealidad y caos & Lectura prudente orientada a indicios, sin afirmar caos determinista en BTC \\ \midrule[0.2pt] % Línea interna ultra-fina
+Caracterización de series temporales & Validación de datos, visualización, estadísticos, ACF, PACF, periodograma y recurrencia sobre volatilidad realizada \\ \midrule[0.2pt]
+Estacionariedad y no linealidad & ADF, KPSS, filtrado autorregresivo, Ljung-Box sobre residuos y cuadrados, ARCH-LM y BDS \\ \midrule[0.2pt]
+Reconstrucción por retardos & Selección operativa de \(\tau\) y \(m\) con información mutua, falsos vecinos y método de Cao \\ \midrule[0.2pt]
+Cuantificación dinámica & Dimensión de correlación, divergencia local y entropía de permutación comparadas con series barajadas y series sustitutas \\ \midrule[0.2pt]
+Predicción local & kNN en el espacio reconstruido, con separación temporal, validación de parámetros y exclusión de vecinos triviales \\ \midrule[0.2pt]
+Aplicación empírica económica & Aplicación financiera de alta frecuencia sobre volatilidad realizada de Bitcoin \\ \midrule[0.2pt]
 Extensión propia & Validación sintética con mapa logístico, modelo HAR-logRV y MVP web autónomo \\
-\hline
+\bottomrule % Línea inferior gruesa
 \end{tabular}
 \caption{Relación entre la tesis de referencia y la adaptación realizada en este trabajo.}
 \label{tab:relacion-olmedo-tfg}
 \end{table}
+
 
 La adaptación introduce elementos propios de un proyecto de ingeniería del software. El análisis se organiza como un procedimiento reproducible, con validación explícita de datos, separación temporal entre entrenamiento, validación y prueba, controles para evitar fuga de información, generación de artefactos y comparación sistemática de modelos. A esto se añade un MVP web independiente del repositorio de investigación, diseñado para ejecutar predicciones de volatilidad y visualizar resultados de forma interactiva.
 

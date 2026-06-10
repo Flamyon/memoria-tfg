@@ -3,57 +3,207 @@
 \chapter{Implementación del procedimiento de análisis}\label{cap:implementacion-procedimiento}
 
 \section{Estructura general del procedimiento}\label{sec:estructura-procedimiento}
-El procedimiento implementado se organiza como una cadena reproducible de análisis. Primero se definen y explican las herramientas; después se comprueba su comportamiento en un sistema sintético conocido, el mapa logístico; finalmente se aplican a una serie financiera real de volatilidad realizada de Bitcoin. Esta separación es importante porque el mapa logístico permite verificar que la metodología responde ante una dinámica caótica controlada, mientras que Bitcoin sirve para estudiar qué ocurre cuando la señal aparece mezclada con ruido, persistencia, heterocedasticidad y cambios de régimen.
+
+El procedimiento implementado se organiza como una cadena reproducible de análisis. Cada fase parte de artefactos generados por fases anteriores, produce salidas persistidas y deja una conclusión parcial que condiciona el paso siguiente. Esta estructura evita que la predicción aparezca como un bloque aislado: antes de comparar modelos se valida el dato, se construye la variable de estudio, se caracteriza la serie, se filtra la dependencia lineal, se estudia la estructura residual y se reconstruye el espacio de estados.
+
+El trabajo combina tres hilos que deben mantenerse separados. El primero es el análisis empírico de la volatilidad realizada intradía de Bitcoin, desarrollado en las fases 0--12. El segundo es la comprobación sintética con el mapa logístico, incorporada en la Fase 13 como control metodológico sobre un sistema caótico conocido. El tercero es el cierre predictivo mediante HAR-logRV y su exportación al MVP, implementado en la Fase 14. Esta separación permite interpretar correctamente los resultados: el mapa logístico comprueba el comportamiento del procedimiento en una dinámica controlada; Bitcoin sirve como aplicación financiera real; HAR-logRV actúa como modelo práctico final para la herramienta web.
+
+La implementación sigue una lógica incremental. Las fases iniciales trabajan con datos y variables; las fases intermedias caracterizan dependencia lineal, no linealidad y reconstrucción; las fases finales comparan modelos predictivos y preparan artefactos para la aplicación. Las salidas se guardan en formatos reutilizables, principalmente CSV para tablas, JSON para resúmenes y parámetros, NPZ para matrices o referencias de modelos, y SVG/PNG para figuras.
 
 \section{Entorno de desarrollo y herramientas utilizadas}\label{sec:entorno-desarrollo}
-% TODO: redactar este apartado.
+
+El procedimiento técnico se implementa en Python y se organiza en scripts independientes por fase. Esta decisión facilita la ejecución parcial del análisis, la revisión de resultados intermedios y la repetición de fases concretas sin reconstruir todo el estudio desde cero. La lógica general del repositorio distingue datos brutos, datos procesados, informes, tablas, figuras y artefactos exportables.
+
+Los datos brutos se almacenan en \texttt{data/\allowbreak raw/}. Los ficheros procesados se guardan en \texttt{data/\allowbreak processed/}. Los informes de fase se almacenan en \texttt{reports/}, con tablas en \texttt{reports/\allowbreak tables/} y figuras en \texttt{reports/\allowbreak figures/}. Esta organización permite que cada resultado citado pueda rastrearse hasta un fichero concreto generado por el código.
+
+La implementación evita depender de salidas manuales. Las tablas, figuras y resúmenes se generan desde scripts reproducibles, y las decisiones importantes quedan persistidas en ficheros. Por ejemplo, los parámetros de embedding se guardan en JSON, los vectores reconstruidos en NPZ y las métricas predictivas en CSV. Esta forma de trabajo reduce la ambigüedad entre cálculo, interpretación y redacción posterior.
+
+El MVP web se desarrolla como proyecto separado. Utiliza Python y Streamlit, pero no importa en ejecución el código del repositorio técnico. En su lugar consume artefactos ya exportados, como coeficientes de AR(49), parámetros de preprocesamiento, referencia de entrenamiento para kNN, parámetros de embedding, modelo HAR-logRV y métricas históricas. Así, el análisis experimental y la aplicación quedan desacoplados.
 
 \section{Obtención y validación inicial de los datos}\label{sec:obtencion-datos}
-El dato bruto procede de los ficheros mensuales de klines de Binance Spot para el par BTCUSDT con frecuencia de cinco minutos. Los archivos se descargan en formato comprimido desde la ruta pública de Binance Data Vision, con nombres del tipo \texttt{BTCUSDT-5m-2024-01.zip}, y se almacenan en \texttt{data/raw/}. El script \texttt{build\_btc\_5m\_clean.py} lee todos los \texttt{.zip}, extrae los CSV internos sin cabecera, normaliza las columnas de Binance y genera el fichero limpio \texttt{btc\_5m\_clean.csv}.
 
-La Fase 0 valida este CSV antes de construir cualquier variable derivada: columnas esperadas, rango temporal, frecuencia exacta de cinco minutos, duplicados, huecos, nulos, conversiones numéricas, precios positivos y consistencia OHLC. Esta validación es necesaria para que las fases posteriores no interpreten errores de adquisición como estructura dinámica.
+El dato bruto procede de los ficheros mensuales de \textit{klines} de Binance Spot para el par \texttt{BTCUSDT} con frecuencia de cinco minutos. Los archivos se descargan en formato comprimido desde la ruta pública de Binance Data Vision, con nombres del tipo \texttt{BTCUSDT-5m-2024-01.zip}, y se almacenan en \texttt{data/\allowbreak raw/}. El script \texttt{build\_\allowbreak btc\_\allowbreak 5m\_\allowbreak clean.py} lee todos los ficheros comprimidos, extrae los CSV internos, normaliza las columnas originales de Binance y genera el fichero limpio \texttt{btc\_\allowbreak 5m\_\allowbreak clean.csv}.
+
+La Fase 0 valida este CSV antes de construir cualquier variable derivada. Las comprobaciones incluyen columnas esperadas, rango temporal, frecuencia exacta de cinco minutos, orden cronológico, duplicados, huecos temporales, valores nulos, conversiones numéricas, precios positivos y consistencia OHLC. Esta validación es necesaria para que las fases posteriores no interpreten errores de adquisición como estructura dinámica.
+
+El dataset validado contiene 245.088 observaciones entre el 1 de enero de 2024 a las 00:00 y el 30 de abril de 2026 a las 23:55. La frecuencia modal es de cinco minutos, no se detectan diferencias temporales distintas de cinco minutos, no hay duplicados en \texttt{open\_\allowbreak time}, no hay huecos temporales y no aparecen valores nulos. Esta fase deja cerrado el punto de partida empírico del análisis.
 
 \section{Construcción de variables y medidas de volatilidad}\label{sec:construccion-variables}
-% TODO: redactar este apartado.
+
+La Fase 1 transforma el fichero limpio en un dataset de análisis. El script correspondiente calcula el logaritmo del precio de cierre, el retorno logarítmico, el retorno al cuadrado, el retorno absoluto, el rango logarítmico entre máximo y mínimo, y transformaciones logarítmicas de volumen y número de operaciones. Estas variables permiten comparar precio, retornos, actividad de mercado e intensidad de movimiento.
+
+La parte central de esta fase es la construcción de volatilidades realizadas pasadas y futuras. Las variables \texttt{rv\_\allowbreak past\_\allowbreak 12}, \texttt{rv\_\allowbreak past\_\allowbreak 48} y \texttt{rv\_\allowbreak past\_\allowbreak 288} agregan retornos al cuadrado en ventanas de 1 hora, 4 horas y 1 día, respectivamente. Las variables \texttt{rv\_\allowbreak future\_\allowbreak 12} y \texttt{rv\_\allowbreak future\_\allowbreak 48} desplazan la ventana hacia retornos posteriores y se usan como objetivos predictivos.
+
+Sobre estas magnitudes se aplica una transformación logarítmica con \(\varepsilon=10^{-12}\). De esta forma se obtienen variables como \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} y \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}. La transformación reduce la dominancia de episodios extremos y sitúa la volatilidad realizada en una escala más manejable para análisis, reconstrucción y predicción.
+
+La construcción respeta la dirección temporal. Las variables pasadas usan información disponible hasta el instante \(t\), mientras que las variables futuras empiezan en \(t+1\). Tras eliminar filas sin histórico suficiente y filas sin futuro disponible, el dataset procesado \texttt{btc\_\allowbreak 5m\_\allowbreak features.csv} contiene 244.752 observaciones. La serie principal recomendada para las fases posteriores es \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}, y el target principal de predicción es \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}.
 
 \section{Visualización inicial y estadísticos descriptivos}\label{sec:visualizacion-descriptivos}
-% TODO: redactar este apartado.
+
+La Fase 2 aplica herramientas generales de exploración sobre el dataset procesado. Se generan gráficos temporales de precio, log-precio, retornos, retornos absolutos, volatilidad realizada pasada, volatilidad realizada futura, volumen y número de operaciones. Además, se calculan estadísticos descriptivos: media, desviación típica, mínimo, percentiles, máximo, asimetría y curtosis.
+
+Esta fase tiene una función de diagnóstico, no de demostración. El precio bruto y el log-precio sirven como contexto económico, pero conservan cambios de nivel. Los retornos logarítmicos están centrados cerca de cero, aunque presentan colas pesadas. Los retornos absolutos muestran agrupamiento temporal de episodios de movimiento intenso. La serie \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} exhibe persistencia visual y alternancia entre periodos tranquilos y periodos de alta volatilidad.
+
+También se identifican eventos extremos. En particular, el episodio del 10 de octubre de 2025 aparece asociado a retornos extremos, alta volatilidad y aumento de actividad de mercado. La fase no interpreta este episodio como evidencia de caos, sino como un caso relevante de régimen de alta volatilidad que debe conservarse en las fases exploratorias.
+
+El resultado práctico de esta fase es confirmar que el análisis debe centrarse en volatilidad realizada y no en precio. \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} se mantiene como serie principal porque resume la intensidad reciente de variación, reduce el ruido respecto a \(|r_t|\) y conserva estructura temporal visible.
 
 \section{Análisis de estacionariedad}\label{sec:analisis-estacionariedad}
-% TODO: redactar este apartado.
+
+La Fase 3 estudia la estacionariedad de las principales series candidatas: precio de cierre, log-precio, retornos, retornos absolutos y \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}. Para ello se combinan gráficos temporales, momentos móviles, test ADF y test KPSS. La ventana móvil empleada para media y desviación típica es de 288 velas, equivalente a un día de datos de cinco minutos.
+
+El precio y el log-precio no resultan adecuados como serie principal. En ambos casos, el ADF no rechaza raíz unitaria y KPSS rechaza estacionariedad en nivel. Los retornos logarítmicos ofrecen una imagen más estable en media: ADF rechaza raíz unitaria y KPSS no rechaza estacionariedad. Sin embargo, la desviación típica móvil muestra cambios importantes durante episodios de estrés y tranquilidad.
+
+Los retornos absolutos y la volatilidad realizada logarítmica capturan la dinámica de intensidad. En \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}, el ADF rechaza raíz unitaria, mientras que KPSS rechaza estacionariedad. La lectura implementada es prudente: la serie no muestra una raíz unitaria clara, pero conserva estacionariedad imperfecta por cambios de régimen. Aun así, se mantiene como serie principal por su persistencia, interpretabilidad y relevancia predictiva.
+
+Esta fase condiciona el resto del procedimiento. No se trabaja directamente con el precio ni con el log-precio, y los retornos firmados quedan como serie de contraste. La variable de volatilidad realizada logarítmica se adopta como objeto central para autocorrelación, recurrencia, reconstrucción y predicción.
 
 \section{Análisis de autocorrelación y espectro}\label{sec:autocorrelacion-espectro}
-% TODO: redactar este apartado.
+
+La Fase 4 calcula ACF, PACF y periodogramas para tres series: retornos logarítmicos, retornos absolutos y \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}. Se analizan retardos asociados a escalas naturales de los datos: 1 vela, 12 velas, 288 velas y 2016 velas, equivalentes a corto plazo, una hora, un día y una semana.
+
+Los retornos firmados muestran autocorrelaciones de pequeña magnitud. Aunque el gran tamaño muestral puede hacer que algunos retardos superen bandas orientativas, la dependencia lineal directa es reducida. Esto justifica que el retorno no sea la serie central para reconstrucción. En cambio, los retornos absolutos muestran autocorrelación positiva, compatible con agrupamiento de volatilidad.
+
+La serie \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} presenta la estructura temporal más marcada. Su ACF en el retardo 1 es aproximadamente 0,98, y la persistencia se mantiene a escalas superiores. Parte de la autocorrelación inicial procede mecánicamente del solapamiento de ventanas, pero la estructura se extiende más allá de las doce velas iniciales.
+
+El periodograma muestra picos en escalas diarias y semanales, especialmente en las medidas de volatilidad. La interpretación implementada no los considera ciclos deterministas ni evidencia de caos; se tratan como posibles periodicidades operativas o de actividad de mercado. La conclusión de la fase es que \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} contiene dependencia temporal suficiente para justificar las fases de recurrencia y reconstrucción.
 
 \section{Gráficos de recurrencia}\label{sec:graficos-recurrencia}
-% TODO: redactar este apartado.
+
+La Fase 5 genera gráficos de recurrencia sobre ventanas representativas. No se construye una matriz completa con toda la muestra, ya que el tamaño resultante sería inviable en memoria y poco interpretable. En su lugar se seleccionan cuatro ventanas de 2.000 observaciones: una ventana tranquila, una ventana de alta volatilidad, una ventana reciente y una ventana media.
+
+En cada ventana se normaliza la serie mediante z-score calculado localmente. La distancia usada es absoluta en una dimensión, y el umbral se ajusta para alcanzar una tasa de recurrencia objetivo del 5\%. Las series analizadas son \(r\), \(|r|\) y \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}.
+
+Los gráficos de recurrencia de los retornos firmados muestran una textura fina y dispersa, cercana a ruido. En los retornos absolutos aparecen más agrupaciones, porque se conserva la intensidad del movimiento y se elimina el signo. En \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} se observan bloques, motivos rectangulares y diagonales secundarias más claras, coherentes con persistencia y regímenes de volatilidad.
+
+La fase se implementa como diagnóstico exploratorio. Sus salidas no se interpretan como prueba de caos ni como contraste formal de no linealidad. Su papel es mostrar que la estructura visual relevante aparece con más claridad en la volatilidad realizada que en los retornos firmados, lo que apoya la elección de la serie principal para las fases siguientes.
 
 \section{Filtrado lineal mediante modelos autorregresivos}\label{sec:filtrado-lineal}
-% TODO: redactar este apartado.
+
+La Fase 6 introduce un filtro lineal autorregresivo sobre la serie principal estandarizada. El objetivo es separar la dependencia lineal básica de la posible estructura residual. Para ello se ajustan modelos AR(\(p\)) con \(p=1,\ldots,100\) sobre el tramo de entrenamiento, utilizando la serie estandarizada con media y desviación típica calculadas solo en train.
+
+La selección del orden se realiza mediante BIC. El orden seleccionado es AR(49). La estimación se realiza mediante ecuaciones de Yule-Walker, y el modelo resultante se aplica al conjunto completo para obtener una serie de residuos. Esta serie residual permite analizar si, después de retirar dependencia lineal en media, queda dependencia en varianza o estructura temporal no explicada.
+
+La comparación entre la ACF de \texttt{z\_\allowbreak log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} y la ACF de los residuos muestra una reducción fuerte de la autocorrelación de corto plazo. La ACF en el retardo 1 pasa de aproximadamente 0,981 en la serie original a una magnitud cercana a cero en los residuos. Los contrastes Ljung-Box pueden seguir rechazando a retardos altos, pero la interpretación se hace atendiendo también a la magnitud de las autocorrelaciones y al tamaño muestral.
+
+Además de la ACF/PACF de residuos, se generan gráficos de recurrencia para comparar la textura de la serie original y la filtrada. La implementación no concluye no linealidad solo por esta fase. El AR(49) se usa como benchmark lineal fuerte y como preparación para contrastar si queda estructura residual relevante.
 
 \section{Contrastes de no linealidad}\label{sec:contrastes-no-linealidad}
-% TODO: redactar este apartado.
+
+La Fase 7 aplica contrastes sobre la serie original estandarizada y sobre los residuos del AR(49). El objetivo no es demostrar caos, sino comprobar si queda dependencia en varianza o dependencia no compatible con una secuencia i.i.d. tras el filtrado lineal.
+
+Se aplican contrastes Ljung-Box sobre cuadrados de la serie original y de los residuos, en retardos 12, 24, 48, 96, 288 y 2016. También se aplica ARCH-LM sobre residuos, con retardos 12, 24, 48, 96 y 288. Estos contrastes se orientan a dependencia en varianza, un rasgo esperable en series financieras de volatilidad.
+
+Además, se aplica BDS en cuatro ventanas representativas: media, reciente, alta volatilidad y tranquila. El contraste se evalúa para dimensiones \(m = 2,3,4\) y valores de \(\epsilon\) proporcionales a la desviación típica. Dado el tamaño completo de la serie, el BDS se calcula sobre ventanas de 3.000 observaciones. Esta decisión mantiene el cálculo viable y permite comparar regímenes distintos.
+
+La fase incorpora una comparación con datos barajados. Para cada ventana se generan permutaciones que conservan la distribución marginal pero destruyen el orden temporal. La comparación de autocorrelaciones de cuadrados permite comprobar si los estadísticos dependen realmente del orden temporal de la serie.
+
+La conclusión implementada es que el filtro AR reduce la dependencia lineal en media, pero no agota la dependencia en varianza ni toda la estructura temporal. Este resultado justifica continuar con reconstrucción del espacio de estados, manteniendo la advertencia central: dependencia residual no equivale a prueba de caos determinista.
 
 \section{Reconstrucción del espacio de estados}\label{sec:implementacion-reconstruccion}
-% TODO: redactar este apartado.
+
+La Fase 8 reconstruye el espacio de estados de la serie principal. La serie utilizada es \(v_t = \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}\), estandarizada como \(z_t\) con parámetros calculados en entrenamiento. La convención adoptada es causal:
+
+\begin{equation}
+    X_t = [z_t, z_{t-\tau}, z_{t-2\tau}, \ldots, z_{t-(m-1)\tau}].
+\end{equation}
+
+Cada vector usa únicamente información presente y pasada. Esta orientación es necesaria porque el embedding se utilizará posteriormente para predicción.
+
+El retardo \(\tau\) se selecciona mediante información mutua media. La implementación busca el primer mínimo local de AMI, que aparece en \(\tau=137\). Además, se compara la AMI de la serie original con la de una serie barajada. En el retardo seleccionado, la AMI original queda claramente por encima de la barajada, lo que apoya que la dependencia usada para seleccionar \(\tau\) procede del orden temporal.
+
+La dimensión de embedding se estudia mediante falsos vecinos cercanos y método de Cao. FNN alcanza su mínimo práctico en \(m=5\), aunque el porcentaje de falsos vecinos no cae por debajo de un umbral bajo. Cao apunta a una estabilización más tardía, alrededor de \(m=14\). La decisión implementada adopta \(m=5\) como compromiso operativo: reduce dimensionalidad, mantiene densidad local razonable y evita que el método de vecinos quede dominado por el problema de dimensionalidad.
+
+Con \(\tau=137\) y \(m=5\), la ventana efectiva del vector reconstruido es de 548 velas, equivalentes a 2.740 minutos o aproximadamente 45,7 horas. La fase genera embeddings para entrenamiento y prueba, visualizaciones 2D/3D y ficheros NPZ reutilizables. La conclusión no afirma haber reconstruido un atractor determinista; establece una representación operativa para cuantificación y predicción local.
 
 \section{Cuantificación de la dinámica reconstruida}\label{sec:cuantificacion-dinamica}
-% TODO: redactar este apartado.
+
+La Fase 9 cuantifica la dinámica reconstruida mediante tres familias de indicadores: dimensión de correlación aproximada, pendiente de Rosenstein y entropía de permutación. Todos se calculan con cautela, usando submuestras cuando el coste computacional lo requiere.
+
+La dimensión de correlación se estima sobre una muestra equiespaciada de vectores. En la ejecución documentada, la estimación para la serie original es cercana a la obtenida para una serie barajada. Por tanto, la dimensión de correlación se interpreta como indicador ambiguo: no aporta por sí sola evidencia fuerte de baja dimensionalidad determinista.
+
+La pendiente de Rosenstein se usa como aproximación de divergencia local de trayectorias cercanas. La serie original muestra una pendiente positiva claramente superior a la barajada. Este resultado es compatible con divergencia de estados cercanos, pero no basta para afirmar caos, ya que en una serie financiera también puede reflejar ruido, volatilidad estocástica, persistencia o cambios de régimen.
+
+La entropía de permutación mide estructura ordinal. La serie original presenta valores inferiores a la barajada, especialmente con retardo corto, lo que indica que el orden temporal contiene patrones que se destruyen al permutar la serie. La conclusión de la fase es que existen indicios de estructura temporal no trivial, sobre todo por Rosenstein y entropía ordinal, pero no una demostración concluyente de caos.
 
 \section{Contrastes con barajado y datos subrogados}\label{sec:contrastes-barajado}
-% TODO: redactar este apartado.
+
+La Fase 10 extiende la comparación frente a controles. No basta con comparar la serie original con una permutación aleatoria, porque una serie financiera puede diferenciarse del barajado simplemente por su estructura lineal, espectro o distribución marginal. Por ello se generan tres grupos de referencia: series barajadas, series \textit{phase-randomized} y series AAFT.
+
+Las series barajadas conservan los valores observados pero destruyen el orden temporal. Las \textit{phase-randomized} conservan aproximadamente el espectro lineal, aleatorizando fases. Las AAFT intentan conservar de forma aproximada tanto la distribución marginal como la estructura lineal. Esta jerarquía permite formular hipótesis nulas más exigentes.
+
+Los estadísticos comparados son la dimensión de correlación aproximada, la pendiente de Rosenstein y la entropía de permutación. Frente a barajadas, la serie original queda claramente diferenciada en los principales estadísticos. Frente a \textit{phase-randomized} y AAFT, la separación es más débil: D2 y Rosenstein no se separan de forma clara, mientras que la entropía ordinal mantiene una señal más diferenciada.
+
+La lectura implementada limita el alcance de las conclusiones. La serie contiene estructura temporal explotable, pero parte de los indicadores observados puede reproducirse preservando estructura lineal o distribucional. Por tanto, los contrastes con subrogados refuerzan una interpretación prudente y preparan el paso a predicción local sin convertir los estadísticos en una afirmación de caos.
 
 \section{Predicción local de volatilidad}\label{sec:prediccion-local}
-% TODO: redactar este apartado.
+
+La Fase 11 evalúa si el espacio reconstruido aporta capacidad predictiva sobre \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}. La prueba se plantea como evaluación empírica fuera de muestra, no como demostración de caos. Se utilizan particiones cronológicas de entrenamiento, validación y test.
+
+Los modelos comparados son media histórica, persistencia, AR(49) con horizonte 12, vecino más próximo y media de \(k\) vecinos. El kNN se evalúa sobre el embedding con \(\tau=137\) y \(m=5\). La selección de \(k\) se realiza en validación, probando \(k = 2,3,5,10,20,50\). Test no interviene en la selección.
+
+La búsqueda de vecinos respeta reglas anti-leakage. En validación, los vecinos se buscan solo en train. En test, solo se busca en el histórico permitido. Además, se excluyen candidatos que no cumplen la condición temporal del horizonte y se aplica una ventana de Theiler de 685 retardos para evitar vecinos trivialmente próximos.
+
+La selección inicial elige \(k=50\) por RMSE de validación. En test, el kNN medio mejora a persistencia, pero no supera al AR(49). Esta fase confirma que la reconstrucción contiene información predictiva frente a referencias simples, pero no demuestra superioridad del enfoque no lineal frente al benchmark lineal principal.
 
 \section{Experimentos de robustez y configuraciones alternativas}\label{sec:experimentos-robustez}
-% TODO: redactar este apartado.
+
+La Fase 12 extiende la evaluación predictiva sin introducir modelos nuevos. Su objetivo es comprobar si las conclusiones de la Fase 11 dependen de una rejilla de \(k\) demasiado corta o de la elección de \(m=5\) frente a la dimensión sugerida por Cao.
+
+Se evalúan dos configuraciones: \(\tau=137, m=5\) y \(\tau=137, m=14\). La primera mantiene una memoria efectiva de 548 velas, unas 45,7 horas. La segunda aumenta la memoria efectiva hasta 1.781 velas, unas 148,4 horas, es decir, aproximadamente 6,2 días. Debido al coste computacional del embedding alto, la configuración \(m=14\) se evalúa sobre menos puntos que \(m=5\).
+
+La búsqueda de \(k\) se amplía a \(k = 2,3,5,10,20,50,100,200\). En ambas configuraciones se selecciona \(k=200\), aunque la mejora entre \(k=100\) y \(k=200\) es pequeña. Esto sugiere una estabilización del rendimiento: el método local funciona más como promedio suavizado de estados similares que como predicción basada en un vecino muy próximo.
+
+En test, \(m=14\) no mejora a \(m=5\). La dimensionalidad adicional reduce la densidad local y aumenta el coste computacional. Además, ninguna configuración kNN supera al AR(49). La conclusión práctica es que \(m=5\) queda confirmada como dimensión operativa y que el kNN mejora a persistencia, pero no domina al benchmark lineal.
 
 \section{Comprobación sintética con mapa logístico}\label{sec:validacion-logistica}
-La Fase 13 replica el procedimiento sobre un mapa logístico con parámetro caótico conocido. Esta fase no utiliza datos de Bitcoin, sino una serie sintética que permite comprobar si las herramientas de reconstrucción, cuantificación y predicción local responden cuando existe una dinámica no lineal controlada. El contraste es importante para la memoria: si el procedimiento detecta estructura en el mapa logístico pero ofrece resultados más ambiguos en BTC, la conclusión prudente no se debe a un fallo directo de implementación, sino a la naturaleza financiera y ruidosa de la serie real.
+
+La Fase 13 replica el procedimiento sobre un mapa logístico con parámetro caótico conocido. Esta fase no utiliza datos de Bitcoin, sino una serie sintética que permite comprobar si las herramientas de reconstrucción, cuantificación y predicción local responden cuando existe una dinámica no lineal controlada.
+
+El sistema sintético se genera mediante
+
+\begin{equation}
+    x_{t+1} = 4x_t(1-x_t).
+\end{equation}
+
+Se parte de \(x_0 = 0{,}123456789\), se generan 12.000 iteraciones y se descartan 1.000 como transitorio, quedando 11.000 observaciones útiles. Además de la serie limpia, se construyen dos variantes con ruido observacional: ruido pequeño y ruido moderado.
+
+Sobre cada serie se aplica selección de \(\tau\), selección de \(m\), reconstrucción, visualización 2D/3D, estimación de Rosenstein, entropía de permutación y predicción local. En la serie limpia y en la serie con ruido pequeño, AMI selecciona \(\tau=9\); con ruido moderado selecciona \(\tau=5\). FNN sugiere dimensiones prácticas entre 5 y 6, mientras que Cao tiende hacia una dimensión mayor. Esta discrepancia se interpreta como sensibilidad del método, no como fallo.
+
+En predicción, se compara media histórica, persistencia, referencia AR seleccionada por BIC, vecino próximo y kNN medio. En las tres variantes, el kNN medio supera claramente a las referencias lineales simples. En la serie limpia, el RMSE del kNN queda alrededor de 0,098 frente a aproximadamente 0,357 para AR(0)/media. La diferencia confirma que el predictor local explota una relación no lineal cuando la dinámica subyacente es conocida.
+
+Esta fase es central para la interpretación del trabajo. Si el procedimiento detecta estructura en el mapa logístico pero ofrece resultados más ambiguos en BTC, la conclusión prudente no se debe atribuir directamente a un fallo de implementación, sino a la naturaleza financiera y ruidosa de la serie real.
 
 \section{Modelo HAR-logRV y exportación al MVP}\label{sec:har-logrv-exportacion}
-La Fase 14 introduce un modelo HAR-logRV compacto como cierre predictivo operativo. El modelo estima la volatilidad futura a una hora a partir de tres memorias de volatilidad realizada: 1 hora, 4 horas y 1 día. Sus coeficientes se ajustan solo en train y se evalúan en validation y test sin recalibración. Además, el modelo se exporta como artefacto JSON para que el MVP web pueda ejecutarlo sin importar código del repositorio técnico.
+
+La Fase 14 introduce un modelo HAR-logRV compacto como cierre predictivo operativo. El modelo estima la volatilidad futura a una hora a partir de tres memorias de volatilidad realizada: 1 hora, 4 horas y 1 día. No se abre una familia amplia de modelos; se incorpora un único benchmark específico de volatilidad realizada, simple, interpretable y exportable.
+
+La especificación implementada es
+
+\begin{equation}
+    \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}
+    =
+    \beta_0
+    + \beta_1 \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}
+    + \beta_2 \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 48}
+    + \beta_3 \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 288}
+    + \varepsilon_t.
+\end{equation}
+
+Los coeficientes se ajustan mediante OLS solo en train. Validation no se usa para seleccionar variables, ya que las tres escalas quedan fijadas antes de la fase. Test no interviene ni en entrenamiento ni en selección. La comprobación anti-leakage mantiene la alineación temporal entre \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12(t)} y \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12(t+12)}.
+
+El modelo se compara frente a media histórica, persistencia, AR(49) y kNN \(\tau=137, m=5, k=200\). En la muestra comparable de 5.000 puntos de test, HAR-logRV queda ligeramente por delante de AR(49) y por delante del kNN local. La mejora frente a AR(49) es pequeña, por lo que no se presenta como ruptura metodológica, sino como un cierre práctico: el modelo es rápido, interpretable y necesita pocas variables.
+
+Además de la evaluación histórica, la fase simula el modo MVP con las últimas 1.000 velas y un split interno 70/30. Finalmente, exporta el artefacto \texttt{har\_\allowbreak logrv\_\allowbreak model.json} a \texttt{data/\allowbreak model\_\allowbreak artifacts/}. De esta forma, el MVP puede ejecutar el modelo sin importar código del repositorio técnico.
 
 \section{Resultado final de la validación del modelo}\label{sec:resultado-validacion}
-% TODO: redactar este apartado.
+
+El procedimiento completo deja tres resultados técnicos diferenciados. En primer lugar, la cadena de análisis permite construir una serie de volatilidad realizada limpia, validada y sin fuga de información. En segundo lugar, las fases de caracterización, reconstrucción y cuantificación muestran estructura temporal no trivial en la volatilidad de Bitcoin, aunque sin evidencia suficiente para afirmar caos determinista. En tercer lugar, el bloque predictivo muestra que la volatilidad futura a una hora es parcialmente predecible frente a referencias simples.
+
+El kNN local confirma que el espacio reconstruido contiene información útil: mejora a persistencia y aporta una lectura compatible con estados de volatilidad similares que tienden a tener comportamientos futuros parcialmente parecidos. Sin embargo, no supera de forma robusta al AR(49). Esto limita la interpretación no lineal y obliga a mantener el AR como benchmark fuerte.
+
+La comprobación sintética con mapa logístico cumple una función distinta. En ese sistema, el kNN local supera claramente a la referencia lineal y la reconstrucción muestra una estructura más nítida. Por tanto, el pipeline responde ante una dinámica no lineal conocida. La diferencia entre ese resultado y Bitcoin refuerza la lectura prudente: en datos financieros reales, la señal aparece mezclada con ruido, heterocedasticidad y cambios de régimen.
+
+El cierre predictivo lo proporciona HAR-logRV. Su mejora frente a AR(49) es marginal, pero combina buen rendimiento, simplicidad, bajo coste y facilidad de exportación. Por ello se adopta como modelo práctico principal del MVP. La reconstrucción no lineal y el kNN quedan como parte del análisis metodológico; HAR-logRV queda como modelo operativo recomendado.
+
+En conjunto, la implementación cumple el objetivo técnico del capítulo: construir un procedimiento reproducible, validarlo en un sistema sintético, aplicarlo con cautela a Bitcoin y exportar un modelo práctico a una herramienta web autónoma.

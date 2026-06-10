@@ -2,32 +2,202 @@
 
 \chapter{Diseño de la solución}\label{cap:diseno}
 
+El capítulo anterior ha fijado las condiciones que debe cumplir el proyecto. A partir de ellas, este capítulo describe el diseño de la solución adoptada. El objetivo no es detallar todavía la implementación de cada script o cada página del MVP, sino explicar cómo se estructura el sistema, qué piezas lo componen, cómo circulan los datos entre ellas y qué decisiones de diseño permiten mantener separadas la validación metodológica, la aplicación empírica a Bitcoin y la herramienta web.
+
+La solución se diseña como un sistema reproducible de análisis de series temporales. Su núcleo es un procedimiento experimental por fases, inspirado en la metodología de dinámica no lineal aplicada a series económicas, pero adaptado a datos financieros de alta frecuencia. Sobre ese núcleo se incorporan dos elementos diferenciados: una comprobación sintética con el mapa logístico y un MVP web que expone una parte operativa de los modelos finales. Esta separación evita que el prototipo web se confunda con el estudio completo y permite interpretar cada resultado dentro de su contexto.
+
 \section{Visión general de la solución propuesta}\label{sec:vision-general}
-% TODO: redactar este apartado.
+
+La solución propuesta se articula en torno a una idea principal: antes de utilizar un modelo predictivo sobre una serie financiera, es necesario construir una representación fiable de la serie, caracterizar su estructura temporal y comprobar qué parte de la predictibilidad observada se explica por referencias simples. Por ello, el diseño no parte del MVP, sino del procedimiento metodológico.
+
+El flujo general comienza con datos intradía de Bitcoin en forma de velas de cinco minutos. A partir de esos datos se construyen retornos logarítmicos y medidas de volatilidad realizada. La serie principal del estudio es \(v_t = \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}\), que representa la volatilidad realizada de la última hora en escala logarítmica. El target predictivo principal es \(\texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}\), asociado a la volatilidad realizada de las doce velas siguientes.
+
+Sobre esa serie se aplica un procedimiento progresivo: validación de datos, construcción de variables, caracterización estadística, análisis lineal, recurrencia, filtrado autorregresivo, contrastes de dependencia residual, reconstrucción del espacio de estados, cuantificación dinámica, comparación con barajados y subrogados, predicción local y cierre con un modelo HAR-logRV. La comprobación sintética con el mapa logístico reproduce la misma lógica sobre un sistema no lineal conocido. El MVP, por su parte, no ejecuta todo el estudio, sino que consume artefactos ya exportados y permite obtener predicciones actuales de volatilidad con los modelos seleccionados.
+
+La solución queda así dividida en tres niveles. El primer nivel es metodológico y contiene el análisis técnico completo. El segundo nivel es experimental y compara el comportamiento del procedimiento en un sistema sintético y en una serie financiera real. El tercer nivel es operativo y se concreta en una aplicación web que permite usar los modelos principales de forma interactiva.
 
 \section{Arquitectura global del sistema}\label{sec:arquitectura-global}
-% TODO: redactar este apartado.
+
+La arquitectura global se diseña como una arquitectura desacoplada en tres bloques: repositorio de investigación, aplicación web y memoria académica. El repositorio de investigación contiene las fases de análisis, las tablas, las figuras, los informes y los artefactos exportables. La aplicación web utiliza una copia de los artefactos necesarios para ejecutar los modelos en tiempo de uso. La memoria documenta la metodología, la implementación, los resultados y las limitaciones.
+
+Esta división evita dependencias innecesarias. El MVP no importa el código del repositorio de investigación durante su ejecución; trabaja con artefactos precomputados, como coeficientes de modelos, parámetros de preprocesamiento, parámetros de embedding, datos de referencia para kNN y métricas históricas. Con ello, el MVP se mantiene ligero y autónomo, mientras que el repositorio técnico conserva la capacidad de reproducir el estudio completo.
+
+La arquitectura puede resumirse de la siguiente forma:
+
+\begin{center}
+\begin{tabular}{p{0.25\textwidth} p{0.62\textwidth}}
+\hline
+\textbf{Bloque} & \textbf{Responsabilidad principal} \\
+\hline
+\texttt{btc\_\allowbreak volatility} & Ejecución del procedimiento experimental completo, fases 0--14, generación de tablas, figuras, informes y artefactos exportables. \\
+\texttt{mvp\_\allowbreak web} & Aplicación Streamlit autónoma para cargar datos recientes o de ejemplo, calcular variables, ejecutar modelos y mostrar predicciones de volatilidad. \\
+\texttt{tfg\_\allowbreak memoria} & Documentación académica del planteamiento, diseño, implementación, resultados, pruebas, manual y conclusiones. \\
+\hline
+\end{tabular}
+\end{center}
+
+La comunicación entre los dos primeros bloques se realiza mediante ficheros intermedios. El repositorio técnico produce artefactos en formatos como CSV, JSON o NPZ. El MVP los lee desde su directorio local de artefactos. Esta decisión de diseño es importante porque separa el entrenamiento y la validación histórica del uso operativo. Los modelos históricos no se recalibran desde la interfaz web, salvo el caso experimental del Mini-HAR local, que se ajusta con la ventana cargada y se presenta como una recalibración local, no como sustituto de la validación formal.
+\begin{center}
+\begin{tabular}{p{0.28\textwidth} p{0.58\textwidth}}
+\hline
+\textbf{Etapa} & \textbf{Salida principal} \\
+\hline
+Validación de velas & Dataset limpio, ordenado y sin huecos temporales. \\
+Construcción de variables & Retornos, volatilidades realizadas pasadas/futuras y transformaciones logarítmicas. \\
+Caracterización & Tablas descriptivas, figuras temporales, ACF, PACF, periodogramas y recurrencia. \\
+Modelado experimental & Residuos AR, parámetros de embedding, métricas dinámicas, resultados de predicción. \\
+Exportación & Coeficientes, parámetros, datos de referencia y métricas históricas para el MVP. \\
+Aplicación web & Predicciones actuales, diagnóstico de fiabilidad, evaluación reciente y descargas CSV. \\
+\hline
+\end{tabular}
+\end{center}
 
 \section{Diseño del procedimiento metodológico}\label{sec:diseno-procedimiento}
-% TODO: redactar este apartado.
+
+El procedimiento metodológico se diseña como una secuencia de fases encadenadas. Cada fase recibe una entrada concreta, produce salidas persistidas y deja una conclusión parcial. Esta organización permite comprobar el análisis paso a paso y evita que los resultados predictivos aparezcan desligados de la construcción previa de la serie.
+
+Las primeras fases se ocupan de la base empírica. La Fase 0 valida la integridad del dataset original y genera una serie limpia de velas de cinco minutos. La Fase 1 construye las variables necesarias para el estudio: retornos, volatilidades realizadas pasadas y futuras, transformaciones logarítmicas y variables auxiliares. Las Fases 2, 3 y 4 caracterizan la serie mediante gráficos, estadísticos, estacionariedad, autocorrelación, autocorrelación parcial y periodograma.
+
+La parte intermedia del procedimiento analiza si la volatilidad conserva estructura más allá de una lectura lineal simple. La Fase 5 utiliza gráficos de recurrencia en ventanas representativas. La Fase 6 introduce un modelo AR seleccionado por BIC como filtro lineal y como referencia. La Fase 7 estudia dependencia en varianza y comportamiento no i.i.d. mediante contrastes sobre cuadrados, ARCH-LM, BDS y comparaciones con barajados.
+
+A continuación se diseña el bloque de reconstrucción. La Fase 8 selecciona el retardo \(\tau\) mediante información mutua media y la dimensión \(m\) mediante falsos vecinos cercanos, contrastando la decisión con el método de Cao. La representación final usa \(\tau=137\) y \(m=5\), lo que da lugar a vectores de estado formados por valores presentes y retardados de la serie estandarizada. Esta elección se interpreta como operativa, no como identificación definitiva de un atractor.
+
+Las Fases 9 y 10 cuantifican la dinámica reconstruida y la comparan con controles. Se calculan dimensión de correlación aproximada, pendiente de Rosenstein y entropía de permutación. Después se comparan esos indicadores con series barajadas y subrogadas. Este bloque está diseñado para limitar la interpretación: si la serie original se diferencia de una permutación aleatoria pero no se separa claramente de subrogados que conservan estructura lineal o distribucional, la conclusión debe ser prudente.
+
+El bloque predictivo cierra el procedimiento técnico. La Fase 11 evalúa predicción local en el espacio reconstruido frente a media histórica, persistencia y AR(49). La Fase 12 estudia sensibilidad respecto al número de vecinos y a la dimensión sugerida por Cao. La Fase 14 incorpora el modelo HAR-logRV compacto, que resume memoria de una hora, cuatro horas y un día. El diseño conserva dos roles distintos: kNN queda como predictor local experimental asociado a la reconstrucción, mientras que HAR-logRV queda como modelo práctico recomendado para el MVP por su simplicidad, velocidad e interpretabilidad.
 
 \section{Diseño de la comprobación sintética}\label{sec:diseno-comprobacion-sintetica}
-% TODO: redactar este apartado.
+
+La comprobación sintética se diseña como un control metodológico independiente de Bitcoin. Su objetivo es verificar que el procedimiento responde de forma razonable cuando se aplica a una dinámica determinista, no lineal y conocida. Para ello se utiliza el mapa logístico en régimen caótico,
+
+\begin{equation}
+    x_{t+1} = 4x_t(1-x_t).
+\end{equation}
+
+El diseño de esta comprobación replica los elementos centrales del pipeline: generación de la serie, selección de retardo, selección de dimensión, reconstrucción, visualización del espacio de estados, estimación de divergencia local, entropía de permutación y predicción local. La fase se completa con dos versiones contaminadas con ruido observacional, de modo que el procedimiento no se evalúa únicamente sobre una trayectoria limpia.
+
+El mapa logístico cumple una función que no puede cumplir Bitcoin: se conoce de antemano que la dinámica subyacente es no lineal y caótica para el parámetro usado. Por tanto, si la reconstrucción es más nítida y el predictor local supera claramente a una referencia lineal, eso ofrece evidencia de que la implementación es capaz de explotar estructura no lineal cuando esta existe de forma explícita.
+
+El diseño separa cuidadosamente esta comprobación de la aplicación financiera. El comportamiento observado en el mapa logístico no se traslada como conclusión sobre Bitcoin. Más bien sirve para calibrar el procedimiento: en el sistema sintético el kNN local debe capturar una transición no lineal limpia; en Bitcoin, la señal aparece mezclada con ruido, heterocedasticidad, dependencia lineal, cambios de régimen y efectos de mercado. Esta diferencia es parte del diseño experimental y no una contradicción.
 
 \section{Diseño de la aplicación empírica a Bitcoin}\label{sec:diseno-aplicacion-bitcoin}
-% TODO: redactar este apartado.
+
+La aplicación empírica a Bitcoin se diseña como un caso de uso real del procedimiento. La variable observada inicialmente no es una serie de estados de un sistema dinámico ideal, sino un registro de mercado con precios, volúmenes y operaciones. Por ello, el primer paso de diseño consiste en transformar los datos brutos en una serie adecuada para el análisis.
+
+La serie principal se define como la volatilidad realizada pasada de una hora en escala logarítmica. Esta elección evita trabajar directamente con el precio, que conserva cambios de nivel persistentes, y también evita tomar el retorno firmado como variable central, ya que su autocorrelación directa es reducida y su estructura más relevante aparece en la intensidad del movimiento. La volatilidad realizada, en cambio, permite estudiar persistencia, agrupamiento de volatilidad y memoria temporal.
+
+El análisis empírico queda dividido en tres niveles. El primer nivel caracteriza la serie: validación, variables, estadísticos, estacionariedad, ACF, PACF, periodograma y recurrencia. El segundo nivel examina estructura dinámica: filtrado lineal, contrastes de dependencia residual, reconstrucción, cuantificación, barajados y subrogados. El tercer nivel evalúa capacidad predictiva: kNN local, AR(49), persistencia y HAR-logRV.
+
+El diseño no busca demostrar caos determinista en Bitcoin. La aplicación empírica está planteada para responder preguntas más acotadas: si la volatilidad realizada presenta persistencia, si queda estructura después de un filtro lineal, si los indicadores dinámicos se diferencian de controles simples, si la reconstrucción aporta información predictiva y si un modelo multiescala de volatilidad ofrece un cierre práctico competitivo. Esta formulación permite mantener una interpretación técnica defendible.
 
 \section{Diseño del flujo de datos}\label{sec:flujo-datos}
-% TODO: redactar este apartado.
+
+El flujo de datos se diseña de forma temporalmente causal. Cada variable explicativa debe estar disponible en el instante en que se realiza la predicción. Las variables futuras se calculan únicamente para construir targets y evaluar errores, nunca como entrada de los modelos.
+
+El flujo comienza con los ficheros brutos de velas. Tras la validación se obtiene \texttt{btc\_\allowbreak 5m\_\allowbreak clean.csv}. Sobre este fichero se calculan los retornos y las ventanas de volatilidad realizada, generando \texttt{btc\_\allowbreak 5m\_\allowbreak features.csv}. A partir de ese dataset procesado se ejecutan las fases de caracterización, reconstrucción y predicción. Las fases finales exportan artefactos para el MVP.
+
+Desde el punto de vista funcional, el flujo puede describirse así:
+
+\begin{center}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.28\textwidth} >{\raggedright\arraybackslash}p{0.58\textwidth}}
+\hline
+\textbf{Etapa} & \textbf{Salida principal} \\
+\hline
+Validación de velas & Dataset limpio, ordenado y sin huecos temporales. \\
+Construcción de variables & Retornos, volatilidades realizadas pasadas/futuras y transformaciones logarítmicas. \\
+Caracterización & Tablas descriptivas, figuras temporales, ACF, PACF, periodogramas y recurrencia. \\
+Modelado experimental & Residuos AR, parámetros de embedding, métricas dinámicas, resultados de predicción. \\
+Exportación & Coeficientes, parámetros, datos de referencia y métricas históricas para el MVP. \\
+Aplicación web & Predicciones actuales, diagnóstico de fiabilidad, evaluación reciente y descargas CSV. \\
+\hline
+\end{tabular}
+\end{center}
+
+
+El diseño del flujo impone una restricción importante: los artefactos usados por el MVP proceden de validaciones históricas ya realizadas. Esto evita que el uso interactivo de la aplicación altere los resultados del estudio. El usuario puede cargar una ventana reciente y obtener predicciones, pero el entrenamiento histórico de AR(49), kNN y HAR-logRV global pertenece al procedimiento técnico previo.
 
 \section{Diseño experimental y separación temporal}\label{sec:diseno-experimental}
-% TODO: redactar este apartado.
+
+La separación temporal es una decisión central del diseño experimental. En series financieras no es válido mezclar aleatoriamente observaciones de entrenamiento y prueba, porque eso rompería el orden temporal y podría introducir información futura de forma indirecta. Por ello, el procedimiento utiliza particiones cronológicas.
+
+En el bloque de filtrado lineal y reconstrucción se ajustan parámetros con información histórica. La media y desviación típica usadas para estandarizar la serie principal proceden del tramo de entrenamiento. Del mismo modo, la selección del modelo AR y los parámetros del embedding se realizan sin utilizar el tramo de prueba como fuente de calibración.
+
+En las fases de predicción local se introduce una partición train-validation-test. El tramo de validación se utiliza para seleccionar el número de vecinos \(k\). El tramo de test se reserva para la evaluación final. En validación, los vecinos solo se buscan en entrenamiento; en test, solo en el histórico permitido. Además, se usa una ventana de Theiler para excluir estados temporalmente demasiado próximos y evitar vecinos triviales por solapamiento.
+
+El target de predicción se construye manteniendo la alineación temporal:
+
+\begin{equation}
+    \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}(t)
+    =
+    \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}(t+12).
+\end{equation}
+
+Esta igualdad expresa que la volatilidad futura de una hora en \(t\) coincide con la volatilidad pasada de una hora observada doce velas después. En el diseño experimental, esta relación se comprueba para validar la alineación, pero el valor futuro no se utiliza para generar predicciones.
+
+El modelo HAR-logRV mantiene la misma disciplina temporal. Sus variables explicativas son \(\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}\), \(\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 48}\) y \(\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 288}\), todas calculadas con información pasada o presente. El target sigue siendo \(\texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}\). La selección de variables no se realiza con test, sino que viene fijada por la estructura HAR de memoria multiescala.
 
 \section{Diseño de la arquitectura del MVP web}\label{sec:diseno-mvp}
-% TODO: redactar este apartado.
+
+El MVP web se diseña como una aplicación Streamlit autónoma. Su objetivo no es reproducir todas las fases del estudio, sino ofrecer una interfaz para aplicar los modelos principales de predicción de volatilidad sobre datos recientes, un dataset de ejemplo o un CSV proporcionado por el usuario.
+
+La arquitectura funcional del MVP se organiza en cinco bloques. El primero es la capa de entrada, que permite obtener datos desde Binance, desde un dataset de ejemplo o desde un CSV. El segundo es la capa de validación y normalización, que transforma los datos a una estructura común con marca temporal y precio de cierre, y comprueba frecuencia, huecos, nulos, orden temporal y precios positivos. El tercero es la capa de construcción de variables, donde se calculan las volatilidades realizadas necesarias. El cuarto es la capa de modelos, que ejecuta persistencia, kNN local, AR(49), HAR-logRV global y Mini-HAR local. El quinto es la capa de presentación, formada por páginas de Streamlit, tablas, gráficos, diagnósticos y descargas.
+
+La separación por páginas responde al uso previsto de la herramienta. La página de inicio presenta el estado general de la aplicación y la disponibilidad de artefactos. La página de predicción concentra el flujo principal: carga de datos, cálculo de variables, predicción actual, visualización y descarga. La página de diagnóstico muestra la fiabilidad de los datos y la disponibilidad de cada modelo. La página de comparación resume resultados históricos relevantes del estudio. La página de ayuda recoge instrucciones y limitaciones.
+
+El MVP emplea artefactos locales en \texttt{data/\allowbreak model\_\allowbreak artifacts/}. Entre ellos se encuentran coeficientes de AR(49), parámetros de embedding, referencia de entrenamiento para kNN, parámetros de preprocesamiento, modelo HAR-logRV y métricas históricas. Este diseño permite que la aplicación funcione sin importar el repositorio de investigación. La exportación de artefactos actúa como frontera entre entrenamiento histórico y uso operativo.
+
+Los modelos tienen roles diferenciados en la interfaz. Persistencia sirve como referencia básica. AR(49) actúa como benchmark lineal fuerte. kNN local representa el componente experimental asociado a la reconstrucción del espacio de estados. HAR-logRV global es el modelo práctico recomendado por su combinación de rendimiento histórico, velocidad e interpretabilidad. Mini-HAR local permite una recalibración con la ventana cargada, pero se presenta como opción experimental.
 
 \section{Variables de entrada, salida y transformación}\label{sec:variables}
-% TODO: redactar este apartado.
+
+El diseño distingue variables de mercado, variables transformadas, variables de estado, targets y salidas de usuario. Esta clasificación evita confundir las columnas originales con las magnitudes derivadas utilizadas por los modelos.
+
+Las variables de entrada mínimas son una marca temporal y un precio de cierre. En los datos históricos de Binance también se dispone de apertura, máximo, mínimo, volumen, número de operaciones y volumen comprador. En el MVP, el CSV mínimo puede reducirse a marca temporal y cierre, porque los modelos implementados se basan en volatilidad realizada calculada a partir de cierres.
+
+A partir del cierre se calcula el logaritmo del precio y el retorno logarítmico:
+
+\begin{equation}
+    r_t = \log(C_t) - \log(C_{t-1}),
+\end{equation}
+
+donde \(C_t\) es el precio de cierre en la vela \(t\). Con los retornos se construyen ventanas de volatilidad realizada. Para una ventana de \(h\) velas, la volatilidad realizada pasada se define como suma de retornos al cuadrado disponibles hasta \(t\). La versión futura desplaza la ventana hacia los retornos posteriores y se utiliza como target.
+
+Las variables principales del diseño son:
+
+\begin{center}
+\begin{tabular}{p{0.34\textwidth} p{0.52\textwidth}}
+\hline
+\textbf{Variable} & \textbf{Papel en el diseño} \\
+\hline
+\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} & Serie principal \(v_t\); volatilidad realizada de la última hora. \\
+\texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12} & Target predictivo; volatilidad realizada de la próxima hora. \\
+\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 48} & Memoria de cuatro horas usada por HAR-logRV. \\
+\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 288} & Memoria diaria usada por HAR-logRV. \\
+\texttt{z\_\allowbreak log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} & Serie estandarizada para reconstrucción y kNN. \\
+\hline
+\end{tabular}
+\end{center}
+
+El modelo HAR-logRV se diseña como una regresión lineal compacta:
+
+\begin{equation}
+\begin{split}
+    \texttt{log\_rv\_future\_12} = {} & \beta_0 + \beta_1 \texttt{log\_rv\_past\_12} \\
+    & + \beta_2 \texttt{log\_rv\_past\_48} + \beta_3 \texttt{log\_rv\_past\_288} + \varepsilon_t.
+\end{split}
+\end{equation}
+
+
+Las salidas del MVP mantienen la predicción en varias escalas. La salida principal es \(\texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}\), porque es la escala usada en validación. También se ofrece la transformación inversa \(\texttt{rv\_\allowbreak future\_\allowbreak 12}\) y una magnitud aproximada \(\texttt{sqrt\_\allowbreak rv\_\allowbreak percent}\), que expresa la raíz de la volatilidad realizada en porcentaje para la ventana de una hora. Esta última salida es interpretativa y no está anualizada.
 
 \section{Organización del repositorio}\label{sec:organizacion-repositorio}
-% TODO: redactar este apartado.
+
+El proyecto se organiza en tres repositorios con responsabilidades distintas. Esta separación responde al diseño general de la solución: investigación, aplicación y documentación.
+
+El repositorio \texttt{btc\_\allowbreak volatility} contiene el estudio técnico. Su estructura está orientada a ejecutar las fases del procedimiento, almacenar datos procesados, generar informes y guardar salidas intermedias. Las fases producen ficheros en formatos adecuados para su posterior análisis: CSV para tablas, JSON para configuraciones o resúmenes, NPZ para matrices o referencias de modelos y SVG/PNG para figuras.
+
+El repositorio \texttt{mvp\_\allowbreak web} contiene la aplicación Streamlit. Su organización responde al flujo de uso: entrada de datos, validación, cálculo de variables, ejecución de modelos, visualización, diagnóstico y descargas. Los artefactos preexportados se ubican en \texttt{data/\allowbreak model\_\allowbreak artifacts/}; el dataset de ejemplo se mantiene separado en \texttt{data/\allowbreak sample/}. Esta estructura permite ejecutar la aplicación sin depender del repositorio de investigación.
+
+El repositorio \texttt{tfg\_\allowbreak memoria} contiene la documentación LaTeX. Su función no es ejecutar modelos, sino integrar de forma ordenada el marco teórico, los requisitos, el diseño, la implementación, los resultados, las pruebas, el manual y las conclusiones. La memoria se alimenta de las salidas consolidadas del procedimiento técnico y de la aplicación, pero no sustituye a ninguno de los dos repositorios.
+
+La organización en tres repositorios facilita la trazabilidad del trabajo. Las decisiones metodológicas quedan en el repositorio de investigación; la herramienta operativa queda en el repositorio del MVP; y la interpretación académica queda en la memoria. Esta separación también ayuda a mantener una lectura correcta del proyecto: el MVP es una demostración funcional de los modelos principales, no la totalidad del análisis; y el análisis técnico es reproducible sin depender de la interfaz web.

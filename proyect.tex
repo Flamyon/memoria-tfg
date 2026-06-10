@@ -8,11 +8,17 @@
 %\usepackage{palatino}
 \usepackage{times}   
 
-% LINEAS EN TABLAS
+% TABLAS
 \usepackage{booktabs}
+\usepackage{array}
 
 % Para simbolos
 \usepackage{amsmath}
+
+\let\oldtextunderscore\_
+\renewcommand{\_}{\oldtextunderscore\discretionary{}{}{}}
+\allowdisplaybreaks 
+% Permite saltos de linea en fórmulas matemáticas 
 
 
 

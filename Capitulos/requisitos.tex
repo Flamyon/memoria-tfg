@@ -14,15 +14,15 @@ En la aplicación empírica, el sistema trabaja con velas de cinco minutos del p
 
 El sistema debe mantener separadas las piezas principales del proyecto. El repositorio técnico contiene el análisis por fases, las tablas, las figuras y los informes. La comprobación sintética con el mapa logístico actúa como control metodológico. La aplicación empírica sobre Bitcoin permite poner a prueba el procedimiento en datos reales. El MVP web, por último, utiliza artefactos exportados desde el estudio y ofrece una versión interactiva de los modelos principales.
 
-Esta separación es un requisito de diseño y también de interpretación. El MVP no sustituye al análisis completo, ni la comprobación sintética demuestra nada sobre Bitcoin. Cada pieza cumple una función distinta dentro del trabajo y debe conservarse esa diferencia durante la lectura de la memoria.
+Esta separación es un requisito de diseño y también de interpretación. El MVP no sustituye al análisis completo, ni la comprobación sintética demuestra nada sobre Bitcoin. Cada pieza cumple una función distinta dentro del trabajo y debe conservarse esa diferencia al interpretar el trabajo.
 
 \section{Requisitos conceptuales y de comunicación}\label{sec:requisitos-conceptuales}
 
 El proyecto utiliza conceptos que admiten lecturas demasiado fuertes si se presentan sin matices. Por ello, la comunicación de resultados forma parte de los requisitos del sistema. La presencia de dependencia temporal, heterocedasticidad, estructura ordinal o divergencia local de trayectorias no puede traducirse automáticamente en una afirmación de caos determinista.
 
-La memoria debe distinguir entre no linealidad, complejidad, caos y predictibilidad. La no linealidad es una condición mucho más amplia que el caos. La complejidad observada en una serie financiera puede proceder de ruido, cambios de régimen, dependencia lineal, efectos de volatilidad condicional o propiedades distribucionales. Del mismo modo, una mejora predictiva frente a persistencia o frente a la media histórica no implica por sí sola que se haya reconstruido una dinámica determinista de baja dimensión.
+La interpretación de los resultados debe distinguir entre no linealidad, complejidad, caos y predictibilidad. La no linealidad es una condición mucho más amplia que el caos. La complejidad observada en una serie financiera puede proceder de ruido, cambios de régimen, dependencia lineal, efectos de volatilidad condicional o propiedades distribucionales. Del mismo modo, una mejora predictiva frente a persistencia o frente a la media histórica no implica por sí sola que se haya reconstruido una dinámica determinista de baja dimensión.
 
-También es necesario separar volatilidad y rentabilidad. El sistema predice \texttt{log\_rv\_future\_12}, es decir, una medida de volatilidad realizada futura a una hora. No predice si el precio de Bitcoin subirá o bajará. Por tanto, las salidas del procedimiento y del MVP deben leerse como estimaciones de intensidad de movimiento, no como señales direccionales de mercado.
+También es necesario separar volatilidad y rentabilidad. El objetivo del sistema es intentar predecir \texttt{log\_rv\_future\_12}, es decir, una medida de volatilidad realizada futura a una hora. No predice si el precio de Bitcoin subirá o bajará. Por tanto, las salidas del procedimiento y del MVP deben leerse como estimaciones de intensidad de movimiento, no como señales direccionales de mercado.
 
 El MVP debe mostrar esta limitación de forma explícita. No se plantea como herramienta de inversión, no genera señales de compra o venta, no promete rentabilidad y no demuestra caos en Bitcoin. Esta restricción no es meramente formal: forma parte de la validez técnica del trabajo, porque evita atribuir al sistema un alcance que no tiene.
 
@@ -87,7 +87,7 @@ Contrastes & Aplicar Ljung-Box sobre cuadrados, ARCH-LM, BDS en ventanas y compa
 Reconstrucción & Seleccionar \(\tau\) y \(m\), construir vectores retardados, aplicar ventana de Theiler y visualizar el espacio reconstruido. \\
 Cuantificación & Calcular dimensión de correlación aproximada, pendiente de Rosenstein y entropía de permutación, comparando con controles. \\
 Predicción & Evaluar media histórica, persistencia, AR(49), vecino más próximo, kNN medio y HAR-logRV con particiones temporales. \\
-Exportación & Guardar tablas, figuras, informes y artefactos reutilizables para memoria y MVP. \\
+Exportación & Guardar tablas, figuras, informes y artefactos reutilizables para la documentación del trabajo y para el MVP. \\
 \hline
 \end{tabular}
 \caption{Requisitos funcionales del procedimiento de análisis.}
@@ -120,7 +120,7 @@ El MVP también debe ofrecer una evaluación walk-forward reciente. En ella, el 
 
 La reproducibilidad es el requisito no funcional más importante. El análisis debe poder rehacerse a partir de los datos y scripts, generando de nuevo tablas, figuras e informes. Por ese motivo, el proyecto se organiza por fases y persiste sus resultados en ficheros reutilizables.
 
-La trazabilidad está ligada a la reproducibilidad. Las cifras de la memoria deben poder rastrearse hasta tablas o informes concretos. Esto es especialmente necesario en un trabajo con múltiples particiones temporales, submuestras por coste computacional, parámetros de embedding y comparaciones entre modelos.
+La trazabilidad está ligada a la reproducibilidad. Las cifras presentadas en el trabajo deben poder rastrearse hasta tablas o informes concretos. Esto es especialmente necesario en un trabajo con múltiples particiones temporales, submuestras por coste computacional, parámetros de embedding y comparaciones entre modelos.
 
 El sistema también debe ser modular. El repositorio de investigación contiene el análisis completo; el MVP consume artefactos ya preparados; la memoria utiliza resultados consolidados. Esta división evita que una modificación en la aplicación web altere la validez del estudio técnico y, al mismo tiempo, permite que el prototipo funcione sin cargar todo el código experimental.
 

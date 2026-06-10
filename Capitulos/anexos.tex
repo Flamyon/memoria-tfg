@@ -15,4 +15,360 @@
 % TODO: redactar este apartado.
 
 \chapter{Estructura completa del repositorio}\label{anexo:estructura-repositorio}
-% TODO: redactar este apartado.
+
+Este anexo recoge la estructura de los repositorios utilizados en el trabajo. El objetivo no es repetir la explicación metodológica de los capítulos anteriores, sino dejar constancia de la organización física de los ficheros: datos, scripts, informes, figuras, tablas, artefactos de modelos y aplicación web. La separación entre repositorios responde a la arquitectura adoptada durante el proyecto: un repositorio para el análisis técnico, otro para el MVP web y otro para la memoria.
+
+\section{Repositorio de análisis técnico: \texttt{btc-volatility}}
+
+El repositorio \texttt{btc-volatility} contiene el procedimiento experimental completo. En él se almacenan los datos brutos, los datos procesados, las series sintéticas, los scripts de cada fase, los informes técnicos, las tablas, las figuras y los artefactos exportables. La estructura general es la siguiente:
+
+\begin{verbatim}
+btc-volatility/
+|-- btc_5m_clean.csv
+|-- data/
+|   |-- model_artifacts/
+|   |-- processed/
+|   |-- raw/
+|   `-- synthetic/
+|-- reports/
+|   |-- FASES.md
+|   |-- figures/
+|   |-- phase0_validation_report.md
+|   |-- ...
+|   |-- phase14_har_logrv_mvp_report.md
+|   `-- tables/
+`-- src/
+\end{verbatim}
+
+El fichero \texttt{btc\_\allowbreak 5m\_\allowbreak clean.csv} es la salida validada de la fase inicial de limpieza. El directorio \texttt{data/} conserva las fuentes y los datasets utilizados por el procedimiento. El directorio \texttt{reports/} almacena los resultados generados por cada fase, y \texttt{src/} contiene el código de análisis.
+
+\subsection{Directorio \texttt{data/}}
+
+El directorio \texttt{data/} se divide en cuatro bloques. El primero, \texttt{data/\allowbreak raw/}, contiene los ficheros mensuales originales de Binance Spot para \texttt{BTCUSDT} con frecuencia de cinco minutos. En el proyecto se incluyen los meses comprendidos entre enero de 2024 y abril de 2026:
+
+\begin{verbatim}
+data/raw/
+|-- BTCUSDT-5m-2024-01.zip
+|-- BTCUSDT-5m-2024-02.zip
+|-- ...
+|-- BTCUSDT-5m-2025-12.zip
+|-- BTCUSDT-5m-2026-01.zip
+|-- BTCUSDT-5m-2026-02.zip
+|-- BTCUSDT-5m-2026-03.zip
+`-- BTCUSDT-5m-2026-04.zip
+\end{verbatim}
+
+El segundo bloque, \texttt{data/\allowbreak processed/}, contiene las salidas procesadas principales del estudio:
+
+\begin{verbatim}
+data/processed/
+|-- btc_5m_features.csv
+|-- phase8_embedding_test.npz
+`-- phase8_embedding_train.npz
+\end{verbatim}
+
+El fichero \texttt{btc\_\allowbreak 5m\_\allowbreak features.csv} es el dataset con retornos, volatilidades realizadas pasadas y futuras, transformaciones logarítmicas y variables estandarizadas. Los ficheros \texttt{phase8\_\allowbreak embedding\_\allowbreak train.npz} y \texttt{phase8\_\allowbreak embedding\_\allowbreak test.npz} guardan los vectores reconstruidos del espacio de estados.
+
+El tercer bloque, \texttt{data/\allowbreak synthetic/}, contiene las series generadas para la comprobación sintética con el mapa logístico:
+
+\begin{verbatim}
+data/synthetic/
+|-- logistic_clean.csv
+|-- logistic_noise_moderate.csv
+`-- logistic_noise_small.csv
+\end{verbatim}
+
+El cuarto bloque, \texttt{data/\allowbreak model\_\allowbreak artifacts/}, contiene el artefacto exportable del modelo HAR-logRV:
+
+\begin{verbatim}
+data/model_artifacts/
+`-- har_logrv_model.json
+\end{verbatim}
+
+\subsection{Directorio \texttt{reports/}}
+
+El directorio \texttt{reports/} contiene la documentación técnica generada durante el análisis. En la raíz se encuentra el fichero \texttt{FASES.md}, que resume la ejecución del procedimiento, y los informes individuales de cada fase:
+
+\begin{verbatim}
+reports/
+|-- FASES.md
+|-- phase0_validation_report.md
+|-- phase1_feature_engineering_report.md
+|-- phase2_general_tools_report.md
+|-- phase3_stationarity_report.md
+|-- phase4_correlogram_spectrum_report.md
+|-- phase5_initial_recurrence_report.md
+|-- phase6_linear_filtering_report.md
+|-- phase7_nonlinearity_report.md
+|-- phase8_state_space_reconstruction_report.md
+|-- phase9_dynamics_quantification_report.md
+|-- phase10_surrogate_tests_report.md
+|-- phase11_local_state_space_prediction_report.md
+|-- phase12_prediction_sensitivity_report.md
+|-- phase13_logistic_map_validation_report.md
+`-- phase14_har_logrv_mvp_report.md
+\end{verbatim}
+
+Las figuras se almacenan en \texttt{reports/\allowbreak figures/}. El directorio contiene salidas gráficas de todas las fases: visualizaciones temporales, momentos móviles, ACF, PACF, periodogramas, gráficos de recurrencia, residuos AR, contrastes de no linealidad, reconstrucciones, cuantificación dinámica, subrogados, predicciones, validación sintética y comparación final AR/kNN/HAR. Para mantener el anexo legible, se agrupan por fase:
+
+\begin{verbatim}
+reports/figures/
+|-- phase2_*.svg
+|-- phase3_*.svg
+|-- phase4_*.svg
+|-- phase5_*.png
+|-- phase6_*.svg / phase6_*.png
+|-- phase7_*.svg
+|-- phase8_*.svg
+|-- phase9_*.svg
+|-- phase10_*.svg
+|-- phase11_*.svg
+|-- phase12_*.svg
+|-- phase13_*.svg
+`-- phase14_*.svg
+\end{verbatim}
+
+Entre las figuras finales más relevantes se encuentran:
+
+\begin{verbatim}
+reports/figures/
+|-- phase4_log_rv_past_12_acf_288.svg
+|-- phase8_embedding_2d.svg
+|-- phase11_test_real_vs_predicted.svg
+|-- phase12_test_metrics_comparison.svg
+|-- phase13_prediction_metrics.svg
+|-- phase14_ar_knn_har_metrics.svg
+|-- phase14_ar_knn_har_real_vs_predicted.svg
+|-- phase14_ar_knn_har_error_distribution.svg
+`-- phase14_test_metrics_comparison.svg
+\end{verbatim}
+
+Las tablas y resúmenes numéricos se almacenan en \texttt{reports/\allowbreak tables/}. La estructura sigue la misma lógica de fases:
+
+\begin{verbatim}
+reports/tables/
+|-- phase0_*.csv
+|-- phase1_*.csv
+|-- phase2_*.csv
+|-- phase3_*.csv
+|-- phase4_*.csv
+|-- phase5_*.csv
+|-- phase6_*.csv
+|-- phase7_*.csv
+|-- phase8_*.csv / phase8_*.json
+|-- phase9_*.csv / phase9_*.json
+|-- phase10_*.csv / phase10_*.json
+|-- phase11_*.csv / phase11_*.json
+|-- phase12_*.csv / phase12_*.json
+|-- phase13_*.csv / phase13_*.json
+`-- phase14_*.csv / phase14_*.json
+\end{verbatim}
+
+Algunos ficheros de tablas especialmente relevantes para la trazabilidad del trabajo son:
+
+\begin{verbatim}
+reports/tables/
+|-- phase1_shape_summary.csv
+|-- phase4_correlogram_summary.csv
+|-- phase6_ar_coefficients.csv
+|-- phase8_selected_embedding_params.json
+|-- phase9_quantification_summary.json
+|-- phase10_surrogate_summary.csv
+|-- phase11_prediction_summary.json
+|-- phase11_test_metrics.csv
+|-- phase12_test_metrics.csv
+|-- phase13_prediction_summary.json
+|-- phase14_har_model_artifact.json
+|-- phase14_model_comparison.csv
+|-- phase14_prediction_summary.json
+`-- phase14_test_metrics.csv
+\end{verbatim}
+
+\subsection{Directorio \texttt{src/}}
+
+El directorio \texttt{src/} contiene el código fuente del procedimiento de análisis. La organización combina scripts de fase y módulos auxiliares reutilizables:
+
+\begin{verbatim}
+src/
+|-- build_btc_5m_clean.py
+|-- build_phase1_features.py
+|-- phase2_general_tools.py
+|-- phase3_stationarity.py
+|-- phase4_correlogram_spectrum.py
+|-- phase5_initial_recurrence.py
+|-- phase6_linear_filtering.py
+|-- phase7_nonlinearity_tests.py
+|-- phase8_state_space_reconstruction.py
+|-- phase9_dynamics_quantification.py
+|-- phase10_surrogate_tests.py
+|-- phase11_local_state_space_prediction.py
+|-- phase12_prediction_sensitivity.py
+|-- phase13_logistic_map_validation.py
+|-- phase14_har_logrv_mvp.py
+|-- data_loading.py
+|-- preprocessing.py
+|-- volatility.py
+|-- stationarity.py
+|-- spectral.py
+|-- recurrence.py
+|-- linear_filtering.py
+|-- nonlinear_tests.py
+|-- state_space.py
+|-- dynamics_quantification.py
+|-- surrogate_tests.py
+|-- local_prediction.py
+|-- synthetic_logistic.py
+|-- har_logrv.py
+|-- plotting.py
+`-- validate.py
+\end{verbatim}
+
+Los scripts \texttt{phase2\_*} a \texttt{phase14\_*} implementan las fases del estudio. Los módulos auxiliares separan operaciones comunes: carga de datos, preprocesamiento, construcción de volatilidad, estacionariedad, espectro, recurrencia, filtrado lineal, contrastes no lineales, reconstrucción del espacio de estados, cuantificación dinámica, subrogados, predicción local, mapa logístico, HAR-logRV, validación y generación de gráficos.
+
+\section{Repositorio del MVP web: \texttt{mvp-web}}
+
+El repositorio \texttt{mvp-web} contiene la aplicación Streamlit desarrollada como prototipo operativo. Su estructura es independiente del repositorio técnico: no importa código de \texttt{btc-volatility} en tiempo de ejecución, sino que utiliza artefactos ya exportados. La estructura completa es la siguiente:
+
+\begin{verbatim}
+mvp-web/
+|-- app.py
+|-- assets/
+|   `-- historical_validation/
+|-- data/
+|   |-- model_artifacts/
+|   `-- sample/
+|-- pages/
+|-- README.md
+|-- requirements.txt
+|-- scripts/
+|-- src/
+`-- tests/
+\end{verbatim}
+
+\subsection{Punto de entrada y páginas}
+
+El fichero \texttt{app.py} es el punto de entrada de Streamlit. Configura la página, muestra el resumen inicial, verifica los artefactos locales y define la navegación. Las páginas se encuentran en \texttt{pages/}:
+
+\begin{verbatim}
+pages/
+|-- 1_Prediccion_de_volatilidad.py
+|-- 2_Diagnostico_de_datos.py
+|-- 3_Comparacion_de_modelos.py
+`-- 4_Ayuda_y_limitaciones.py
+\end{verbatim}
+
+La página de predicción concentra el flujo de carga de datos, construcción de variables y ejecución de modelos. La página de diagnóstico muestra la calidad de la ventana cargada y la disponibilidad de modelos. La página de comparación resume métricas y figuras históricas. La página de ayuda documenta el alcance y las limitaciones del MVP.
+
+\subsection{Artefactos, datos de ejemplo y figuras históricas}
+
+El directorio \texttt{data/\allowbreak model\_\allowbreak artifacts/} contiene los modelos y parámetros exportados desde el estudio técnico:
+
+\begin{verbatim}
+data/model_artifacts/
+|-- ar49_coefficients.csv
+|-- embedding_params.json
+|-- har_logrv_model.json
+|-- historical_metrics.json
+|-- knn_reference_train.npz
+`-- preprocessing_params.json
+\end{verbatim}
+
+El dataset de ejemplo se guarda en:
+
+\begin{verbatim}
+data/sample/
+`-- btcusdt_5m_recent_sample.csv
+\end{verbatim}
+
+Las figuras históricas mostradas en la página de comparación se almacenan en:
+
+\begin{verbatim}
+assets/historical_validation/
+|-- phase11_test_real_vs_predicted.svg
+|-- phase12_comparison_models.svg
+|-- phase13_prediction_metrics.svg
+|-- phase14_ar_knn_har_error_distribution.svg
+|-- phase14_ar_knn_har_metrics.svg
+|-- phase14_ar_knn_har_real_vs_predicted.svg
+|-- phase14_test_metrics_comparison.svg
+|-- phase4_volatility_acf.svg
+`-- phase8_embedding_2d.svg
+\end{verbatim}
+
+\subsection{Scripts de exportación y validación}
+
+El directorio \texttt{scripts/} contiene utilidades para trasladar artefactos desde el repositorio técnico al MVP y comprobar que la aplicación puede ejecutarse de forma autónoma:
+
+\begin{verbatim}
+scripts/
+|-- export_model_artifacts.py
+`-- validate_artifacts.py
+\end{verbatim}
+
+El script de exportación copia coeficientes, parámetros, métricas, figuras y dataset de ejemplo. El script de validación comprueba que los artefactos requeridos existen, tienen estructura válida y no dependen de rutas absolutas ni del repositorio técnico en tiempo de ejecución.
+
+\subsection{Código fuente del MVP}
+
+El código principal de la aplicación se encuentra en \texttt{src/}:
+
+\begin{verbatim}
+src/
+|-- binance_client.py
+|-- config.py
+|-- data_loader.py
+|-- data_validation.py
+|-- diagnostics.py
+|-- feature_engineering.py
+|-- __init__.py
+|-- model_registry.py
+|-- plotting.py
+|-- predictors.py
+|-- ui_components.py
+`-- walk_forward.py
+\end{verbatim}
+
+El módulo \texttt{config.py} centraliza rutas, constantes y artefactos requeridos. \texttt{data\_\allowbreak loader.py} normaliza fuentes CSV y dataset de ejemplo. \texttt{data\_\allowbreak validation.py} valida timestamps, frecuencia, gaps y precios. \texttt{feature\_\allowbreak engineering.py} construye las variables de volatilidad realizada. \texttt{model\_\allowbreak registry.py} carga los modelos exportados. \texttt{predictors.py} implementa persistencia, AR(49), kNN, HAR-logRV y Mini-HAR. \texttt{walk\_\allowbreak forward.py} calcula la evaluación reciente. \texttt{plotting.py} y \texttt{ui\_\allowbreak components.py} agrupan visualización y componentes comunes de interfaz.
+
+\subsection{Pruebas}
+
+El directorio \texttt{tests/} contiene pruebas unitarias e integración de los módulos principales del MVP:
+
+\begin{verbatim}
+tests/
+|-- test_binance_client.py
+|-- test_config.py
+|-- test_data_loader.py
+|-- test_data_validation.py
+|-- test_diagnostics.py
+|-- test_feature_engineering.py
+|-- test_integration.py
+|-- test_model_registry.py
+|-- test_plotting.py
+|-- test_predictors.py
+`-- test_walk_forward.py
+\end{verbatim}
+
+Estas pruebas cubren la carga y normalización de datos, validación, construcción de features, carga de modelos, predictores, evaluación \textit{walk-forward}, configuración y comportamiento integrado de la aplicación.
+
+\section{Relación entre ambos repositorios}
+
+La relación entre \texttt{btc-volatility} y \texttt{mvp-web} se realiza mediante artefactos. El repositorio técnico genera modelos, parámetros, métricas, figuras y dataset de ejemplo. El MVP consume una copia de esos resultados desde su propio árbol de directorios. Esta frontera evita que la aplicación dependa del código de investigación en tiempo de ejecución y permite que el análisis histórico siga siendo reproducible de forma independiente.
+
+El flujo de relación entre repositorios puede resumirse así:
+
+\begin{verbatim}
+btc-volatility/
+|-- reports/tables/
+|-- reports/figures/
+|-- data/processed/
+`-- data/model_artifacts/
+        | |
+        | | export_model_artifacts.py
+        \ /
+mvp-web/
+|-- data/model_artifacts/
+|-- data/sample/
+`-- assets/historical_validation/
+\end{verbatim}
+
+El resultado es una separación clara de responsabilidades: \texttt{btc-volatility} produce y valida el estudio, \texttt{mvp-web} ofrece una interfaz operativa sobre una selección de modelos y \texttt{tfg-memoria} documenta el proceso, las decisiones y las conclusiones.

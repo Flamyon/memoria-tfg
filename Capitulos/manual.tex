@@ -2,23 +2,147 @@
 
 \chapter{Manual de usuario}\label{cap:manual}
 
+Este capítulo describe el uso del sistema desarrollado, tanto desde el punto de vista del procedimiento de análisis como desde el punto de vista del MVP web. No se trata de repetir la implementación interna, sino de indicar qué necesita el usuario para ejecutar el proyecto, cómo se ponen en marcha sus componentes principales y cómo deben interpretarse las salidas generadas.
+
+El sistema tiene dos modos de uso diferenciados. El primero corresponde al procedimiento técnico completo, orientado a reproducir las fases de análisis, generar tablas, figuras, informes y artefactos. El segundo corresponde al MVP web, orientado a cargar una ventana de datos reciente o de ejemplo y obtener predicciones de volatilidad realizada a una hora. Ambos modos comparten variables, modelos y artefactos, pero no tienen el mismo alcance.
+
 \section{Objetivo de la herramienta}\label{sec:objetivo-herramienta}
-% TODO: redactar este apartado.
+
+La herramienta desarrollada tiene como objetivo estimar la volatilidad realizada esperada de \texttt{BTCUSDT} durante la próxima hora. La frecuencia de trabajo es de cinco minutos, por lo que el horizonte operativo equivale a doce velas. La magnitud principal que se predice es \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}, es decir, la volatilidad realizada futura de una hora en escala logarítmica.
+
+La herramienta no predice la dirección del precio. Una predicción de volatilidad elevada no significa que Bitcoin vaya a subir ni que vaya a bajar, sino que el modelo estima una mayor intensidad de movimiento durante la próxima ventana. Esta distinción es esencial para usar correctamente el sistema: el resultado debe leerse como una predicción de variabilidad, no como una señal direccional de mercado.
+
+El procedimiento completo tiene un objetivo más amplio que el MVP. Permite reproducir el análisis técnico realizado en el trabajo: validación de datos, construcción de variables, caracterización, estacionariedad, autocorrelación, recurrencia, filtrado lineal, contrastes de no linealidad, reconstrucción, cuantificación dinámica, predicción local, comprobación sintética con el mapa logístico y cierre HAR-logRV. El MVP, en cambio, expone solo la parte operativa necesaria para aplicar los modelos principales sobre una ventana cargada por el usuario.
+
+Por tanto, la herramienta debe entenderse en dos niveles. Como procedimiento de investigación, sirve para auditar y reproducir la metodología. Como prototipo web, sirve para demostrar que los modelos finales pueden utilizarse de forma interactiva. En ninguno de los dos casos debe interpretarse como asesoramiento financiero ni como sistema automático de trading.
 
 \section{Requisitos para la ejecución}\label{sec:requisitos-ejecucion}
-% TODO: redactar este apartado.
+
+La ejecución del proyecto requiere un entorno de Python con las dependencias indicadas en los ficheros de requisitos de cada repositorio. El MVP web se ejecuta desde su propio directorio mediante Streamlit y utiliza el fichero \texttt{requirements.txt}. Para una instalación local básica del MVP basta con situarse en el directorio de la aplicación y ejecutar:
+
+\begin{verbatim}
+pip install -r requirements.txt
+streamlit run app.py
+\end{verbatim}
+
+El procedimiento técnico completo requiere, además, disponer de los datos históricos utilizados en el análisis. Los ficheros brutos de Binance deben encontrarse en \texttt{data/\allowbreak raw/}, con nombres mensuales del tipo \texttt{BTCUSDT-5m-2024-01.zip}. A partir de ellos se genera el dataset limpio y posteriormente el dataset con variables de volatilidad realizada. Si el usuario solo quiere utilizar el MVP con el dataset de ejemplo o con datos recientes descargados desde Binance, no necesita reproducir todo el procedimiento histórico.
+
+El MVP necesita una serie de artefactos locales para poder ejecutarse de forma autónoma. Estos artefactos se almacenan en \texttt{data/\allowbreak model\_\allowbreak artifacts/} y son:
+
+\begin{itemize}
+    \item \texttt{ar49\_\allowbreak coefficients.csv};
+    \item \texttt{preprocessing\_\allowbreak params.json};
+    \item \texttt{embedding\_\allowbreak params.json};
+    \item \texttt{knn\_\allowbreak reference\_\allowbreak train.npz};
+    \item \texttt{historical\_\allowbreak metrics.json};
+    \item \texttt{har\_\allowbreak logrv\_\allowbreak model.json}.
+\end{itemize}
+
+También debe existir un dataset de ejemplo en \texttt{data/\allowbreak sample/\allowbreak btcusdt\_\allowbreak 5m\_\allowbreak recent\_\allowbreak sample.csv}. Al iniciar la aplicación, \texttt{app.py} comprueba la existencia de estos ficheros. Si falta alguno, el MVP muestra un error y detiene la ejecución, porque no puede garantizar predicciones coherentes con el estudio técnico.
+
+Para usar la fuente Binance API es necesaria conexión a Internet. La aplicación descarga las últimas velas disponibles de \texttt{BTCUSDT} con intervalo de cinco minutos. Para usar el dataset de ejemplo o un CSV local, la conexión no es imprescindible una vez instaladas las dependencias y presentes los artefactos.
 
 \section{Puesta en marcha del sistema}\label{sec:puesta-en-marcha}
-% TODO: redactar este apartado.
+
+La puesta en marcha depende del modo de uso. Si se desea reproducir el estudio técnico, el primer paso es preparar los datos brutos. Los ficheros mensuales de Binance deben copiarse en \texttt{data/\allowbreak raw/}. A continuación se ejecuta el script de construcción del dataset limpio, que lee los ZIP, normaliza las columnas y genera \texttt{btc\_\allowbreak 5m\_\allowbreak clean.csv}. Sobre este fichero se ejecutan después las fases de construcción de variables y análisis.
+
+Si el objetivo es utilizar el MVP, el usuario debe entrar en el directorio de \texttt{mvp\_\allowbreak web}, instalar dependencias y lanzar la aplicación:
+
+\begin{verbatim}
+pip install -r requirements.txt
+streamlit run app.py
+\end{verbatim}
+
+Al abrirse la interfaz, la página de inicio muestra el resumen del prototipo: símbolo, frecuencia, horizonte y modelos disponibles. También verifica los artefactos locales. Si la verificación es correcta, la aplicación informa de que puede arrancar sin depender del repositorio técnico en tiempo de ejecución. Si la verificación falla, se deben regenerar los artefactos desde el estudio técnico o copiar los ficheros requeridos al directorio correspondiente.
+
+Cuando se han modificado modelos, métricas históricas o artefactos en el repositorio técnico, debe repetirse la exportación al MVP. Desde el directorio del MVP puede ejecutarse el script de exportación indicando, si es necesario, la ruta al repositorio técnico:
+
+\begin{verbatim}
+python scripts/export_model_artifacts.py
+python scripts/validate_artifacts.py
+\end{verbatim}
+
+El primer comando copia y genera los artefactos necesarios para la aplicación. El segundo comprueba que los ficheros resultantes son válidos, que los parámetros esperados coinciden y que el MVP no mantiene dependencias de ejecución hacia el repositorio técnico.
 
 \section{Ejecución del procedimiento de análisis}\label{sec:ejecucion-procedimiento}
-% TODO: redactar este apartado.
+
+El procedimiento de análisis debe ejecutarse en orden. Las fases iniciales producen ficheros que son necesarios para las fases posteriores. Saltarse una fase puede dejar artefactos obsoletos o incoherentes. En particular, no debe ejecutarse la predicción local sin haber validado antes los datos, construido las variables, estandarizado la serie y fijado los parámetros de reconstrucción.
+
+El flujo comienza con la validación integral de datos. A partir de los ficheros mensuales de Binance, el script de limpieza genera \texttt{btc\_\allowbreak 5m\_\allowbreak clean.csv}. Esta fase comprueba columnas, rango temporal, frecuencia de cinco minutos, duplicados, huecos, nulos y precios positivos. El resultado es la base empírica del resto del análisis.
+
+Después se construyen las variables de volatilidad realizada. El dataset limpio se transforma en \texttt{btc\_\allowbreak 5m\_\allowbreak features.csv}. Este fichero contiene retornos logarítmicos, retornos al cuadrado, volatilidades realizadas pasadas, volatilidades realizadas futuras y transformaciones logarítmicas. La variable principal es \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}, y el target predictivo es \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}.
+
+Las fases de caracterización deben ejecutarse antes de reconstruir el espacio de estados. En ellas se generan gráficos temporales, estadísticos descriptivos, pruebas de estacionariedad, ACF, PACF, periodogramas y gráficos de recurrencia. Estas salidas permiten comprobar que la volatilidad realizada presenta persistencia temporal y que la serie seleccionada es más adecuada para el análisis que el precio o el retorno firmado.
+
+A continuación se ejecuta el filtrado lineal AR(49), los contrastes de no linealidad y la reconstrucción del espacio de estados. La reconstrucción utiliza \(\tau=137\) y \(m=5\), con la convención causal \(X_t = [z_t, z_{t-\tau}, \ldots, z_{t-(m-1)\tau}]\). A partir de este embedding se calculan indicadores dinámicos, se comparan controles barajados y subrogados, y se evalúa la predicción local kNN.
+
+Las últimas fases del procedimiento son la robustez de parámetros, la comprobación sintética con mapa logístico y el modelo HAR-logRV. La robustez comprueba configuraciones alternativas de \(k\) y \(m\). La comprobación sintética valida el comportamiento del pipeline sobre una dinámica caótica conocida. HAR-logRV proporciona el modelo práctico exportable para el MVP.
+
+Una ejecución completa genera tres tipos de salida. Las tablas se guardan en CSV o JSON, las figuras en SVG o PNG, y los artefactos de modelos en CSV, JSON o NPZ. Estos ficheros son los que alimentan la memoria y, en el caso de los modelos finales, también el MVP web.
 
 \section{Uso del MVP web}\label{sec:uso-mvp}
-% TODO: redactar este apartado.
+
+El uso del MVP se realiza desde la interfaz Streamlit. Tras lanzar \texttt{streamlit run app.py}, el usuario accede a una aplicación con cinco páginas: Inicio, Predicción de volatilidad, Diagnóstico de datos, Comparación de modelos y Ayuda y limitaciones.
+
+La página de inicio sirve para comprobar que la aplicación está lista. Muestra el símbolo \texttt{BTCUSDT}, la frecuencia \texttt{5m}, el horizonte de doce velas y la disponibilidad de los artefactos locales. Si los artefactos son correctos, el usuario puede pasar a la página de predicción.
+
+En la página \textit{Predicción de volatilidad} se elige la fuente de datos. Hay tres opciones:
+
+\begin{itemize}
+    \item \textit{Binance API}: descarga las últimas velas de \texttt{BTCUSDT} con intervalo de cinco minutos.
+    \item \textit{Dataset de ejemplo}: carga el fichero local incluido con el MVP.
+    \item \textit{Subir CSV}: permite cargar un archivo del usuario con columnas temporales y precio de cierre.
+\end{itemize}
+
+El CSV mínimo debe contener una columna temporal y una columna \texttt{close}. La columna temporal puede llamarse \texttt{timestamp}, \texttt{open\_\allowbreak time}, \texttt{date}, \texttt{datetime} o \texttt{time}. Un ejemplo válido es:
+
+\begin{verbatim}
+timestamp,close
+2026-04-30 19:45:00+00:00,76442.71
+2026-04-30 19:50:00+00:00,76415.00
+\end{verbatim}
+
+Tras cargar datos, la aplicación muestra un resumen de filas, rango temporal, primeras y últimas observaciones. Después valida la ventana y, si no hay errores bloqueantes, construye las features de volatilidad realizada. En ese momento se muestra la disponibilidad de modelos. Esta tabla es importante: un modelo puede no estar disponible si la ventana no tiene suficiente historia.
+
+Al pulsar \textit{Generar predicciones}, el MVP ejecuta los modelos disponibles. La tabla de salida incluye persistencia, kNN local, AR(49), HAR-logRV global y Mini-HAR local. Para cada modelo se muestra el estado, la predicción en escala logarítmica, la volatilidad realizada transformada, la raíz de volatilidad en porcentaje y una nota de interpretación. El modelo HAR-logRV global aparece como modelo práctico recomendado.
+
+La misma página permite calcular una evaluación \textit{walk-forward} reciente. Esta opción genera predicciones sobre puntos pasados de la ventana cargada y las compara con la volatilidad realizada observada una hora después. El usuario puede elegir el número máximo de puntos evaluados por modelo y descargar los resultados en CSV. Esta evaluación debe leerse como diagnóstico local de la ventana cargada.
+
+La página \textit{Diagnóstico de datos} resume la fiabilidad de la ventana. Muestra un score entre 0 y 100, estado cualitativo, frecuencia detectada, gaps, rango temporal, precios mínimos y máximos, y disponibilidad de modelos. La página \textit{Comparación de modelos} presenta métricas históricas formales y figuras exportadas del estudio técnico. La página \textit{Ayuda y limitaciones} explica qué predice la aplicación, qué no predice, cómo debe formatearse el CSV y qué restricciones tiene el MVP.
 
 \section{Interpretación básica de las salidas}\label{sec:interpretacion-salida}
-% TODO: redactar este apartado.
+
+La salida principal del MVP es \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}. Esta variable está en escala logarítmica y corresponde a la volatilidad realizada de las próximas doce velas. Su lectura directa no es tan intuitiva como una magnitud en porcentaje, pero es la escala usada durante el entrenamiento, la validación y la comparación histórica de los modelos.
+
+La columna \texttt{rv\_\allowbreak future\_\allowbreak 12} es la transformación inversa de la predicción logarítmica. Representa la volatilidad realizada esperada como suma de retornos al cuadrado durante la próxima hora. La columna \texttt{sqrt\_\allowbreak rv\_\allowbreak percent} toma la raíz de esa volatilidad realizada y la expresa en porcentaje. Esta última magnitud facilita una lectura aproximada de la intensidad esperada de movimiento en la ventana de una hora, pero no está anualizada.
+
+El horizonte temporal se muestra siempre en UTC. La última vela utilizada marca el punto de partida de la predicción. El inicio del horizonte coincide con esa referencia temporal y el final se obtiene sumando sesenta minutos. Esta información es necesaria para no confundir la predicción con una estimación sin fecha ni intervalo.
+
+Los modelos tienen papeles distintos. Persistencia es una referencia básica: asume que la volatilidad futura será igual a la volatilidad realizada actual. AR(49) es un benchmark lineal fuerte. kNN local es el modelo experimental asociado al espacio reconstruido. HAR-logRV global es el modelo práctico recomendado porque combina rendimiento histórico competitivo, baja complejidad e interpretabilidad. Mini-HAR local es una recalibración experimental con la ventana cargada.
+
+Las métricas \textit{walk-forward} recientes deben interpretarse con cautela. RMSE y MAE resumen el error sobre puntos pasados de la ventana cargada; el sesgo indica si el modelo tiende a sobrestimar o infraestimar en esa muestra. Sin embargo, una ventana reciente puede ser corta o pertenecer a un régimen concreto. Por ello, estas métricas no sustituyen la validación histórica formal.
+
+La página de comparación contiene la referencia histórica del proyecto. Allí se muestran métricas y figuras exportadas desde el análisis técnico. Esa validación es la que justifica la recomendación de HAR-logRV global como modelo práctico. La evaluación reciente ayuda a inspeccionar la ventana cargada, pero no debe usarse para cambiar las conclusiones generales del estudio.
+
+Por último, ninguna salida debe interpretarse como demostración de caos determinista en Bitcoin. La aplicación incorpora un modelo kNN basado en reconstrucción del espacio de estados y muestra figuras relacionadas con la metodología no lineal, pero el objetivo operativo del MVP es predecir volatilidad realizada. La discusión sobre estructura dinámica pertenece al análisis experimental y se interpreta con prudencia.
 
 \section{Generación de figuras, tablas e informes}\label{sec:generacion-informes}
-% TODO: redactar este apartado.
+
+Las figuras, tablas e informes del trabajo se generan desde el procedimiento técnico, no desde el MVP. Cada fase del análisis guarda sus salidas en directorios específicos. Las tablas se almacenan principalmente en \texttt{reports/\allowbreak tables/}, las figuras en \texttt{reports/\allowbreak figures/} y los informes o resúmenes de fase en \texttt{reports/}. Esta organización permite que los resultados incluidos en la memoria sean trazables.
+
+Las fases iniciales generan tablas de validación de datos, resúmenes de forma del dataset, estadísticos descriptivos y eventos extremos. Las fases de caracterización producen figuras temporales, ACF, PACF, periodogramas y gráficos de recurrencia. Las fases de reconstrucción y cuantificación generan parámetros de embedding, visualizaciones 2D/3D, estimaciones dinámicas y comparaciones con controles. Las fases predictivas generan métricas de validación y test, tablas de predicciones y figuras de real frente a predicho.
+
+La comprobación sintética con el mapa logístico genera sus propias salidas, separadas de las de Bitcoin. Entre ellas se incluyen series sintéticas, parámetros de reconstrucción, métricas dinámicas y comparación predictiva. Esta separación evita mezclar resultados sintéticos con resultados financieros.
+
+La Fase 14 genera los artefactos finales del modelo HAR-logRV y las figuras de comparación AR/kNN/HAR. Parte de esas figuras se copian al directorio \texttt{assets/\allowbreak historical\_\allowbreak validation/} del MVP para ser mostradas en la página de comparación de modelos. El MVP no recalcula esas figuras; solo las presenta como contexto histórico.
+
+Para actualizar el MVP después de repetir el análisis técnico, debe ejecutarse el proceso de exportación de artefactos:
+
+\begin{verbatim}
+python scripts/export_model_artifacts.py
+python scripts/validate_artifacts.py
+\end{verbatim}
+
+El primer script copia modelos, métricas, figuras y dataset de ejemplo desde el repositorio técnico. El segundo verifica que los artefactos exportados son consistentes y que la aplicación puede ejecutarse sin depender de rutas absolutas ni del código de investigación en tiempo de uso.
+
+En consecuencia, la generación de informes sigue una regla simple: el repositorio técnico produce resultados; el MVP consume una selección de esos resultados; la memoria los interpreta. Mantener esta separación evita duplicidades y facilita que cualquier cifra, figura o artefacto pueda rastrearse hasta la fase que lo generó.

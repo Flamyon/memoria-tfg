@@ -44,7 +44,7 @@ Para usar la fuente Binance API es necesaria conexión a Internet. La aplicació
 
 \section{Puesta en marcha del sistema}\label{sec:puesta-en-marcha}
 
-La puesta en marcha depende del modo de uso. Si se desea reproducir el estudio técnico, el primer paso es preparar los datos brutos. Los ficheros mensuales de Binance deben copiarse en \texttt{data/\allowbreak raw/}. A continuación se ejecuta el script de construcción del dataset limpio, que lee los ZIP, normaliza las columnas y genera \texttt{btc\_\allowbreak 5m\_\allowbreak clean.csv}. Sobre este fichero se ejecutan después las fases de construcción de variables y análisis.
+La puesta en marcha depende del modo de uso. Si se desea reproducir el estudio técnico, el primer paso es preparar los datos brutos. Si se quiere replicar el estudio técnico con los mismos datos, los ficheros mensuales de Binance deben copiarse en \texttt{data/\allowbreak raw/}, para obtener datos diferentes basta con descargar los archivos .zip desde la api de biance desde el link (https://data.binance.vision/?prefix=data/spot/monthly/klines/BTCUSDT/5m/). A continuación se ejecuta el script de construcción del dataset limpio, que lee los ZIP, normaliza las columnas y genera \texttt{btc\_\allowbreak 5m\_\allowbreak clean.csv}. Sobre este fichero se ejecutan después las fases de construcción de variables y análisis.
 
 Si el objetivo es utilizar el MVP, el usuario debe entrar en el directorio de \texttt{mvp\_\allowbreak web}, instalar dependencias y lanzar la aplicación:
 

@@ -6,13 +6,242 @@
 \gdef\@chapapp{Anexo}
 \makeatother
 \chapter{Glosario de conceptos técnicos}\label{anexo:glosario}
-% TODO: redactar este apartado.
+
+Este anexo recoge los términos financieros, metodológicos y de implementación que aparecen de manera recurrente en la memoria. Su finalidad es servir como referencia rápida para el lector; las explicaciones completas se desarrollan en los capítulos principales.
+
+\begin{description}
+    \item[Activo financiero:] Instrumento negociable que representa valor económico. En este trabajo el activo estudiado es el par \texttt{BTCUSDT}, utilizado como aproximación al precio de Bitcoin frente a una moneda estable referenciada al dólar.
+
+    \item[\textit{Klines} o velas japonesas:] Estructura de datos financiera que resume el movimiento de precio de un activo durante un intervalo temporal fijo. Cada vela incluye precio de apertura, máximo, mínimo, cierre, volumen y número de operaciones. En este trabajo se emplean velas de cinco minutos.
+
+    \item[Mercado \textit{spot}:] Mercado en el que la compraventa de un activo se liquida de forma inmediata al precio de cotización disponible, a diferencia de los mercados de futuros o derivados.
+
+    \item[Precio de cierre:] Precio final registrado dentro de una vela. Es la magnitud empleada para construir el log-precio, los retornos y las variables de volatilidad realizada.
+
+    \item[Retorno logarítmico:] Variación del logaritmo del precio entre dos instantes consecutivos. Si \(P_t\) es el precio de cierre, se calcula como
+    \begin{equation}
+        r_t = \log(P_t) - \log(P_{t-1}).
+    \end{equation}
+    Su uso es habitual en series financieras porque permite agregar retornos en el tiempo de forma sencilla.
+
+    \item[Volatilidad realizada:] Medida empírica de la variabilidad de un activo calculada a partir de retornos de alta frecuencia. En este trabajo se define mediante la suma de retornos logarítmicos al cuadrado dentro de una ventana temporal.
+
+    \item[Volatilidad realizada pasada:] Variable construida con información disponible hasta el instante \(t\). Por ejemplo, \texttt{rv\_past\_12} resume la variabilidad observada durante las últimas 12 velas, equivalentes a una hora.
+
+    \item[Volatilidad realizada futura:] Variable objetivo construida con observaciones posteriores al instante \(t\). Por ejemplo, \texttt{rv\_future\_12} resume la volatilidad de las 12 velas siguientes y se utiliza para entrenar y evaluar los modelos predictivos.
+
+    \item[Log-volatilidad realizada:] Transformación logarítmica de la volatilidad realizada. Reduce la asimetría y facilita el tratamiento estadístico de una magnitud positiva y muy variable.
+
+    \item[Serie principal:] Serie temporal sobre la que se centra el análisis dinámico. En este trabajo es \texttt{log\_rv\_past\_12}, por representar la volatilidad realizada intradía de una hora.
+
+    \item[Variable explicativa:] Variable disponible en el instante de predicción. Debe construirse únicamente con información pasada o presente para evitar sesgo de anticipación.
+
+    \item[Variable objetivo:] Magnitud futura que se desea estimar. En este trabajo la variable objetivo principal es \texttt{log\_rv\_future\_12}.
+
+    \item[Horizonte de predicción:] Número de pasos temporales hacia el futuro que se desea estimar. El horizonte principal del trabajo es de 12 velas de cinco minutos, es decir, una hora.
+
+    \item[Retardo:] Desplazamiento temporal entre una observación y otra anterior. El valor \(x_{t-k}\) representa la observación situada \(k\) pasos antes de \(x_t\).
+
+    \item[Frecuencia modal:] Intervalo temporal que aparece con mayor frecuencia entre observaciones consecutivas. En los datos utilizados, la frecuencia modal estricta es de cinco minutos.
+
+    \item[Sesgo de anticipación o \textit{look-ahead bias}:] Error metodológico que aparece cuando se usa información futura para construir variables, ajustar modelos o evaluar resultados. En una predicción real, esa información no estaría disponible.
+
+    \item[Conjunto de entrenamiento:] Parte inicial de la serie utilizada para ajustar modelos y estimar parámetros.
+
+    \item[Conjunto de validación:] Parte posterior al entrenamiento utilizada para seleccionar hiperparámetros o configuraciones de modelo sin tocar todavía el conjunto final de prueba.
+
+    \item[Conjunto de prueba:] Parte final de la serie reservada para evaluar el rendimiento definitivo de los modelos.
+
+    \item[Persistencia:] Modelo de referencia que utiliza el último valor disponible como predicción del valor futuro. Es una referencia natural en series con alta dependencia temporal.
+
+    \item[Modelo autorregresivo AR(\(p\)):] Modelo lineal que aproxima el valor de una serie mediante una combinación de sus \(p\) valores anteriores. En este trabajo el modelo AR(49) actúa como referencia lineal fuerte.
+
+    \item[HAR-logRV:] Modelo de regresión para volatilidad realizada que combina información de varias escalas temporales. En este trabajo usa \texttt{log\_rv\_past\_12}, \texttt{log\_rv\_past\_48} y \texttt{log\_rv\_past\_288} para representar memoria de una hora, cuatro horas y un día.
+
+    \item[Reconstrucción por retardos:] Técnica que transforma una serie escalar en vectores formados por observaciones retardadas. Permite representar la evolución de la serie en un espacio de estados reconstruido.
+
+    \item[\textit{Embedding}:] Representación vectorial obtenida mediante reconstrucción por retardos. En este trabajo se usa principalmente \(\tau = 137\) y \(m = 5\), de modo que cada vector recoge valores separados por 137 velas.
+
+    \item[Información mutua media:] Medida de dependencia no necesariamente lineal entre una serie y una versión retardada de sí misma. Se utiliza para seleccionar el retardo \(\tau\) en la reconstrucción.
+
+    \item[Falsos vecinos cercanos:] Método para seleccionar la dimensión de embedding. Evalúa cuántos vecinos próximos en baja dimensión dejan de serlo al aumentar la dimensión.
+
+    \item[Método de Cao:] Procedimiento alternativo para estudiar la dimensión de embedding mediante la evolución de cocientes de distancias al aumentar la dimensión.
+
+    \item[Ventana de Theiler:] Separación temporal mínima impuesta al buscar vecinos en el espacio reconstruido. Evita considerar como vecinos útiles observaciones artificialmente próximas por continuidad temporal.
+
+    \item[Dimensión de correlación:] Indicador de complejidad geométrica estimado a partir de la relación entre el radio de vecindad y el número de pares de puntos cercanos en el espacio reconstruido.
+
+    \item[Exponente de Lyapunov:] Medida de divergencia local entre trayectorias inicialmente próximas. En este trabajo se estima de forma aproximada mediante el método de Rosenstein.
+
+    \item[Entropía de permutación:] Medida de irregularidad ordinal de una serie temporal. Valores cercanos a uno indican comportamiento altamente irregular en los patrones ordinales considerados.
+
+    \item[Serie barajada:] Versión permutada aleatoriamente de una serie temporal. Conserva la distribución marginal de los valores, pero destruye el orden temporal.
+
+    \item[Datos subrogados:] Series artificiales generadas para conservar ciertas propiedades de la serie original y destruir otras. Se utilizan como controles para interpretar si un estadístico depende de la distribución, de la estructura lineal o de una posible estructura no lineal adicional.
+
+    \item[\textit{Phase randomization}:] Técnica de generación de datos subrogados que conserva aproximadamente el espectro de la serie, pero altera las relaciones de fase.
+
+    \item[AAFT:] Técnica de generación de subrogados que intenta conservar tanto la distribución marginal como la estructura lineal aproximada de la serie.
+
+    \item[Mapa logístico:] Sistema dinámico discreto definido por \(x_{t+1} = r x_t(1-x_t)\). En este trabajo se utiliza con \(r=4\) como sistema sintético de control con dinámica caótica conocida.
+
+    \item[\textit{Walk-forward}:] Evaluación secuencial en la que las predicciones se realizan respetando el orden temporal. En cada instante solo se utiliza información disponible hasta ese momento.
+
+    \item[MVP:] Producto mínimo viable. En este trabajo designa la aplicación web Streamlit que permite cargar datos, calcular variables, ejecutar modelos y visualizar predicciones de volatilidad.
+
+    \item[Artefacto:] Producto tangible generado por el pipeline de análisis o por el MVP, como ficheros CSV, JSON, NPZ, SVG o datasets procesados.
+\end{description}
 
 \chapter{Relación entre fases del proyecto y capítulos de la tesis de referencia}\label{anexo:relacion-tesis}
-% TODO: redactar este apartado.
 
-\chapter{Tablas de resultados extendidas}\label{anexo:tablas-resultados}
-% TODO: redactar este apartado.
+Este anexo resume la relación entre las fases técnicas del proyecto y la tesis de Olmedo Fernández, utilizada como referencia metodológica. La correspondencia no es literal: la tesis trabaja con series económicas de desempleo y este TFG adapta su recorrido al análisis de volatilidad intradía de Bitcoin, incorpora una comprobación sintética con el mapa logístico y añade un cierre predictivo mediante HAR-logRV y un MVP web.
+
+\section{Criterio de adaptación}
+
+La tesis de referencia sigue una secuencia metodológica basada en caracterización, reconstrucción, estacionariedad, no linealidad, cuantificación y predicción. Este TFG conserva esa lógica general, pero la reordena de forma operativa en fases computacionales reproducibles. La adaptación se apoya en tres diferencias principales: el uso de datos financieros de alta frecuencia, la validación explícita de fugas de información y la comparación sistemática con modelos de referencia y controles sintéticos.
+
+\section{Correspondencia fase a fase}
+
+\subsection*{Fase 0. Validación integral de datos}
+
+La fase 0 se relaciona con los capítulos 4 y 10 de la tesis, donde se presenta la serie temporal antes de aplicar herramientas de caracterización y predicción. En este TFG la preparación de la serie se formaliza mediante validación automática de columnas, frecuencia, rango temporal, duplicados, huecos, nulos y precios positivos. Esta fase constituye una aportación más informática que teórica, porque convierte la presentación de la serie empírica en una comprobación reproducible.
+
+\subsection*{Fase 1. Construcción de variables de volatilidad realizada}
+
+La fase 1 se relaciona con los capítulos 4, 6 y 10. En la tesis se transforman las series para hacerlas más adecuadas al análisis; en este trabajo se construyen retornos logarítmicos, volatilidades realizadas pasadas y futuras, y transformaciones logarítmicas. La diferencia principal es que la serie empírica no se analiza como precio bruto, sino como volatilidad realizada logarítmica.
+
+\subsection*{Fase 2. Visualización temporal y estadísticos descriptivos}
+
+La fase 2 corresponde a la caracterización inicial descrita en los capítulos 4 y 10. Se representan las series, se calculan estadísticos descriptivos y se detectan episodios extremos. Su función es justificar visual y numéricamente que la volatilidad realizada contiene más estructura temporal que los retornos brutos.
+
+\subsection*{Fase 3. Estacionariedad}
+
+La fase 3 se apoya en el capítulo 6, dedicado a estacionariedad y no linealidad. Se emplean ADF, KPSS, momentos móviles y comparación de tramos para comprobar que el precio y el log-precio no son adecuados como serie principal, mientras que los retornos y la volatilidad realizada permiten un análisis más razonable, aunque con cambios de régimen.
+
+\subsection*{Fase 4. Correlograma, PACF y periodograma}
+
+La fase 4 reproduce la lógica del capítulo 4: análisis de autocorrelación, autocorrelación parcial y espectro. La comparación entre retornos, valor absoluto de retornos y log-volatilidad realizada permite distinguir entre escasa dependencia lineal en retornos y fuerte persistencia en volatilidad.
+
+\subsection*{Fase 5. Gráficos de recurrencia}
+
+La fase 5 se relaciona con los capítulos 4, 6, 7 y 10. Los gráficos de recurrencia se utilizan como herramienta visual para observar patrones de repetición, persistencia y cambios de régimen. En la memoria deben interpretarse como diagnóstico exploratorio, no como prueba directa de caos.
+
+\subsection*{Fase 6. Filtrado lineal AR(\(p\))}
+
+La fase 6 se apoya en los capítulos 6, 7, 8 y 10. Su objetivo es construir un filtro lineal de referencia y estudiar los residuos. Esta fase refuerza la metodología de la tesis porque evita atribuir a no linealidad lo que podría explicarse por dependencia lineal fuerte.
+
+\subsection*{Fase 7. Contrastes de no linealidad}
+
+La fase 7 corresponde principalmente al capítulo 6 y, de forma complementaria, al capítulo 7. Se utilizan Ljung-Box sobre cuadrados, ARCH-LM, BDS y comparación con barajado. La interpretación correcta es que estos contrastes detectan dependencia temporal, heterocedasticidad y estructura no capturada por un modelo lineal simple, pero no demuestran caos determinista.
+
+\subsection*{Fase 8. Reconstrucción del espacio de estados}
+
+La fase 8 se relaciona directamente con el capítulo 5. Se selecciona el retardo mediante información mutua media y la dimensión mediante falsos vecinos cercanos y el método de Cao. La reconstrucción obtenida se usa como representación operativa para cuantificación y predicción, no como identificación definitiva de un atractor determinista.
+
+\subsection*{Fase 9. Cuantificación dinámica}
+
+La fase 9 se apoya en los capítulos 3 y 7. Se estiman dimensión de correlación, exponente de Lyapunov aproximado y entropía de permutación. La comparación con una serie barajada permite evaluar si los indicadores dependen del orden temporal. Los resultados se interpretan como indicios de estructura dinámica no trivial, no como prueba concluyente de caos.
+
+\subsection*{Fase 10. Barajado y datos subrogados}
+
+La fase 10 se relaciona con el capítulo 7, especialmente con los contrastes de shuffling y datos subrogados. La aportación del TFG consiste en separar varios controles: barajado, \textit{phase randomization} y AAFT. Esto permite distinguir entre estructura debida al orden temporal, estructura lineal/espectral y posible estructura no lineal adicional.
+
+\subsection*{Fase 11. Predicción local en el espacio reconstruido}
+
+La fase 11 corresponde al capítulo 8 y al cierre empírico del capítulo 10. Se evalúan predictores locales basados en vecinos próximos y se comparan con media histórica, persistencia y AR(49). La predicción se usa como prueba práctica de utilidad de la reconstrucción, no como demostración de caos.
+
+\subsection*{Fase 12. Robustez de parámetros}
+
+La fase 12 se apoya en los capítulos 5 y 8. Comprueba la sensibilidad de la predicción local a la dimensión de embedding y al número de vecinos. Su papel es defender que la configuración principal es una decisión práctica razonable y que aumentar la dimensión no necesariamente mejora la predicción.
+
+\subsection*{Fase 13. Validación metodológica con mapa logístico}
+
+La fase 13 se relaciona con el capítulo 2 y conecta con los capítulos 3, 5, 7 y 8. La tesis presenta la ecuación logística como ejemplo de dinámica caótica; este TFG la convierte en un experimento de control. El resultado permite comprobar que el procedimiento detecta estructura cuando el sistema subyacente sí es caótico y conocido.
+
+\subsection*{Fase 14. HAR-logRV y exportación al MVP}
+
+La fase 14 se relaciona de forma indirecta con el capítulo 8, porque pertenece al bloque de predicción, pero no procede directamente de la tesis. Su base específica es la literatura de volatilidad realizada y el modelo HAR. En el TFG actúa como cierre predictivo operativo: resume la persistencia multiescala de la volatilidad mediante un modelo simple, interpretable y exportable al MVP.
+
+\subsection*{MVP web}
+
+El MVP web no tiene equivalente directo en la tesis. Se relaciona con la parte predictiva de los capítulos 8 y 10, pero su naturaleza es de ingeniería del software. Su función es materializar los modelos y artefactos del estudio en una herramienta operativa, autónoma y reproducible.
+
+\section{Síntesis de la relación metodológica}
+
+El recorrido completo del TFG puede resumirse como una actualización computacional de la lógica de la tesis: primero se valida y transforma la serie; después se caracteriza lineal y no linealmente; a continuación se reconstruye el espacio de estados, se cuantifica la dinámica y se contrasta con controles; finalmente se evalúa la predicción y se construye una aplicación demostrativa. La diferencia interpretativa central es que en Bitcoin no se afirma caos determinista: se documentan persistencia, dependencia en varianza, estructura temporal y utilidad predictiva parcial.
+
+\chapter{Tablas y resultados extendidos}\label{anexo:tablas-resultados}
+
+Este anexo resume los resultados numéricos y artefactos principales de las fases del proyecto. Las tablas completas se encuentran en los ficheros CSV y JSON generados por el repositorio \texttt{btc-volatility}; aquí se recogen únicamente los valores necesarios para mantener la trazabilidad de la memoria sin sobrecargar el cuerpo principal.
+
+\section{Resumen de fases y salidas principales}
+
+\begin{description}
+    \item[Fase 0:] Validación de 245088 velas de cinco minutos, sin huecos temporales, duplicados ni valores nulos. Salida principal: \texttt{btc\_5m\_clean.csv}.
+
+    \item[Fase 1:] Construcción de retornos, volatilidades realizadas pasadas y futuras, y variables logarítmicas. Salida principal: \texttt{btc\_5m\_features.csv}, con 244752 observaciones válidas tras eliminar filas sin histórico o sin futuro.
+
+    \item[Fase 2:] Estadísticos descriptivos y visualización inicial. Resultado relevante: retornos con colas pesadas, curtosis aproximada de 53.6, clustering visible de volatilidad y selección de \texttt{log\_rv\_past\_12} como serie principal.
+
+    \item[Fase 3:] Tests de estacionariedad ADF/KPSS y momentos móviles. Resultado relevante: precio y log-precio no son adecuados como serie principal; \texttt{log\_rv\_past\_12} se conserva por su relevancia predictiva aunque presenta estacionariedad imperfecta.
+
+    \item[Fase 4:] ACF, PACF y periodograma. Resultado relevante: autocorrelación débil en retornos y persistencia muy fuerte en \texttt{log\_rv\_past\_12}, con ACF en retardo 1 próxima a 0.98.
+
+    \item[Fase 5:] Gráficos de recurrencia en ventanas quiet, high-volatility, recent y middle. Resultado relevante: recurrencia más estructurada en volatilidad que en retornos.
+
+    \item[Fase 6:] Filtrado lineal AR(\(p\)). Resultado relevante: selección de AR(49) mediante BIC y reducción clara de la autocorrelación lineal en residuos.
+
+    \item[Fase 7:] Contrastes de no linealidad y dependencia en varianza. Resultado relevante: ARCH-LM positivo, Ljung-Box sobre cuadrados significativo y BDS con rechazo sistemático en la serie original.
+
+    \item[Fase 8:] Reconstrucción del espacio de estados. Resultado relevante: \(\tau=137\), \(m=5\), ventana efectiva de 548 velas, aproximadamente 45.7 horas.
+
+    \item[Fase 9:] Cuantificación dinámica. Resultado relevante: dimensión de correlación aproximada 3.83 frente a 4.02 en barajada; Lyapunov aproximado positivo en la serie original; entropía de permutación inferior a la barajada.
+
+    \item[Fase 10:] Contrastes con barajado y subrogados. Resultado relevante: separación clara frente a barajadas, pero evidencia más débil frente a subrogados que conservan estructura lineal/espectral.
+
+    \item[Fase 11:] Predicción local kNN. Resultado relevante: kNN con \(k=50\) mejora a persistencia, pero no supera a AR(49) en test.
+
+    \item[Fase 12:] Robustez de parámetros. Resultado relevante: \(k=200\) mejora ligeramente la configuración local; \(m=14\) no mejora a \(m=5\), por lo que se mantiene la reconstrucción principal.
+
+    \item[Fase 13:] Validación sintética con mapa logístico. Resultado relevante: el pipeline detecta estructura clara en un sistema caótico conocido; kNN supera claramente al modelo AR(0)/media en la serie logística limpia y con ruido.
+
+    \item[Fase 14:] HAR-logRV y exportación al MVP. Resultado relevante: HAR-logRV obtiene RMSE test comparable de 0.8608, ligeramente mejor que AR(49) con 0.8641 y mejor que kNN \(\tau=137, m=5, k=200\) con 0.8765.
+\end{description}
+
+\section{Comparación final de modelos predictivos}
+
+La comparación final se realiza sobre una muestra común de 5000 puntos de test para que el kNN local pueda evaluarse en condiciones computacionalmente manejables. La tabla resume los modelos principales del cierre predictivo.
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\hline
+Modelo & RMSE & MAE & \(R^2\) OOS & Rol \\
+\hline
+Persistencia & 0.9775 & 0.7629 & 0.403 & Baseline \\
+kNN local \(\tau=137,m=5,k=200\) & 0.8765 & 0.6811 & 0.520 & No lineal experimental \\
+AR(49) & 0.8641 & 0.6710 & 0.534 & Referencia lineal fuerte \\
+HAR-logRV & 0.8608 & 0.6691 & 0.537 & Modelo práctico recomendado \\
+\hline
+\end{tabular}
+\end{center}
+
+La mejora de HAR-logRV respecto a AR(49) es pequeña, por lo que no debe interpretarse como una superioridad amplia. Su interés está en combinar rendimiento competitivo, simplicidad, interpretación económica y exportación sencilla al MVP.
+
+\section{Parámetros principales conservados}
+
+\begin{description}
+    \item[Frecuencia de datos:] Cinco minutos.
+    \item[Horizonte principal:] 12 velas, equivalente a una hora.
+    \item[Serie principal:] \texttt{log\_rv\_past\_12}.
+    \item[Variable objetivo:] \texttt{log\_rv\_future\_12}.
+    \item[Modelo AR seleccionado:] AR(49).
+    \item[Reconstrucción principal:] \(\tau=137\), \(m=5\).
+    \item[Ventana de Theiler:] 685 retardos.
+    \item[kNN final:] \(k=200\) en la configuración \(\tau=137, m=5\).
+    \item[HAR-logRV:] Regresión con memoria de una hora, cuatro horas y un día.
+\end{description}
+
 
 \chapter{Estructura completa del repositorio}\label{anexo:estructura-repositorio}
 

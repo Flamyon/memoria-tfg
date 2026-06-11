@@ -158,52 +158,79 @@ Para cada réplica se calculan los mismos estadísticos principales: dimensión 
 
 Las salidas se guardan en \texttt{reports/\allowbreak tables/}. Incluyen el estadístico original, la configuración de la fase, las réplicas de cada grupo y un resumen por estadístico con media, desviación típica, percentiles, distancia estandarizada y \(p\)-valor empírico. Las figuras generadas muestran boxplots agregados, boxplots separados por tipo de estadístico, histogramas de Lyapunov y entropía, y ejemplos de serie original frente a subrogadas.
 
-El objetivo de esta fase es someter los indicadores de la Fase 9 a referencias más exigentes. Si una diferencia frente a barajado desaparece frente a subrogadas que conservan espectro o distribución, la lectura debe limitarse. Por tanto, la Fase 10 no actúa como cierre definitivo de la discusión, sino como mecanismo de control para que el capítulo de resultados pueda distinguir entre estructura temporal general, dependencia lineal, efectos distribucionales e indicios no lineales más robustos.
+El objetivo de esta fase es someter los indicadores de la Fase 9 a referencias más exigentes. Si una diferencia frente a barajado desaparece frente a subrogadas que conservan espectro o distribución, la lectura debe limitarse. Por tanto, la Fase 10 actúa como mecanismo de control para que el capítulo de resultados pueda distinguir entre estructura temporal general, dependencia lineal, efectos distribucionales e indicios no lineales más robustos.
 
 \section{Predicción local de volatilidad}\label{sec:prediccion-local}
 
-La Fase 11 evalúa si el espacio reconstruido aporta capacidad predictiva sobre \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}. La prueba se plantea como evaluación empírica fuera de muestra, no como demostración de caos. Se utilizan particiones cronológicas de entrenamiento, validación y test.
+La Fase 11 evalúa la capacidad predictiva del espacio reconstruido sobre el objetivo \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}. La prueba se plantea como una evaluación empírica fuera de muestra. No se utiliza para demostrar caos, sino para comprobar si la representación de estados construida en la Fase 8 permite mejorar referencias predictivas simples bajo una separación temporal estricta.
 
-Los modelos comparados son media histórica, persistencia, AR(49) con horizonte 12, vecino más próximo y media de \(k\) vecinos. El kNN se evalúa sobre el embedding con \(\tau=137\) y \(m=5\). La selección de \(k\) se realiza en validación, probando \(k = 2,3,5,10,20,50\). Test no interviene en la selección.
+El script \texttt{phase11\_\allowbreak local\_\allowbreak state\_\allowbreak space\_\allowbreak prediction.py} carga los parámetros seleccionados en la reconstrucción, en particular \(\tau=137\) y \(m=5\), y prepara tres particiones cronológicas: entrenamiento hasta el 30 de junio de 2025, validación hasta el 31 de diciembre de 2025 y test desde el 1 de enero de 2026. La serie de entrada es \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}; el objetivo es \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}; y el horizonte es de 12 velas, equivalente a una hora.
 
-La búsqueda de vecinos respeta reglas anti-leakage. En validación, los vecinos se buscan solo en train. En test, solo se busca en el histórico permitido. Además, se excluyen candidatos que no cumplen la condición temporal del horizonte y se aplica una ventana de Theiler de 685 retardos para evitar vecinos trivialmente próximos.
+Los modelos comparados son media histórica, persistencia, AR(49) recursivo a horizonte 12, vecino más próximo y media de \(k\) vecinos. Para el método local se construyen vectores de embedding en cada partición y se buscan vecinos mediante un KD-tree exacto. La rejilla inicial de \(k\) es
+\[
+    k \in \{2,3,5,10,20,50\}.
+\]
+La selección de \(k\) se realiza exclusivamente en validación, usando RMSE como criterio. El conjunto de test no interviene en esta selección.
 
-La selección inicial elige \(k=50\) por RMSE de validación. En test, el kNN medio mejora a persistencia, pero no supera al AR(49). Esta fase confirma que la reconstrucción contiene información predictiva frente a referencias simples, pero no demuestra superioridad del enfoque no lineal frente al benchmark lineal principal.
+La fase incorpora varias reglas anti-\textit{leakage}. En validación, los vecinos se buscan solo dentro de entrenamiento. En test, la biblioteca de vecinos permitida es entrenamiento más validación. Además, un candidato solo es elegible si su etiqueta futura ya sería conocida en el instante de consulta, es decir, si cumple \(\texttt{candidate\_\allowbreak index}+12 \leq \texttt{query\_\allowbreak index}\). También se aplica una ventana de Theiler de \(\max(\texttt{theiler},m\tau)\), que en esta configuración queda en 685 retardos, para evitar vecinos temporalmente triviales.
+
+Las salidas de la fase se escriben en \texttt{reports/\allowbreak tables/}. Incluyen el resumen de particiones, la selección de \(k\) en validación, las métricas de test, una muestra de predicciones fuera de muestra y un resumen JSON con los parámetros, controles de fuga de información y métricas agregadas. Las figuras generadas muestran la curva de validación por \(k\), la comparación real frente a predicho en una ventana de test, la evolución de errores, el histograma de errores y la comparación de métricas entre modelos.
 
 \section{Experimentos de robustez y configuraciones alternativas}\label{sec:experimentos-robustez}
 
-La Fase 12 extiende la evaluación predictiva sin introducir modelos nuevos. Su objetivo es comprobar si las conclusiones de la Fase 11 dependen de una rejilla de \(k\) demasiado corta o de la elección de \(m=5\) frente a la dimensión sugerida por Cao.
+La Fase 12 extiende la evaluación predictiva de la Fase 11 sin introducir una nueva familia de modelos. Su objetivo es comprobar si el comportamiento del predictor local depende de una rejilla de \(k\) demasiado limitada o de la elección operativa \(m=5\), frente a la dimensión más alta sugerida por el método de Cao.
 
-Se evalúan dos configuraciones: \(\tau=137, m=5\) y \(\tau=137, m=14\). La primera mantiene una memoria efectiva de 548 velas, unas 45,7 horas. La segunda aumenta la memoria efectiva hasta 1.781 velas, unas 148,4 horas, es decir, aproximadamente 6,2 días. Debido al coste computacional del embedding alto, la configuración \(m=14\) se evalúa sobre menos puntos que \(m=5\).
+El script \texttt{phase12\_\allowbreak prediction\_\allowbreak sensitivity.py} evalúa dos configuraciones:
+\[
+    (\tau,m)=(137,5)
+    \quad\text{y}\quad
+    (\tau,m)=(137,14).
+\]
+En la primera, la memoria efectiva del embedding es \((5-1)137=548\) velas, aproximadamente 45,7 horas. En la segunda, la memoria efectiva es \((14-1)137=1781\) velas, aproximadamente 148,4 horas. La ventana de Theiler se fija como \(\tau m\) en cada configuración.
 
-La búsqueda de \(k\) se amplía a \(k = 2,3,5,10,20,50,100,200\). En ambas configuraciones se selecciona \(k=200\), aunque la mejora entre \(k=100\) y \(k=200\) es pequeña. Esto sugiere una estabilización del rendimiento: el método local funciona más como promedio suavizado de estados similares que como predicción basada en un vecino muy próximo.
+La rejilla de vecinos se amplía a
+\[
+    k \in \{2,3,5,10,20,50,100,200\}.
+\]
+La configuración \(m=5\) se evalúa sobre 5.000 puntos equiespaciados de validación y test. La configuración \(m=14\) se evalúa sobre 1.000 puntos, debido al mayor coste computacional asociado a la dimensión alta y a la menor densidad local del espacio reconstruido.
 
-En test, \(m=14\) no mejora a \(m=5\). La dimensionalidad adicional reduce la densidad local y aumenta el coste computacional. Además, ninguna configuración kNN supera al AR(49). La conclusión práctica es que \(m=5\) queda confirmada como dimensión operativa y que el kNN mejora a persistencia, pero no domina al benchmark lineal.
+La lógica de evaluación mantiene las mismas restricciones temporales que la Fase 11: validación busca vecinos solo en entrenamiento; test busca vecinos en entrenamiento más validación; los candidatos deben tener etiqueta futura disponible; y test no participa en la selección de \(k\). Además de kNN, se conservan las referencias de media histórica, persistencia, AR(49) y vecino más próximo para que la comparación sea homogénea.
+
+La fase genera tablas de selección de \(k\) por configuración, métricas de test, comparación compacta entre configuraciones y un resumen JSON. Las figuras muestran el RMSE de validación por \(k\), el RMSE de test por configuración, la comparación de métricas y una ventana real frente a predicha para las mejores configuraciones. La lectura de estos resultados se reserva para el capítulo de resultados; en este capítulo la fase queda definida como prueba de sensibilidad del procedimiento local.
 
 \section{Comprobación sintética con mapa logístico}\label{sec:validacion-logistica}
 
-La Fase 13 replica el procedimiento sobre un mapa logístico con parámetro caótico conocido. Esta fase no utiliza datos de Bitcoin, sino una serie sintética que permite comprobar si las herramientas de reconstrucción, cuantificación y predicción local responden cuando existe una dinámica no lineal controlada.
+La Fase 13 replica una parte sustancial del procedimiento sobre un sistema sintético conocido: el mapa logístico en régimen caótico. Esta fase no utiliza datos de Bitcoin. Su función es actuar como control metodológico: comprobar que las herramientas de reconstrucción, cuantificación y predicción local responden de forma razonable cuando la dinámica subyacente sí procede de un sistema determinista no lineal.
 
-El sistema sintético se genera mediante
-
+La serie limpia se genera mediante
 \begin{equation}
-    x_{t+1} = 4x_t(1-x_t).
+    x_{t+1} = 4x_t(1-x_t),
 \end{equation}
+con \(x_0=0{,}123456789\). Se simulan 12.000 iteraciones y se descartan las primeras 1.000 como transitorio, quedando 11.000 observaciones útiles. A partir de la serie limpia se construyen dos variantes con ruido observacional gaussiano: una con ruido pequeño y otra con ruido moderado. La desviación típica del ruido se fija como proporción de la desviación típica de la serie limpia, y los valores resultantes se recortan al intervalo \([0,1]\).
 
-Se parte de \(x_0 = 0{,}123456789\), se generan 12.000 iteraciones y se descartan 1.000 como transitorio, quedando 11.000 observaciones útiles. Además de la serie limpia, se construyen dos variantes con ruido observacional: ruido pequeño y ruido moderado.
+El script \texttt{phase13\_\allowbreak logistic\_\allowbreak map\_\allowbreak validation.py} aplica a cada serie sintética la selección de retardo mediante AMI, la selección de dimensión mediante FNN y Cao, la reconstrucción por retardos, visualizaciones 2D y 3D, una estimación tipo Rosenstein y una evaluación predictiva local. En este caso el horizonte predictivo es 1, porque el mapa logístico define directamente \(x_{t+1}\) a partir de \(x_t\).
 
-Sobre cada serie se aplica selección de \(\tau\), selección de \(m\), reconstrucción, visualización 2D/3D, estimación de Rosenstein, entropía de permutación y predicción local. En la serie limpia y en la serie con ruido pequeño, AMI selecciona \(\tau=9\); con ruido moderado selecciona \(\tau=5\). FNN sugiere dimensiones prácticas entre 5 y 6, mientras que Cao tiende hacia una dimensión mayor. Esta discrepancia se interpreta como sensibilidad del método, no como fallo.
+La partición temporal de cada serie sintética se realiza con un 60\% para entrenamiento, 20\% para validación y 20\% para test. La rejilla de vecinos es
+\[
+    k \in \{1,2,3,5,10,20,50\}.
+\]
+La selección de \(k\) se realiza en validación y la evaluación final se calcula en test. Se mantienen controles temporales análogos a los usados en Bitcoin: los vecinos de validación se buscan en entrenamiento y los de test en entrenamiento más validación.
 
-En predicción, se compara media histórica, persistencia, referencia AR seleccionada por BIC, vecino próximo y kNN medio. En las tres variantes, el kNN medio supera claramente a las referencias lineales simples. En la serie limpia, el RMSE del kNN queda alrededor de 0,098 frente a aproximadamente 0,357 para AR(0)/media. La diferencia confirma que el predictor local explota una relación no lineal cuando la dinámica subyacente es conocida.
+La fase incluye también una referencia lineal autorregresiva seleccionada por BIC. A diferencia de Bitcoin, aquí se contempla explícitamente AR(0) como media histórica, además de AR(\(p\)) para \(p=1,\ldots,100\). Esta referencia sirve para comprobar si una aproximación lineal simple puede capturar la dinámica sintética o si el predictor local aprovecha mejor la estructura no lineal del sistema.
 
-Esta fase es central para la interpretación del trabajo, aun siendo la número 13, su función metodológica es la de control sintético del procedimiento. Si el procedimiento detecta estructura en el mapa logístico pero ofrece resultados más ambiguos en BTC, la conclusión prudente no se debe atribuir directamente a un fallo de implementación, sino a la naturaleza financiera y ruidosa de la serie real.
+Las salidas incluyen CSV con las series sintéticas, tablas de AMI, FNN, Cao, parámetros seleccionados, curva de Rosenstein, métricas predictivas, selección AR por BIC y resumen JSON. Las figuras generadas muestran ejemplos de las series, curvas de AMI/FNN/Cao, embeddings 2D/3D, divergencia de Rosenstein, selección de \(k\), selección AR, mapa de transición de la serie limpia, predicciones real frente a predicho y comparación de métricas. La interpretación final de esta comprobación se desarrolla en el capítulo de resultados.
 
 \section{Modelo HAR-logRV y exportación al MVP}\label{sec:har-logrv-exportacion}
 
-La Fase 14 introduce un modelo HAR-logRV compacto como cierre predictivo operativo. El modelo estima la volatilidad futura a una hora a partir de tres memorias de volatilidad realizada: 1 hora, 4 horas y 1 día. No se abre una familia amplia de modelos; se incorpora un único benchmark específico de volatilidad realizada, simple, interpretable y exportable.
+La Fase 14 introduce un modelo HAR-logRV compacto como cierre predictivo operativo. El objetivo no es abrir una búsqueda amplia de modelos de volatilidad, sino incorporar una referencia específica para volatilidad realizada que sea simple, interpretable y exportable al MVP web.
 
-La especificación implementada es
-
+El modelo utiliza tres escalas pasadas de volatilidad realizada:
+\[
+    \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12},\quad
+    \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 48},\quad
+    \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 288}.
+\]
+La variable objetivo es \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}. La especificación implementada es
 \begin{equation}
     \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}
     =
@@ -214,11 +241,15 @@ La especificación implementada es
     + \varepsilon_t.
 \end{equation}
 
-Los coeficientes se ajustan mediante OLS solo en train. Validation no se usa para seleccionar variables, ya que las tres escalas quedan fijadas antes de la fase. Test no interviene ni en entrenamiento ni en selección. La comprobación anti-leakage mantiene la alineación temporal entre \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12(t)} y \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12(t+12)}.
+La estimación se realiza mediante mínimos cuadrados ordinarios sobre el tramo de entrenamiento. La implementación resuelve las ecuaciones normales y solo recurre a una regularización ridge muy pequeña si la matriz resulta numéricamente singular. Las tres variables del modelo se fijan antes de la evaluación, por lo que validación no se usa para selección de variables y test no interviene en entrenamiento ni en ajuste.
 
-El modelo se compara frente a media histórica, persistencia, AR(49) y kNN \(\tau=137, m=5, k=200\). En la muestra comparable de 5.000 puntos de test, HAR-logRV queda ligeramente por delante de AR(49) y por delante del kNN local. La mejora frente a AR(49) es pequeña, por lo que no se presenta como ruptura metodológica, sino como un cierre práctico: el modelo es rápido, interpretable y necesita pocas variables.
+El script \texttt{phase14\_\allowbreak har\_\allowbreak logrv\_\allowbreak mvp.py} compara HAR-logRV con media histórica, persistencia, AR(49) a horizonte 12 y kNN local con \(\tau=137\), \(m=5\) y \(k=200\). Para que la comparación con kNN sea homogénea, se utiliza una muestra comparable de 5.000 puntos de test. Además, se calculan métricas sobre validación completa y test completo para los modelos que no requieren búsqueda de vecinos.
 
-Además de la evaluación histórica, la fase simula el modo MVP con las últimas 1.000 velas y un split interno 70/30. Finalmente, exporta el artefacto \texttt{har\_\allowbreak logrv\_\allowbreak model.json} a \texttt{data/\allowbreak model\_\allowbreak artifacts/}. De esta forma, el MVP puede ejecutar el modelo sin importar código del repositorio técnico.
+La fase mantiene una comprobación explícita de alineación temporal entre \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12(t)} y \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12(t+12)}. También documenta los controles anti-\textit{leakage}: HAR se entrena solo con train, las variables son pasadas, test no se usa para selección ni ajuste, \(k=200\) procede de la fase anterior y los vecinos de test del kNN se buscan solo en entrenamiento más validación.
+
+Como salida principal, la fase exporta el artefacto \texttt{har\_\allowbreak logrv\_\allowbreak model.json} en \texttt{data/\allowbreak model\_\allowbreak artifacts/}. El artefacto contiene nombre y versión del modelo, fechas de entrenamiento, objetivo, variables, intercepto, coeficientes, tamaño de entrenamiento, posible regularización usada y métricas principales. Esta exportación permite que el MVP ejecute el modelo sin importar código del repositorio técnico.
+
+Además del artefacto exportado, la fase genera tablas con coeficientes HAR, métricas de validación y test, predicciones de muestra, comparación de modelos, simulación del modo MVP con las últimas 1.000 velas y resumen JSON. Las figuras asociadas muestran comparación de métricas, real frente a predicho, distribución de errores absolutos, errores temporales, coeficientes y contexto de predicción para el modo MVP.
 
 \section{Resultado final de la validación del modelo}\label{sec:resultado-validacion}
 

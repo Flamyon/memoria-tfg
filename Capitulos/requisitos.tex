@@ -8,7 +8,7 @@ El alcance considerado es, por tanto, más amplio que el MVP. Incluye el procedi
 
 \section{Requisitos generales del sistema}\label{sec:requisitos-generales}
 
-El sistema debe permitir analizar una serie temporal financiera desde una perspectiva combinada: caracterización estadística, análisis lineal, herramientas de dinámica no lineal y comparación predictiva. El objetivo no es construir un único modelo, sino disponer de un flujo reproducible que permita pasar de los datos brutos a conclusiones justificadas.
+El sistema debe permitir analizar una serie temporal financiera desde una perspectiva combinada: caracterización estadística, análisis lineal, herramientas de dinámica no lineal y comparación predictiva. El objetivo es disponer de un flujo reproducible que permita pasar de los datos brutos a conclusiones justificadas.
 
 En la aplicación empírica, el sistema trabaja con velas de cinco minutos del par \texttt{BTCUSDT}. A partir de ellas se construyen retornos logarítmicos y medidas de volatilidad realizada. La serie central del análisis no es el precio ni el retorno firmado, sino \(v_t = \texttt{log\_rv\_past\_12}\), que resume en escala logarítmica la volatilidad realizada de la última hora. Esta elección responde al planteamiento del trabajo: estudiar intensidad de movimiento, persistencia y estructura temporal, no dirección futura del precio.
 

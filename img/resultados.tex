@@ -14,7 +14,7 @@ con \(x_0=0{,}123456789\). Se generan 12.000 iteraciones y se descartan las prim
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.78\textwidth]{img/phase13_transition_map_clean.pdf}
+    \includegraphics[width=0.78\textwidth]{figures/phase13_transition_map_clean}
     \caption{Mapa de transición de la serie logística limpia. La nube de pares \((x_t,x_{t+1})\) sigue la parábola teórica \(4x(1-x)\), mientras que la recta ajustada sobre entrenamiento ilustra la limitación de una aproximación lineal global.}
     \label{fig:phase13-transition-map-clean}
 \end{figure}
@@ -45,7 +45,7 @@ La discrepancia entre FNN y Cao no invalida la fase. El mapa logístico es un ma
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.72\textwidth]{img/phase13_embedding_2d_clean.pdf}
+    \includegraphics[width=0.72\textwidth]{figures/phase13_embedding_2d_clean}
     \caption{Reconstrucción bidimensional de la serie logística limpia con el retardo seleccionado. La nube reconstruida es acotada y no uniforme, lo que refleja una estructura geométrica más definida que la esperable en una serie puramente aleatoria.}
     \label{fig:phase13-embedding-clean}
 \end{figure}
@@ -74,7 +74,7 @@ Ruido moderado & 5 & 5 & -0{,}0084 & 0{,}0014 \\
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.82\textwidth]{img/phase13_lyapunov_rosenstein}
+    \includegraphics[width=0.82\textwidth]{figures/phase13_lyapunov_rosenstein}
     \caption{Curvas de divergencia media tipo Rosenstein para la comprobación sintética. La serie limpia y la serie con ruido pequeño muestran crecimiento inicial positivo; la serie con ruido moderado no presenta una región lineal clara.}
     \label{fig:phase13-lyapunov}
 \end{figure}
@@ -87,7 +87,7 @@ La comprobación predictiva se plantea con una separación temporal 60--20--20 e
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.82\textwidth]{img/phase13_prediction_validation_k}
+    \includegraphics[width=0.82\textwidth]{figures/phase13_prediction_validation_k}
     \caption{Selección de \(k\) en validación para la predicción local del mapa logístico. El mínimo aparece en torno a \(k=5\) para las tres variantes.}
     \label{fig:phase13-validation-k}
 \end{figure}
@@ -96,7 +96,7 @@ La Figura~\ref{fig:phase13-validation-k} indica que el error disminuye al pasar 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.86\textwidth]{img/phase13_prediction_real_vs_predicted_clean_compact}
+    \includegraphics[width=0.86\textwidth]{figures/phase13_prediction_real_vs_predicted_clean_compact}
     \caption{Predicción compacta en test para la serie logística limpia. El kNN local sigue la trayectoria real con mucha más precisión que persistencia y AR(0)/media.}
     \label{fig:phase13-prediction-clean}
 \end{figure}
@@ -121,7 +121,7 @@ Ruido moderado & 0{,}3558 & 0{,}4985 & 0{,}1398 & 0{,}1075 & 0{,}9088 \\
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.84\textwidth]{img/phase13_prediction_metrics.pdf}
+    \includegraphics[width=0.84\textwidth]{figures/phase13_prediction_metrics}
     \caption{Comparación de RMSE en test para la comprobación sintética. La media de vecinos mejora claramente a la media histórica, persistencia, AR(0) y vecino más próximo.}
     \label{fig:phase13-prediction-metrics}
 \end{figure}

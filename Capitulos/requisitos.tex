@@ -6,9 +6,9 @@ Este capítulo recoge las condiciones que debe cumplir el sistema desarrollado. 
 
 \section{Requisitos generales del sistema}\label{sec:requisitos-generales}
 
-El sistema debe permitir analizar una serie temporal financiera de volatilidad realizada mediante un procedimiento reproducible. Para ello debe cubrir la validación de datos, la construcción de variables, la caracterización estadística, el análisis lineal, la reconstrucción del espacio de estados, la comparación predictiva y la generación de artefactos reutilizables.
+El sistema debe permitir analizar una serie financiera de volatilidad mediante un procedimiento reproducible. Para ello debe cubrir el flujo completo de trabajo: validación de datos, construcción de variables, caracterización de la serie, comparación de modelos, generación de resultados y exportación de artefactos reutilizables.
 
-El sistema debe mantener separadas sus piezas principales: el procedimiento experimental, la comprobación sintética, la aplicación empírica a Bitcoin y el MVP web. Esta separación es necesaria porque cada parte tiene un alcance distinto. La comprobación sintética sirve como control metodológico; la aplicación a Bitcoin evalúa el procedimiento en datos reales; y el MVP utiliza una selección de modelos y artefactos ya generados.
+El sistema debe mantener separadas sus piezas principales: el procedimiento experimental, la comprobación sintética, la aplicación empírica a Bitcoin y el MVP web. Esta separación es necesaria porque cada parte tiene un alcance distinto.
 
 La variable central del estudio debe representar intensidad de movimiento, no dirección de precio. Por ello, el sistema trabaja con volatilidad realizada construida a partir de retornos logarítmicos. El objetivo predictivo principal es la volatilidad realizada futura de una hora, expresada en escala logarítmica.
 
@@ -32,7 +32,7 @@ Toda normalización utilizada por modelos debe ajustarse con datos de entrenamie
 
 \section{Requisitos metodológicos}\label{sec:requisitos-metodologicos}
 
-La metodología debe avanzar de herramientas simples a herramientas más específicas. Antes de aplicar reconstrucción por retardos, cuantificación dinámica o predicción local, la serie debe caracterizarse mediante gráficos, estadísticos descriptivos, estacionariedad, autocorrelación, espectro y recurrencia.
+La metodología debe avanzar de herramientas simples a herramientas más específicas, siguiendo un orden progresivo: primero caracterizar la serie y después aplicar herramientas más específicas. Esta progresión evita interpretar patrones complejos sin haber comprobado antes el comportamiento básico de los datos.
 
 La elección de la serie principal debe quedar justificada frente a alternativas más directas, como precio, log-precio, retorno firmado o retorno absoluto. El procedimiento debe mostrar por qué la volatilidad realizada logarítmica es la magnitud adecuada para estudiar persistencia, estructura temporal y utilidad predictiva.
 
@@ -60,7 +60,7 @@ El procedimiento de análisis debe cubrir el flujo completo desde los datos brut
     \item reconstruir el espacio de estados con orientación causal;
     \item calcular indicadores dinámicos y compararlos con controles;
     \item evaluar modelos predictivos con particiones temporales;
-    \item exportar artefactos reutilizables para documentación y MVP.
+    \item exportar artefactos reutilizables para la memoria y MVP.
 \end{itemize}
 
 Cada fase debe dejar salidas persistidas en formatos reutilizables. Las tablas, figuras, informes y artefactos permiten vincular las afirmaciones del trabajo con una ejecución concreta del código.
@@ -73,7 +73,7 @@ El MVP web debe ofrecer una interfaz para aplicar los modelos principales sobre 
 
 La aplicación debe aceptar tres fuentes de datos: Binance API, dataset de ejemplo y CSV de usuario. En todos los casos debe normalizar los datos, validar la ventana temporal, calcular las variables necesarias y determinar qué modelos pueden ejecutarse con la información disponible.
 
-El MVP debe generar predicciones de \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12} y mostrar transformaciones que faciliten su interpretación. También debe indicar el horizonte temporal, la disponibilidad de cada modelo, diagnósticos básicos de fiabilidad y opciones de descarga de resultados.
+El MVP debe generar predicciones de volatilidad futura a una hora. También debe indicar el horizonte temporal, la disponibilidad de cada modelo, diagnósticos básicos de fiabilidad y opciones de descarga de resultados.
 
 La aplicación debe funcionar de forma autónoma en tiempo de ejecución. Para ello debe consumir artefactos previamente exportados, sin importar directamente código del repositorio de investigación.
 
@@ -83,7 +83,7 @@ El requisito no funcional principal es la reproducibilidad. El análisis debe po
 
 La trazabilidad también es esencial. Cada cifra relevante debe poder relacionarse con una tabla, informe o artefacto generado por el procedimiento. Esto es especialmente importante en decisiones sensibles como particiones temporales, selección de parámetros, submuestras por coste computacional o comparación de modelos.
 
-El sistema debe ser modular. El repositorio de investigación, el MVP y la memoria cumplen funciones distintas y no deben depender unos de otros de forma innecesaria. Esta separación reduce acoplamiento y evita que la aplicación web altere la validez del estudio experimental.
+El sistema debe ser modular. El repositorio de investigación, el MVP y la memoria cumplen funciones distintas, por lo que no deben depender unos de otros de forma innecesaria. Esta separación reduce acoplamiento y evita que la aplicación web altere la validez del estudio experimental.
 
 La eficiencia computacional debe abordarse de forma práctica. Cuando una herramienta no sea viable sobre toda la muestra, el procedimiento puede utilizar ventanas representativas, submuestras equiespaciadas o bloques temporales, siempre que la decisión quede documentada.
 
@@ -96,7 +96,7 @@ Los requisitos se consideran satisfechos si se cumplen los siguientes criterios:
 \begin{itemize}
     \item los datos de entrada están ordenados, tienen frecuencia válida, no contienen duplicados, huecos no controlados, nulos ni valores de mercado inválidos;
     \item las variables pasadas y futuras se construyen sin fuga de información;
-    \item la normalización y los modelos se ajustan sin utilizar validación o test cuando no corresponde;
+    \item la normalización y los modelos se ajustan sin utilizar validación cuando no corresponde;
     \item la serie principal queda justificada frente a alternativas más simples;
     \item los indicadores dinámicos se comparan con controles adecuados;
     \item la predicción se evalúa fuera de muestra frente a referencias básicas, lineales y multiescala;
@@ -104,4 +104,4 @@ Los requisitos se consideran satisfechos si se cumplen los siguientes criterios:
     \item el MVP carga datos, valida entradas, calcula variables, ejecuta modelos disponibles, muestra predicciones, informa de limitaciones y permite descargar resultados.
 \end{itemize}
 
-Además, las conclusiones del trabajo deben respetar el alcance de los resultados. El sistema puede apoyar afirmaciones sobre persistencia, dependencia temporal, estructura residual y utilidad predictiva parcial. No puede presentar esos indicios como demostración fuerte de caos determinista en Bitcoin.
+Además, las conclusiones del trabajo deben respetar el alcance de los resultados. El sistema podrá comunicar indicios de estructura temporal o utilidad predictiva parcial, pero no deberá presentar esos indicios como demostración fuerte de caos determinista en Bitcoin.

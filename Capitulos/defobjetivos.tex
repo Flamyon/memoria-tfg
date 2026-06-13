@@ -4,70 +4,52 @@
 
 \section{Objetivo general}\label{sec:objetivo-general}
 
-El objetivo general de este Trabajo de Fin de Grado es desarrollar un procedimiento computacional para analizar series temporales desde la perspectiva de la dinámica no lineal y la predicción a corto plazo. El trabajo no parte de la idea de demostrar caos en una serie económica concreta, sino de construir una secuencia de herramientas que permita caracterizar dependencia temporal, reconstruir espacios de estados, comparar modelos predictivos y distinguir entre indicios de estructura y conclusiones no justificadas.
+El objetivo general de este Trabajo de Fin de Grado es diseñar, implementar y evaluar un sistema software para analizar y predecir la volatilidad de datos financieros intradía. El trabajo no pretende construir una herramienta de inversión ni anticipar la dirección del precio, sino desarrollar un procedimiento reproducible que permita transformar datos de mercado en información útil sobre la intensidad esperada de los movimientos futuros.
 
-Para comprobar el comportamiento del procedimiento se utilizan dos contextos. El primero es sintético: el mapa logístico, como sistema determinista, no lineal y caótico conocido. El segundo es empírico: la volatilidad realizada intradía de Bitcoin, construida a partir de velas de cinco minutos del par \texttt{BTCUSDT}. Esta segunda parte permite estudiar qué ocurre cuando las herramientas se aplican a una serie financiera real, donde la señal aparece mezclada con ruido, heterocedasticidad y cambios de régimen.
+El proyecto combina tres elementos. En primer lugar, un procedimiento de análisis que parte de datos brutos, los valida, construye variables de trabajo y compara distintos modelos predictivos. En segundo lugar, una comprobación con un caso sintético conocido, que permite observar el comportamiento del procedimiento en un entorno controlado antes de aplicarlo a datos reales. En tercer lugar, una aplicación web que utiliza una parte de los artefactos generados durante el estudio y ofrece una interfaz sencilla para cargar datos, ejecutar predicciones y visualizar resultados.
 
-Además del estudio técnico, el proyecto incluye un MVP web. Su finalidad es trasladar una parte del procedimiento a una herramienta interactiva capaz de cargar datos, construir variables y mostrar predicciones de volatilidad. El prototipo no sustituye al análisis completo, sino que actúa como demostración funcional de los modelos y artefactos generados durante el trabajo.
+La aplicación empírica se centra en Bitcoin, utilizando datos de mercado con frecuencia de cinco minutos. A partir de ellos se estudia la volatilidad futura a corto plazo. Esta elección permite abordar un problema financiero real sin convertir el trabajo en una estrategia de trading. El interés principal está en la construcción del sistema, la comparación entre modelos y la interpretación prudente de los resultados obtenidos.
 
 \section{Objetivos específicos}\label{sec:objetivos-especificos}
 
 Para alcanzar el objetivo general se plantean los siguientes objetivos específicos:
 
 \begin{enumerate}
-    \item Presentar los conceptos necesarios para interpretar el trabajo, incluyendo volatilidad realizada, dependencia temporal, no linealidad, reconstrucción por retardos, exponentes de Lyapunov, entropía y predicción local.
-
-    \item Comprobar el procedimiento sobre un sistema sintético conocido, en particular el mapa logístico, para observar su comportamiento cuando la dinámica subyacente es determinista y no lineal.
-
-    \item Aplicar el procedimiento a una serie financiera real, construyendo una base de datos de volatilidad realizada intradía de Bitcoin a partir de velas de cinco minutos de \texttt{BTCUSDT}.
-
-    \item Definir una variable principal de análisis basada en volatilidad realizada, separando la información disponible en cada instante del objetivo futuro utilizado para la evaluación predictiva.
-
-    \item Caracterizar la serie empírica mediante herramientas descriptivas, análisis de estacionariedad, autocorrelación, espectro y recurrencia.
-
-    \item Estudiar la presencia de dependencia temporal e indicios de no linealidad mediante filtrado lineal, análisis de residuos, contrastes complementarios y comparación con controles.
-
-    \item Reconstruir espacios de estados a partir de retardos temporales, seleccionando parámetros mediante información mutua, falsos vecinos y el método de Cao.
-
-    \item Cuantificar de forma exploratoria la dinámica reconstruida mediante dimensión de correlación, estimaciones de divergencia local y entropía de permutación.
-
-    \item Evaluar la utilidad predictiva de la reconstrucción mediante métodos locales basados en vecinos y compararlos con modelos de referencia.
-
-    \item Incorporar un modelo HAR-logRV como referencia multiescala de volatilidad realizada y como candidato práctico para su integración en el MVP.
-
-    \item Diseñar e implementar un MVP web que permita cargar datos, calcular variables, ejecutar modelos y visualizar predicciones de volatilidad.
-
-    \item Documentar las limitaciones metodológicas y prácticas del trabajo, especialmente en relación con la interpretación de la no linealidad, la predicción financiera y el alcance del prototipo.
+     \item Establecer el marco conceptual necesario para interpretar el problema, diferenciando entre predicción de precio, predicción de volatilidad, análisis de patrones y límites de interpretación en datos financieros reales.
+     \item Diseñar un procedimiento reproducible de análisis de datos financieros intradía, desde la preparación de los datos hasta la comparación de modelos predictivos y la generación de resultados documentables.
+     \item Comprobar el comportamiento del procedimiento en un caso sintético conocido, de forma que exista un punto de referencia controlado antes de aplicarlo a datos financieros reales.
+     \item Aplicar el procedimiento a Bitcoin, construyendo una medida de volatilidad futura a corto plazo y evaluando si los datos recientes contienen información útil para estimarla.
+     \item Comparar modelos predictivos de distinta complejidad bajo una separación temporal adecuada, evitando que la evaluación dependa de una única técnica o de una referencia demasiado débil.
+     \item Implementar un MVP web que integre una parte de los resultados del estudio y permita cargar datos, calcular variables, obtener predicciones de volatilidad y visualizar las salidas principales de forma comprensible. 
 \end{enumerate}
-
 \section{Alcance del trabajo}\label{sec:alcance}
 
-El alcance del trabajo se organiza en torno a una metodología y dos contextos de aplicación. El primero es sintético y utiliza el mapa logístico como sistema de control. El segundo es empírico y se centra en la volatilidad realizada de Bitcoin a horizonte horario. En este segundo caso, la variable estudiada no es el precio del activo ni la dirección futura del mercado, sino una medida de variabilidad construida a partir de retornos observados.
+El alcance del trabajo incluye el desarrollo de un procedimiento completo de análisis y predicción de volatilidad a corto plazo. Este procedimiento cubre la obtención de datos, su validación, la construcción de variables, la comparación de modelos, la generación de resultados y la exportación de artefactos reutilizables.
 
-Aunque el procedimiento podría aplicarse a otras series temporales, en esta memoria solo se desarrolla completamente sobre el mapa logístico y sobre Bitcoin. Otros activos, otras frecuencias, otros horizontes de predicción o nuevas funciones sintéticas quedan fuera del alcance principal y se consideran posibles extensiones futuras.
+El estudio se aplica a dos contextos. El primero es un caso sintético conocido, usado como control del procedimiento. El segundo es una aplicación empírica sobre Bitcoin, utilizando datos intradía del par \texttt{BTCUSDT}. Otros activos, otras frecuencias y otros horizontes de predicción quedan fuera del alcance principal y se consideran extensiones futuras.
 
-El trabajo incluye una parte experimental y una parte software. La parte experimental comprende la construcción de la serie, su caracterización, la reconstrucción del espacio de estados, la cuantificación dinámica, la comparación con controles y la evaluación predictiva. La parte software consiste en un MVP web que permite utilizar una selección de modelos y artefactos obtenidos en el estudio técnico.
+El trabajo incluye también el desarrollo de un MVP web. Este prototipo permite utilizar una parte del sistema en un entorno interactivo, pero no reproduce todo el análisis experimental. Su finalidad es demostrar que los modelos y artefactos generados pueden integrarse en una herramienta software utilizable.
 
-No se busca construir el modelo predictivo más complejo posible ni optimizar una estrategia de mercado. El interés está en comparar herramientas con distinto grado de complejidad y en analizar qué puede concluirse razonablemente al aplicar técnicas de dinámica no lineal a una serie financiera real.
+Quedan fuera del alcance del proyecto la construcción de una estrategia de inversión, la ejecución de operaciones reales, la optimización de carteras, la gestión de riesgo financiero y la recomendación de compra o venta de activos. El sistema se limita a estimar volatilidad futura y a mostrar los resultados de forma interpretable.
 
 \section{Limitaciones del trabajo}\label{sec:limitaciones-objetivos}
 
-El trabajo presenta varias limitaciones que condicionan la interpretación de sus resultados. La primera procede del propio objeto de estudio: las series financieras reales son ruidosas, presentan cambios de régimen y no son estacionarias en sentido estricto. Esto dificulta separar con claridad dependencia lineal, no linealidad, heterocedasticidad y efectos externos no observados.
+El trabajo presenta limitaciones que deben tenerse en cuenta desde el inicio. La primera es que los datos financieros reales son ruidosos y cambian con el tiempo. Por tanto, cualquier patrón observado debe interpretarse con cautela y compararse con modelos de referencia antes de extraer conclusiones.
 
-La segunda limitación afecta a las herramientas de dinámica no lineal. La reconstrucción del espacio de estados, la dimensión de correlación, las estimaciones de Lyapunov o la entropía de permutación pueden aportar información útil, pero no constituyen por sí solas una demostración de caos determinista en una serie económica real. En el mapa logístico se conoce la regla generadora; en Bitcoin solo pueden defenderse indicios y comparaciones empíricas.
+La segunda limitación afecta a la predicción. El sistema estima volatilidad futura, no rentabilidad ni dirección del precio. Una predicción de mayor volatilidad no indica por sí sola si el precio subirá o bajará. En consecuencia, los resultados no deben entenderse como señales operativas de mercado.
 
-La tercera limitación se refiere a la predicción. El trabajo evalúa volatilidad realizada futura, no rentabilidad ni dirección del precio. Por tanto, una mejora en error predictivo no implica automáticamente utilidad operativa en mercado ni debe interpretarse como una señal de compra o venta.
+La tercera limitación está relacionada con el alcance empírico. La aplicación principal se realiza sobre Bitcoin, con frecuencia de cinco minutos y horizonte de una hora. Los resultados obtenidos no pueden generalizarse automáticamente a otros activos, periodos o frecuencias sin repetir el análisis.
 
-La cuarta limitación está relacionada con el MVP web. El prototipo demuestra la integración técnica de una parte del estudio, pero no incorpora todos los elementos necesarios para una herramienta financiera profesional. Su función es mostrar de forma interactiva los modelos desarrollados y sus salidas principales.
+La cuarta limitación corresponde al MVP web. El prototipo demuestra la integración software de una parte del estudio, pero no incorpora todas las características de una plataforma profesional. No incluye ejecución automática de operaciones, gestión de usuarios, despliegue productivo, monitorización continua ni estimación formal de incertidumbre.
 
-Por último, los resultados empíricos se limitan a Bitcoin, a la frecuencia de cinco minutos y al horizonte horario considerado. Cualquier generalización a otros activos, periodos o frecuencias requeriría repetir el procedimiento completo.
+Por último, el trabajo distingue entre indicios y conclusiones. Que un modelo mejore a otro en una muestra concreta no implica que exista una explicación completa del comportamiento del mercado. La memoria debe mantener esta diferencia durante todo el análisis.
 
 \section{Aportación principal del TFG}\label{sec:aportacion-principal}
 
-La aportación principal del TFG consiste en desarrollar una metodología reproducible para analizar series temporales mediante herramientas de dinámica no lineal y predicción, y en trasladar parte de esa metodología a una implementación software utilizable. El trabajo no se limita a aplicar modelos predictivos de forma aislada, sino que construye una secuencia que parte de la explicación conceptual, se comprueba en un sistema sintético conocido y se aplica después a datos financieros reales.
+La aportación principal del TFG consiste en integrar análisis de datos financieros, comparación predictiva e implementación software dentro de un mismo sistema reproducible. El trabajo no se limita a probar un modelo aislado, sino que diseña una cadena completa desde los datos brutos hasta una aplicación web funcional.
 
-Desde el punto de vista metodológico, la aportación está en adaptar herramientas de sistemas dinámicos a un contexto de series observadas, manteniendo una interpretación prudente. El procedimiento permite estudiar dependencia temporal, estructura residual, reconstrucción por retardos, cuantificación dinámica y predicción local, pero evita convertir esos indicios en afirmaciones no justificadas sobre caos determinista.
+Desde el punto de vista metodológico, la aportación está en construir un procedimiento ordenado para estudiar la volatilidad futura a corto plazo. Este procedimiento incluye un caso sintético de control, una aplicación empírica sobre Bitcoin y una comparación entre modelos con distinta complejidad.
 
-Desde el punto de vista software, la aportación consiste en organizar el análisis como un sistema reproducible y en desarrollar un MVP web que consume artefactos generados por el estudio técnico. Esta parte permite cerrar el trabajo desde la perspectiva de la ingeniería del software, conectando metodología, resultados y uso interactivo.
+Desde el punto de vista de Ingeniería de Software, la aportación consiste en organizar el proyecto en componentes diferenciados: repositorio de análisis, artefactos exportables, MVP web, pruebas y documentación. Esta separación permite mantener trazabilidad entre los resultados generados y la herramienta que los utiliza.
 
-En conjunto, el TFG aporta una aproximación integrada: explica y aplica herramientas de dinámica no lineal, las comprueba sobre una función caótica conocida, las lleva a una serie financiera real y construye una aplicación que permite utilizar parte de los resultados obtenidos. Su contribución está en mostrar qué puede analizarse, qué debe compararse y qué límites deben respetarse al aplicar estas técnicas a datos reales.
+En conjunto, el TFG aporta una solución que conecta investigación aplicada y desarrollo software. El resultado no es una plataforma financiera profesional, sino un sistema académico reproducible que permite analizar la volatilidad de Bitcoin, comparar modelos y mostrar una parte de los resultados mediante una interfaz web.

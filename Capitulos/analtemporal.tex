@@ -4,41 +4,34 @@
 
 \section{Organización general del proyecto}\label{sec:organizacion-proyecto}
 
-El proyecto se organizó en torno a tres bloques de trabajo complementarios. El primero correspondió al estudio técnico y experimental, desarrollado en el repositorio \texttt{btc-volatility}, donde se implementaron las fases de validación de datos, construcción de variables, análisis de la serie, reconstrucción del espacio de estados, cuantificación dinámica, predicción y comparación de modelos. El segundo bloque fue el desarrollo de un prototipo web autónomo, implementado en \texttt{mvp-web}, cuyo objetivo fue trasladar parte de los resultados del estudio a una herramienta interactiva. El tercer bloque correspondió a la redacción de la memoria en \LaTeX{}, mantenida en el repositorio \texttt{tfg-memoria}.
+El proyecto se organizó en torno a cuatro fases principales. La primera correspondió a la formación inicial y al estudio de la tesis de referencia, necesaria para entender el enfoque metodológico del trabajo. La segunda agrupó el estudio técnico y experimental, desarrollado en el repositorio \texttt{btc-volatility}. La tercera consistió en la implementación del MVP web, ubicado en el repositorio \texttt{mvp-web}. La cuarta fase correspondió a la redacción, revisión y preparación de la memoria en \LaTeX{}, mantenida en el repositorio \texttt{tfg-memoria}.
 
-Esta separación permitió distinguir entre investigación, implementación y documentación. El repositorio técnico concentró los scripts, informes, tablas y figuras generados durante el análisis. El prototipo web utilizó artefactos exportados desde el estudio, pero se mantuvo desacoplado para evitar dependencias innecesarias en tiempo de ejecución. Finalmente, la memoria recogió la motivación, el marco teórico, la metodología, los resultados y la interpretación final del trabajo.
+Esta división permitió separar el aprendizaje inicial, el trabajo experimental, la aplicación software y la documentación académica. El repositorio técnico concentró los scripts, informes, tablas y figuras generados durante el análisis. El MVP web consumió una parte de los artefactos exportados desde el estudio, manteniéndose desacoplado del repositorio experimental. Finalmente, la memoria integró la motivación, los objetivos, el marco teórico, la planificación, el diseño, la implementación, los resultados y las conclusiones del trabajo.
 
 \section{Fases principales del trabajo}\label{sec:fases-proyecto}
 
-El desarrollo se estructuró de forma incremental. En primer lugar, se realizó una fase de estudio teórico centrada en series temporales, dinámica no lineal, reconstrucción por retardos, cuantificación de la complejidad y predicción local. Esta fase permitió adaptar la metodología de referencia al contexto del trabajo.
+La primera fase fue de formación y lectura. En ella se estudió la tesis de referencia y se revisaron los conceptos necesarios para adaptar su enfoque al contexto del TFG. Esta fase permitió delimitar el problema, entender las herramientas principales y decidir cómo trasladar una metodología de análisis a un caso financiero actual.
 
-A continuación se construyó el procedimiento experimental sobre la serie financiera. Esta parte incluyó la validación de datos de Bitcoin, la construcción de retornos y volatilidad realizada, el análisis descriptivo, el estudio de estacionariedad, la caracterización lineal mediante autocorrelaciones y periodograma, el análisis de recurrencia, el filtrado lineal, los contrastes de no linealidad, la reconstrucción del espacio de estados, la cuantificación dinámica y la comparación con series barajadas y subrogadas.
+La segunda fase fue el estudio técnico. En ella se construyó el procedimiento experimental sobre datos de Bitcoin. También se incorporó la comprobación sintética con el mapa logístico, utilizada como control metodológico del procedimiento.
 
-Después se incorporó una comprobación sintética mediante el mapa logístico. Esta fase tuvo una función de control metodológico, ya que permitió aplicar el procedimiento a un sistema determinista no lineal con comportamiento conocido antes de interpretar los resultados obtenidos sobre datos financieros reales.
+La tercera fase fue la implementación del MVP web. Su objetivo fue trasladar una parte del estudio técnico a una aplicación interactiva. Para ello se diseñó una herramienta capaz de cargar datos, validarlos, calcular variables, ejecutar modelos disponibles y mostrar predicciones de volatilidad junto con información de diagnóstico.
 
-La parte final del estudio se centró en la predicción. Se evaluaron modelos de persistencia, modelos autorregresivos, predicción local basada en vecinos próximos y un modelo HAR-logRV compacto. Este último se utilizó como modelo práctico recomendado por su sencillez, interpretabilidad y facilidad de exportación al prototipo web.
-
-Por último, se desarrolló el MVP web en Streamlit, se añadieron pruebas de verificación y se redactó la memoria del trabajo.
+La cuarta fase fue la escritura y revisión de la memoria. Esta fase incluyó la redacción de capítulos, integración de tablas y figuras, revisión de coherencia entre secciones, depuración de repeticiones y preparación final del documento. Se considera una fase propia porque la memoria es uno de los entregables principales del proyecto y requiere una dedicación significativa.
 
 \section{Planificación temporal}\label{sec:planificacion-temporal}
 
-La planificación inicial se realizó tomando como referencia una dedicación total de 300 horas. Esta estimación se distribuyó entre estudio teórico, desarrollo experimental, validación sintética, implementación del prototipo y redacción de la memoria. La Tabla~\ref{tab:planificacion-horas-inicial} muestra la distribución prevista.
+La planificación inicial se realizó tomando como referencia una dedicación total de 300 horas. La estimación se agrupó en las cuatro fases principales del proyecto, como se muestra en la Tabla~\ref{tab:planificacion-horas-inicial}.
 
 \begin{table}[ht]
 \centering
 \begin{tabular}{l r}
 \hline
-\textbf{Bloque de trabajo} & \textbf{Horas planificadas} \\
+\textbf{Fase de trabajo} & \textbf{Horas planificadas} \\
 \hline
-Estudio teórico y análisis de la tesis de referencia & 35 \\
-Diseño metodológico y planificación inicial & 20 \\
-Validación de datos y construcción de variables & 25 \\
-Caracterización estadística, lineal y no lineal & 45 \\
-Reconstrucción, cuantificación y contrastes con controles & 55 \\
-Predicción local, robustez y modelo HAR-logRV & 40 \\
-Validación sintética con mapa logístico & 25 \\
-Desarrollo del MVP web & 35 \\
-Escritura, revisión y preparación de la memoria & 20 \\
+Formación y lectura de la tesis de referencia & 60 \\
+Estudio técnico y experimental & 160 \\
+Implementación del MVP web & 50 \\
+Escritura, revisión y preparación de la memoria & 30 \\
 \hline
 \textbf{Total} & \textbf{300} \\
 \hline
@@ -47,27 +40,22 @@ Escritura, revisión y preparación de la memoria & 20 \\
 \label{tab:planificacion-horas-inicial}
 \end{table}
 
+La fase de estudio técnico concentra la mayor parte de la planificación, ya que incluye la construcción del procedimiento experimental completo. En ella se agrupan la preparación de datos, el análisis de la serie, la comprobación sintética, la comparación de modelos y la lectura técnica de resultados. La implementación del MVP se planificó como una fase posterior, una vez disponibles los artefactos principales del estudio.
+
 \section{Distribución del esfuerzo}\label{sec:distribucion-esfuerzo}
 
-Durante el desarrollo se registró el tiempo dedicado a las distintas tareas mediante Clockify. Este seguimiento permitió comparar la estimación inicial con la dedicación real y detectar los bloques que requirieron mayor esfuerzo del previsto.
-
-La Tabla~\ref{tab:distribucion-esfuerzo-real} recoge la distribución final del esfuerzo. Los valores se obtendrán a partir de la exportación final de Clockify, agrupando las tareas en bloques homogéneos.
+Durante el desarrollo se registró el tiempo dedicado a las distintas tareas mediante Clockify. Para comparar la planificación inicial con el esfuerzo real, las tareas registradas se agruparon en las mismas cuatro fases principales. Esta agrupación evita una fragmentación excesiva y permite interpretar mejor dónde se concentró la dedicación del proyecto.
 
 \begin{table}[ht]
 \centering
 \begin{tabular}{l r r r}
 \hline
-\textbf{Bloque de trabajo} & \textbf{Planificado} & \textbf{Real} & \textbf{Desviación} \\
+\textbf{Fase de trabajo} & \textbf{Planificado} & \textbf{Real} & \textbf{Desviación} \\
 \hline
-Estudio teórico y análisis de referencia & 35 & -- & -- \\
-Diseño metodológico y planificación & 20 & -- & -- \\
-Datos y variables & 25 & -- & -- \\
-Análisis estadístico y no lineal & 45 & -- & -- \\
-Reconstrucción y cuantificación & 55 & -- & -- \\
-Predicción y modelos finales & 40 & -- & -- \\
-Mapa logístico & 25 & -- & -- \\
-MVP web & 35 & -- & -- \\
-Memoria y revisión & 20 & -- & -- \\
+Formación y lectura de la tesis de referencia & 60 & -- & -- \\
+Estudio técnico y experimental & 160 & -- & -- \\
+Implementación del MVP web & 50 & -- & -- \\
+Escritura, revisión y preparación de la memoria & 30 & -- & -- \\
 \hline
 \textbf{Total} & \textbf{300} & \textbf{--} & \textbf{--} \\
 \hline
@@ -76,27 +64,29 @@ Memoria y revisión & 20 & -- & -- \\
 \label{tab:distribucion-esfuerzo-real}
 \end{table}
 
+Los valores reales se incorporan a partir de la exportación final de Clockify. La comparación permite identificar desviaciones respecto a la planificación inicial y valorar qué partes del proyecto requirieron mayor esfuerzo del previsto.
+
 \section{Herramientas de seguimiento y desarrollo}\label{sec:herramientas-seguimiento}
 
-Para el desarrollo del trabajo se emplearon herramientas orientadas a la reproducibilidad y al seguimiento del esfuerzo. El análisis técnico se implementó principalmente en Python, utilizando scripts separados por fases y generando salidas en formatos reutilizables, como ficheros CSV, JSON, NPZ y figuras SVG. La memoria se redactó en \LaTeX{}, lo que facilitó la organización por capítulos, la inclusión de ecuaciones y la gestión de referencias bibliográficas.
+El seguimiento temporal se realizó mediante Clockify, registrando las tareas según las fases principales del proyecto. Esta información permitió mantener una visión cuantitativa del esfuerzo dedicado y preparar la comparación entre planificación inicial y dedicación real.
 
-El seguimiento temporal se realizó mediante Clockify, registrando las tareas por bloques de actividad. Esta información se utilizó para contrastar la planificación inicial con el esfuerzo real. Además, la organización en repositorios separados permitió mantener una separación clara entre el estudio experimental, el prototipo web y la documentación académica.
+El desarrollo técnico se organizó en repositorios separados. El procedimiento experimental se implementó principalmente en Python, generando salidas reutilizables en formatos como CSV, JSON, NPZ y figuras. El MVP web se desarrolló como aplicación independiente. La memoria se redactó en \LaTeX{}, lo que facilitó la organización por capítulos, la inclusión de ecuaciones, tablas y figuras, y la gestión de referencias.
 
 \section{Estimación de costes}\label{sec:estimacion-costes}
 
-La estimación de costes se realizó considerando principalmente el coste de personal, dado que las herramientas utilizadas fueron mayoritariamente de código abierto y no requirieron licencias comerciales. El coste personal se modeló mediante la expresión:
+La estimación de costes considera principalmente el coste de personal, dado que las herramientas utilizadas fueron mayoritariamente de código abierto y no requirieron licencias comerciales. El coste personal se modela mediante la expresión:
 
 \begin{equation}
     C_{\text{personal}} = H \cdot c_h,
 \end{equation}
 
-donde \(H\) representa el número de horas dedicadas y \(c_h\) el coste horario estimado. Para la planificación inicial se consideraron 300 horas de trabajo. Tomando como referencia un coste horario estimado de \(15\,\text{€}/h\), el coste planificado del proyecto sería:
+donde \(H\) representa el número de horas dedicadas y \(c_h\) el coste horario estimado. Para la planificación inicial se consideraron 300 horas de trabajo. Tomando como referencia un coste horario de \(15\,\text{€}/h\), el coste planificado del proyecto es:
 
 \begin{equation}
     C_{\text{planificado}} = 300 \cdot 15 = 4500\,\text{€}.
 \end{equation}
 
-El coste real podrá obtenerse sustituyendo \(H\) por el número final de horas registradas en Clockify:
+El coste real se obtiene sustituyendo \(H\) por el número final de horas registradas:
 
 \begin{equation}
     C_{\text{real}} = H_{\text{real}} \cdot 15.
@@ -122,16 +112,8 @@ Infraestructura adicional & 0\,€ \\
 
 \section{Desviaciones respecto a la planificación inicial}\label{sec:desviaciones}
 
-La dedicación real del proyecto superó la estimación inicial de 300 horas. Esta desviación se explica principalmente por la ampliación del alcance técnico durante el desarrollo. En particular, se incorporó una validación sintética con el mapa logístico, se reforzó la comparación de modelos predictivos, se añadió el modelo HAR-logRV como cierre práctico y se desarrolló un MVP web autónomo para mostrar los resultados de forma interactiva.
+La dedicación real del proyecto se comparará con la planificación inicial una vez cerrado el registro final de horas. Las desviaciones se analizarán agrupando el esfuerzo en las cuatro fases principales: formación, estudio técnico, implementación del MVP y escritura de la memoria.
 
-Estas ampliaciones no modificaron el objetivo general del trabajo, pero sí aumentaron el esfuerzo necesario para completarlo. La validación sintética permitió comprobar el procedimiento sobre una dinámica conocida antes de interpretar los resultados de Bitcoin. El modelo HAR-logRV aportó un cierre predictivo más simple e interpretable que los modelos no lineales locales. El MVP, por su parte, transformó el estudio experimental en una herramienta demostrativa y reproducible.
+En caso de desviación positiva, esta se interpretará atendiendo al alcance real del trabajo. En particular, el estudio técnico pudo requerir más esfuerzo por la necesidad de validar datos, contrastar resultados, comparar modelos y generar artefactos reproducibles. La implementación del MVP también pudo incrementar la dedicación al exigir integración de modelos, validación de entradas y diseño de una interfaz utilizable.
 
-\section{Lecciones aprendidas durante el desarrollo}\label{sec:lecciones-aprendidas}
-
-El desarrollo del proyecto puso de manifiesto varias lecciones relevantes. En primer lugar, en un trabajo basado en series temporales la validación de datos y la prevención de fuga de información son tan importantes como la selección de modelos. Un resultado predictivo puede parecer bueno si la construcción de variables utiliza información futura, por lo que fue necesario verificar explícitamente la separación temporal entre datos pasados y futuros.
-
-En segundo lugar, el análisis de dinámica no lineal sobre datos financieros exige prudencia interpretativa. La presencia de dependencia temporal, heterocedasticidad, estructura ordinal o divergencia local no permite afirmar por sí sola la existencia de caos determinista. Por este motivo, el trabajo separó los indicios encontrados en Bitcoin de la comprobación sintética realizada con el mapa logístico.
-
-En tercer lugar, la comparación con modelos simples resultó esencial. Los métodos no lineales locales aportaron información útil frente a referencias básicas, pero los modelos lineales y multiescala ofrecieron un rendimiento muy competitivo. Esta comparación evitó presentar la metodología no lineal como superior por defecto.
-
-Por último, la construcción del MVP mostró la importancia de transformar los resultados experimentales en artefactos reutilizables. La exportación de parámetros y modelos permitió conectar el estudio técnico con una aplicación funcional, manteniendo una separación clara entre investigación, implementación y documentación.
+La escritura de la memoria se considera parte del esfuerzo del proyecto porque no se limita a transcribir resultados. Incluye ordenar el trabajo realizado, seleccionar qué información debe aparecer en cada capítulo, integrar figuras y tablas, revisar la coherencia interna y asegurar que las conclusiones respeten el alcance real del análisis.

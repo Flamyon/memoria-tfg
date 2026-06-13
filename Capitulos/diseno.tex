@@ -12,11 +12,12 @@ El objeto de estudio es la volatilidad realizada intradía de Bitcoin. Los datos
 
 El diseño distingue tres niveles. El primero es metodológico y contiene el procedimiento de análisis. El segundo es experimental y permite contrastar el comportamiento del procedimiento en un sistema sintético conocido y en una serie financiera real. El tercero es operativo y se materializa en el MVP web. Esta separación evita atribuir a cada parte un alcance que no tiene: la comprobación sintética no demuestra nada sobre Bitcoin, la aplicación empírica no prueba por sí sola caos determinista y el MVP no sustituye al estudio completo.
 
-\section{Arquitectura global del sistema}\label{sec:arquitectura-global}\label{sec:organizacion-repositorio}
+\section{Arquitectura global del sistema}\label{sec:arquitectura-global}
 
 La arquitectura global se diseña como una arquitectura desacoplada en tres bloques: repositorio de investigación, MVP web y memoria académica. El primer bloque contiene el procedimiento experimental y genera los artefactos técnicos. El segundo bloque proporciona una interfaz de uso sobre una selección de esos artefactos. El tercero documenta el planteamiento, las decisiones de diseño, la implementación, los resultados y las limitaciones.
 
-\begin{center}
+\begin{table}[ht]
+\centering
 \begin{tabular}{p{0.25\textwidth} p{0.62\textwidth}}
 \hline
 \textbf{Bloque} & \textbf{Responsabilidad de diseño} \\
@@ -26,7 +27,9 @@ MVP web & Consumir artefactos exportados y ofrecer una interfaz para cargar dato
 Memoria académica & Integrar el trabajo realizado, justificar las decisiones metodológicas y separar los resultados defendibles de las interpretaciones no justificadas. \\
 \hline
 \end{tabular}
-\end{center}
+\caption{Bloques principales de la arquitectura global del proyecto.}
+\label{tab:arquitectura-global}
+\end{table}
 
 La comunicación entre el repositorio de investigación y el MVP se realiza mediante ficheros intermedios. El diseño evita que la aplicación web dependa directamente del código experimental. En lugar de importar funciones internas del repositorio de análisis, el MVP lee parámetros, coeficientes, referencias de entrenamiento, métricas históricas y modelos exportados. Con ello, el entrenamiento y la validación histórica quedan fuera de la ejecución interactiva.
 
@@ -42,103 +45,57 @@ Este diseño permite que cada resultado posterior tenga un contexto metodológic
 
 \section{Diseño de la comprobación sintética}\label{sec:diseno-comprobacion-sintetica}
 
-La comprobación sintética se diseña para separar dos preguntas que no deben confundirse. La primera es si el procedimiento implementado es capaz de responder ante una dinámica determinista y no lineal conocida. La segunda es si la serie de volatilidad de Bitcoin contiene evidencia suficiente para defender una interpretación dinámica fuerte. La comprobación con el mapa logístico aborda la primera pregunta, no la segunda.
+La comprobación sintética se diseña como un control interno del procedimiento. Su función no es representar el comportamiento de Bitcoin, sino ofrecer un caso en el que la estructura de los datos está definida de antemano. De esta forma, antes de aplicar el sistema a una serie financiera real, se dispone de un entorno controlado para observar si el flujo de análisis responde de manera coherente.
 
-El sistema elegido es el mapa logístico en régimen caótico,
-\begin{equation}
-    x_{t+1}=4x_t(1-x_t).
-\end{equation}
-Su interés dentro del diseño no está en parecerse a Bitcoin, sino en proporcionar un caso de control. En este sistema existe una regla de transición explícita, no lineal y conocida; por tanto, permite observar cómo se comportan la reconstrucción por retardos, los indicadores de divergencia y la predicción local cuando la señal determinista domina la observación.
+El caso elegido es el mapa logístico, introducido formalmente en el marco teórico. Dentro del diseño del proyecto, su papel es servir como referencia sintética: permite ejecutar el mismo tipo de procesamiento, reconstrucción, cuantificación y predicción local sobre una serie que no procede del mercado. Así se evita evaluar el procedimiento únicamente sobre datos financieros reales, donde intervienen ruido, cambios de comportamiento y factores externos no observados.
 
-El diseño de la comprobación incluye una serie limpia y variantes con ruido observacional. Esta decisión evita validar el procedimiento únicamente en un caso ideal. El ruido permite estudiar cómo se degrada la reconstrucción y la predicción cuando la dinámica subyacente sigue siendo la misma, pero la observación se perturba. La comparación con Bitcoin se plantea después desde esa diferencia: en el mapa logístico se controla la fuente de la complejidad; en datos financieros reales, la complejidad puede proceder de varios mecanismos simultáneos.
+La comprobación se plantea con una versión limpia de la serie y con variantes perturbadas por ruido. Esta decisión permite observar cómo cambia el comportamiento del procedimiento cuando la señal disponible se degrada. No se busca obtener una equivalencia con Bitcoin, sino disponer de un punto de comparación entre un entorno controlado y una aplicación empírica más incierta.
 
-La comprobación sintética queda así integrada como control metodológico del sistema, no como resultado financiero. Sus conclusiones no se trasladan directamente a Bitcoin; sirven para evaluar la sensibilidad del procedimiento y para fijar un punto de referencia frente al que interpretar la aplicación empírica.
+Por tanto, la comprobación sintética queda integrada como una pieza de diseño del sistema. Sirve para apoyar la interpretación posterior del estudio, pero sus resultados no se trasladan directamente a Bitcoin ni se utilizan como prueba de comportamiento financiero.
 
-\section{Diseño del flujo de datos y variables principales}\label{sec:flujo-datos}\label{sec:variables}\label{sec:diseno-aplicacion-bitcoin}
+\section{Diseño del flujo de datos y variables principales}\label{sec:flujo-datos}
 
-El flujo de datos se diseña para conservar una relación clara entre dato bruto, variable explicativa, objetivo predictivo y salida de usuario. La entrada original son velas de mercado. El procedimiento no utiliza directamente el precio como variable principal, porque el objetivo del trabajo no es predecir niveles de precio ni retornos direccionales. El foco se sitúa en la intensidad del movimiento, representada mediante volatilidad realizada.
+El flujo de datos se diseña para mantener una separación clara entre entrada, transformación, objetivo predictivo y salida. La entrada original son velas de mercado con información temporal y precio de cierre. A partir de esos datos se construyen variables internas orientadas al estudio de la volatilidad, no a la predicción directa del nivel de precio.
 
-A partir del cierre \(C_t\) se calcula el retorno logarítmico
-\begin{equation}
-    r_t = \log(C_t)-\log(C_{t-1}).
-\end{equation}
-Con los retornos se construyen ventanas de volatilidad realizada. Las ventanas pasadas resumen información disponible hasta el instante \(t\). Las ventanas futuras se reservan para construir los objetivos de evaluación. Esta distinción es parte del diseño del sistema: una variable futura nunca puede actuar como entrada de un modelo.
+La idea central del diseño es trabajar con información disponible hasta cada instante y reservar la información posterior únicamente para evaluación. Por ello, el sistema distingue entre variables construidas con datos pasados y variables objetivo asociadas a una ventana futura. Esta separación permite que los modelos se evalúen de forma coherente y reduce el riesgo de fuga de información.
 
-Las variables principales se resumen en la Tabla~\ref{tab:variables-diseno}. La tabla no enumera todas las columnas auxiliares, sino las magnitudes necesarias para entender el flujo central del análisis.
+Las variables principales se resumen en la Tabla~\ref{tab:variables-diseno}. La tabla recoge solo las magnitudes necesarias para entender el flujo general del sistema; las definiciones formales y transformaciones matemáticas se desarrollan en el marco teórico y en la implementación del procedimiento.
 
-\begin{center}
+\begin{table}[ht]
+\centering
 \begin{tabular}{p{0.34\textwidth} p{0.52\textwidth}}
 \hline
 \textbf{Variable} & \textbf{Papel en el diseño} \\
 \hline
-\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} & Serie principal del análisis; volatilidad realizada de la última hora en escala logarítmica. \\
-\texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12} & Objetivo predictivo; volatilidad realizada de la próxima hora. \\
-\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 48} & Memoria de cuatro horas utilizada en el diseño HAR-logRV. \\
-\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 288} & Memoria diaria utilizada en el diseño HAR-logRV. \\
-\texttt{z\_\allowbreak log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} & Versión estandarizada de la serie principal, usada en reconstrucción y modelos locales. \\
+\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} & Serie principal del análisis; resume la volatilidad reciente en una ventana de una hora. \\
+\texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12} & Objetivo predictivo; representa la volatilidad de la siguiente hora. \\
+\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 48} & Variable auxiliar que incorpora información de una ventana temporal más amplia. \\
+\texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 288} & Variable auxiliar que incorpora información de escala diaria. \\
+\texttt{z\_\allowbreak log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12} & Versión normalizada de la serie principal, utilizada cuando el método requiere trabajar en una escala comparable. \\
 \hline
 \end{tabular}
-\captionof{table}{Variables principales consideradas en el diseño del sistema.}
+\caption{Variables principales consideradas en el diseño del sistema.}
 \label{tab:variables-diseno}
-\end{center}
+\end{table}
 
-El modelo HAR-logRV se diseña como una regresión compacta sobre tres memorias de volatilidad:
-\begin{equation}
-\begin{split}
-    \texttt{log\_rv\_future\_12} = {} & \beta_0
-    + \beta_1 \texttt{log\_rv\_past\_12}
-    + \beta_2 \texttt{log\_rv\_past\_48} \\
-    & + \beta_3 \texttt{log\_rv\_past\_288}
-    + \varepsilon_t.
-\end{split}
-\end{equation}
-
-Esta especificación tiene una función de diseño concreta: incorporar memoria multiescala sin aumentar innecesariamente la complejidad del sistema. La memoria de una hora captura el nivel más reciente de volatilidad; la memoria de cuatro horas introduce un contexto intradía más amplio; la memoria diaria incorpora persistencia de mayor escala. La interpretación detallada de su rendimiento se reserva para el análisis de resultados.
-
-El flujo completo puede resumirse como una transformación secuencial: velas de mercado, retornos logarítmicos, volatilidades realizadas, variables en escala logarítmica, modelos y salidas interpretables. En el MVP, las salidas se mantienen en escala logarítmica y se acompañan de transformaciones de lectura más directa, pero el diseño conserva la variable logarítmica como magnitud principal para entrenamiento, validación y comparación.
+El flujo completo se organiza como una transformación secuencial: datos de mercado, variables de volatilidad, modelos y salidas interpretables. En el repositorio técnico, este flujo permite generar resultados, tablas y artefactos. En el MVP web, permite recibir datos recientes o de ejemplo, validar su estructura, construir las variables necesarias y mostrar predicciones de volatilidad de forma comprensible.
 
 \section{Diseño experimental y separación temporal}\label{sec:diseno-experimental}
 
-La separación temporal es una condición estructural del diseño. En series temporales financieras no es admisible mezclar observaciones de forma aleatoria entre entrenamiento y prueba, porque el modelo podría recibir información indirecta sobre el futuro. Por ello, las particiones se definen cronológicamente y cada decisión de ajuste debe utilizar únicamente información disponible en el tramo correspondiente.
+La separación temporal es una condición estructural del diseño experimental. En un problema basado en datos ordenados en el tiempo, las observaciones futuras no pueden intervenir en decisiones que simulan realizarse en el pasado. Por ello, el sistema debe distinguir de forma explícita entre los datos usados para ajustar modelos, los datos usados para elegir configuraciones y los datos reservados para evaluación final.
 
-El diseño distingue tres usos de los datos. El tramo de entrenamiento se emplea para ajustar parámetros y modelos. El tramo de validación se utiliza para elegir configuraciones cuando existe una decisión de selección, por ejemplo el número de vecinos en un predictor local. El tramo de test se reserva para evaluación final. Esta separación evita que los resultados fuera de muestra se contaminen con decisiones tomadas a posteriori.
+El diseño establece tres usos diferenciados de los datos. El tramo de entrenamiento se utiliza para ajustar parámetros y modelos. El tramo de validación permite elegir configuraciones cuando existe más de una alternativa razonable. El tramo de test se reserva para evaluar el comportamiento final sin intervenir en las decisiones anteriores.
 
-La construcción del objetivo mantiene la misma disciplina. Para un horizonte de doce velas, la volatilidad futura en \(t\) se corresponde con la volatilidad pasada que será observable doce velas después:
-\begin{equation}
-    \texttt{log\_\allowbreak rv\_\allowbreak future\_\allowbreak 12}(t)
-    =
-    \texttt{log\_\allowbreak rv\_\allowbreak past\_\allowbreak 12}(t+12).
-\end{equation}
-Esta igualdad se utiliza para validar la alineación temporal, pero el valor de la derecha no está disponible en el momento de predicción.
+La construcción del objetivo predictivo sigue la misma lógica. Las variables de entrada deben estar disponibles en el instante en el que se formula la predicción, mientras que la variable objetivo se calcula con información posterior y solo se utiliza para entrenamiento o evaluación según la partición temporal correspondiente.
 
-La reconstrucción del espacio de estados también se diseña con orientación causal. Un vector de estado queda formado por el valor actual y retardos pasados de la serie estandarizada:
-\begin{equation}
-    X_t = [z_t, z_{t-\tau}, z_{t-2\tau}, \ldots, z_{t-(m-1)\tau}].
-\end{equation}
-Con esta convención, la representación de estado no incorpora valores futuros. Además, en los métodos de vecinos se excluyen estados temporalmente demasiado próximos mediante una ventana de Theiler, para reducir el riesgo de vecinos triviales por solapamiento de ventanas.
+Los métodos que comparan estados pasados con estados actuales también deben respetar esta separación. En esos casos, los candidatos disponibles para una predicción deben pertenecer únicamente al histórico permitido. Además, se excluyen observaciones demasiado próximas en el tiempo cuando existe riesgo de comparación trivial por solapamiento de ventanas.
 
-El diseño experimental queda así orientado a evitar fugas de información. Las variables explicativas son pasadas o presentes, los objetivos futuros se usan para entrenamiento o evaluación según la partición correspondiente, las configuraciones se seleccionan sin test y las salidas finales se interpretan como resultados fuera de muestra.
+Con este diseño, el procedimiento queda orientado a evitar fugas de información. Las configuraciones se seleccionan sin usar test, las variables explicativas se construyen con información pasada o presente, y las salidas finales se interpretan como resultados fuera de muestra.
 
 \section{Diseño de la arquitectura del MVP web}\label{sec:diseno-mvp}
 
-El MVP web se diseña como una aplicación autónoma que consume artefactos del procedimiento de análisis. Su objetivo no es ejecutar el estudio completo, sino ofrecer una interfaz para aplicar los modelos principales sobre una ventana de datos reciente, un dataset de ejemplo o un CSV cargado por el usuario.
+Desde el punto de vista arquitectónico, la aplicación se organiza en tres niveles. El primer nivel corresponde a la interfaz web, implementada sobre Streamlit, que actúa como punto de interacción con el usuario. El segundo nivel agrupa la lógica reutilizable de la aplicación: carga de datos, validación, construcción de variables, diagnóstico, predicción y generación de salidas. El tercer nivel está formado por los datos auxiliares y artefactos locales que permiten ejecutar el MVP sin depender en tiempo de ejecución del repositorio técnico.
 
-La arquitectura funcional del MVP se organiza en cinco capas. La primera es la capa de entrada, responsable de obtener datos desde Binance, desde un fichero de ejemplo o desde un CSV. La segunda es la capa de validación, que comprueba formato temporal, frecuencia, orden, huecos, nulos y precios no válidos. La tercera es la capa de construcción de variables, que transforma cierres en retornos y volatilidades realizadas. La cuarta es la capa de modelos, que carga artefactos ya exportados y calcula predicciones. La quinta es la capa de presentación, encargada de mostrar tablas, gráficos, diagnósticos y descargas.
+La separación entre estos niveles permite que la interfaz no contenga toda la lógica del sistema y que los modelos históricos no tengan que recalcularse desde la aplicación.
 
-\begin{center}
-\begin{tabular}{p{0.27\textwidth} p{0.60\textwidth}}
-\hline
-\textbf{Capa} & \textbf{Responsabilidad} \\
-\hline
-Entrada & Obtener datos recientes, de ejemplo o cargados por el usuario. \\
-Validación & Comprobar que la ventana temporal es utilizable antes de generar variables o predicciones. \\
-Variables & Calcular las magnitudes de volatilidad realizadas requeridas por los modelos. \\
-Modelos & Aplicar predictores definidos a partir de artefactos exportados. \\
-Presentación & Comunicar predicciones, diagnósticos, métricas recientes y limitaciones. \\
-\hline
-\end{tabular}
-\end{center}
-
-La decisión de consumir artefactos locales es central en el diseño. El MVP no reentrena los modelos históricos ni recalcula el análisis completo. La validación empírica pertenece al repositorio de investigación; la aplicación web se limita a aplicar una selección de modelos sobre datos cargados en tiempo de uso. Esta separación hace que la herramienta sea más ligera, más trazable y más fácil de mantener.
-
-El MVP también incorpora restricciones de comunicación. Debe mostrar que la predicción se refiere a volatilidad realizada esperada, no a dirección del precio. Debe informar si los datos cargados no permiten ejecutar algún modelo. Y debe distinguir entre modelos históricos exportados y cualquier recalibración local que pueda realizarse sobre la ventana cargada. Estas restricciones no son decorativas: forman parte del diseño de una herramienta que no debe atribuirse un alcance superior al del estudio que la origina.
+El diseño contempla también un caso distinto: algunos modelos ligeros pueden ajustarse sobre la ventana cargada en tiempo de uso. En particular, el Mini-HAR se considera una estimación local y experimental, diferenciada de los modelos históricos exportados. Esta distinción es importante porque el ajuste local puede adaptarse a la información reciente disponible, pero no sustituye a la validación histórica formal del procedimiento.

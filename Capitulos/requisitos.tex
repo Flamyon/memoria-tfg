@@ -16,7 +16,7 @@ La variable central del estudio debe representar intensidad de movimiento, no di
 
 La interpretación de los resultados debe distinguir entre no linealidad, complejidad, caos y predictibilidad. La presencia de dependencia temporal, heterocedasticidad, estructura ordinal o divergencia local de trayectorias no permite afirmar automáticamente que exista caos determinista.
 
-Las salidas del procedimiento deben leerse como estimaciones de volatilidad realizada, no como señales direccionales de mercado. El sistema no predice si el precio de Bitcoin subirá o bajará, no genera recomendaciones de compra o venta y no debe presentarse como herramienta de inversión.
+Las salidas del procedimiento deben leerse como estimaciones de volatilidad realizada, no como señales direccionales de mercado. El sistema no predice si el precio de Bitcoin subirá o bajará, y no debe presentarse como herramienta de inversión.
 
 El MVP debe mantener visibles estas limitaciones. La interfaz debe indicar que la predicción se refiere a intensidad esperada de movimiento en una ventana temporal concreta y no a rentabilidad, dirección del precio ni demostración de caos en Bitcoin.
 
@@ -26,9 +26,9 @@ El análisis requiere una serie temporal limpia, ordenada y con frecuencia homog
 
 El procedimiento debe validar frecuencia temporal, orden cronológico, duplicados, huecos, nulos, conversiones numéricas y valores de mercado no válidos. Si estos requisitos no se cumplen, el análisis debe detenerse o marcar la ventana como no fiable, en lugar de generar predicciones sin base suficiente.
 
-Las variables pasadas y futuras deben construirse de forma separada. Las variables \texttt{rv\_\allowbreak past\_\allowbreak *} solo pueden usar información disponible hasta el instante \(t\). Las variables \texttt{rv\_\allowbreak future\_\allowbreak *} se reservan para definir objetivos y evaluar errores. Esta separación es imprescindible para evitar fuga de información.
+Las variables pasadas y futuras deben construirse de forma separada. Las variables pasadas solo pueden usar información disponible hasta el instante \(t\). Las variables futuras se reservan para evaluar errores. Esta separación es imprescindible para evitar fuga de información.
 
-Toda normalización utilizada por modelos debe ajustarse con datos de entrenamiento. En particular, la estandarización de la serie principal no debe utilizar información de validación ni de test.
+Toda normalización debe ajustarse con datos de entrenamiento. En particular, la estandarización de la serie principal no debe utilizar información de validación ni de test.
 
 \section{Requisitos metodológicos}\label{sec:requisitos-metodologicos}
 
@@ -69,19 +69,21 @@ En las fases predictivas, el procedimiento debe impedir cualquier uso indebido d
 
 \section{Requisitos funcionales del MVP web}\label{sec:requisitos-mvp}
 
-El MVP web debe ofrecer una interfaz para aplicar los modelos principales sobre datos recientes, un dataset de ejemplo o un CSV cargado por el usuario. No debe reproducir todas las fases de investigación ni recalcular el estudio completo.
+El MVP web debe ofrecer una interfaz para aplicar los modelos principales sobre datos recientes, un dataset de ejemplo o un CSV cargado por el usuario.
 
 La aplicación debe aceptar tres fuentes de datos: Binance API, dataset de ejemplo y CSV de usuario. En todos los casos debe normalizar los datos, validar la ventana temporal, calcular las variables necesarias y determinar qué modelos pueden ejecutarse con la información disponible.
 
 El MVP debe generar predicciones de volatilidad futura a una hora. También debe indicar el horizonte temporal, la disponibilidad de cada modelo, diagnósticos básicos de fiabilidad y opciones de descarga de resultados.
 
-La aplicación debe funcionar de forma autónoma en tiempo de ejecución. Para ello debe consumir artefactos previamente exportados, sin importar directamente código del repositorio de investigación.
+La aplicación debe distinguir entre modelos basados en artefactos históricos exportados y modelos ligeros recalculados sobre la ventana cargada. En particular, los modelos históricos no deben reentrenarse desde la interfaz web, mientras que el Mini-HAR local puede recalibrarse con los datos disponibles en tiempo de uso como estimación experimental.
+
+El MVP debe permitir una evaluación reciente sobre la ventana cargada cuando existan datos suficientes. Esta evaluación debe utilizar el objetivo futuro solo para medir errores pasados y no para generar la predicción actual. Además, debe presentarse como diagnóstico local de la ventana cargada, no como sustituto de la validación histórica formal.
+
+La aplicación debe funcionar de forma autónoma, para ello debe consumir artefactos previamente exportados, sin importar directamente código del repositorio de investigación.
 
 \section{Requisitos no funcionales}\label{sec:requisitos-no-funcionales}
 
-El requisito no funcional principal es la reproducibilidad. El análisis debe poder rehacerse a partir de los datos, scripts y parámetros guardados, generando de nuevo tablas, figuras, métricas e informes.
-
-La trazabilidad también es esencial. Cada cifra relevante debe poder relacionarse con una tabla, informe o artefacto generado por el procedimiento. Esto es especialmente importante en decisiones sensibles como particiones temporales, selección de parámetros, submuestras por coste computacional o comparación de modelos.
+El requisito no funcional principal es la reproducibilidad. El análisis debe poder rehacerse a partir de los datos, scripts y parámetros guardados, generando de nuevo tablas, figuras y métricas.
 
 El sistema debe ser modular. El repositorio de investigación, el MVP y la memoria cumplen funciones distintas, por lo que no deben depender unos de otros de forma innecesaria. Esta separación reduce acoplamiento y evita que la aplicación web altere la validez del estudio experimental.
 
@@ -94,14 +96,13 @@ El MVP debe ser robusto frente a datos insuficientes o mal formados. Si no hay i
 Los requisitos se consideran satisfechos si se cumplen los siguientes criterios:
 
 \begin{itemize}
-    \item los datos de entrada están ordenados, tienen frecuencia válida, no contienen duplicados, huecos no controlados, nulos ni valores de mercado inválidos;
-    \item las variables pasadas y futuras se construyen sin fuga de información;
-    \item la normalización y los modelos se ajustan sin utilizar validación cuando no corresponde;
-    \item la serie principal queda justificada frente a alternativas más simples;
-    \item los indicadores dinámicos se comparan con controles adecuados;
-    \item la predicción se evalúa fuera de muestra frente a referencias básicas, lineales y multiescala;
-    \item la comprobación sintética muestra el comportamiento del procedimiento en una dinámica conocida sin trasladar sus conclusiones a Bitcoin;
-    \item el MVP carga datos, valida entradas, calcula variables, ejecuta modelos disponibles, muestra predicciones, informa de limitaciones y permite descargar resultados.
+    \item Los datos de entrada están ordenados, tienen frecuencia válida y no contienen duplicados.
+    \item Las variables pasadas y futuras se construyen sin fuga de información.
+    \item La normalización y el ajuste de modelos respetan la separación entre entrenamiento y test.
+    \item La serie principal queda justificada frente a alternativas más simples.
+    \item Los indicadores dinámicos se comparan con controles adecuados.
+    \item La predicción se evalúa fuera de muestra frente a referencias básicas, lineales y multiescala.
+    \item La comprobación sintética muestra el comportamiento del procedimiento en una dinámica conocida sin trasladar sus conclusiones a Bitcoin.
+    \item El MVP carga datos, valida entradas, calcula variables, ejecuta modelos disponibles, muestra predicciones, informa de limitaciones y permite descargar resultados.
+    \item El MVP distingue entre modelos históricos exportados y modelos recalculados localmente.
 \end{itemize}
-
-Además, las conclusiones del trabajo deben respetar el alcance de los resultados. El sistema podrá comunicar indicios de estructura temporal o utilidad predictiva parcial, pero no deberá presentar esos indicios como demostración fuerte de caos determinista en Bitcoin.

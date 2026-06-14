@@ -126,15 +126,7 @@ La página de comparación contiene la referencia histórica del proyecto. Allí
 
 Por último, ninguna salida debe interpretarse como demostración de caos determinista en Bitcoin. La aplicación incorpora un modelo kNN basado en reconstrucción del espacio de estados y muestra figuras relacionadas con la metodología no lineal, pero el objetivo operativo del MVP es predecir volatilidad realizada. La discusión sobre estructura dinámica pertenece al análisis experimental y se interpreta con prudencia.
 
-\section{Generación de figuras, tablas e informes}\label{sec:generacion-informes}
-
-Las figuras, tablas e informes del trabajo se generan desde el procedimiento técnico, no desde el MVP. Cada fase del análisis guarda sus salidas en directorios específicos. Las tablas se almacenan principalmente en \texttt{reports/\allowbreak tables/}, las figuras en \texttt{reports/\allowbreak figures/} y los informes o resúmenes de fase en \texttt{reports/}. Esta organización permite que los resultados incluidos en la memoria sean trazables.
-
-Las fases iniciales generan tablas de validación de datos, resúmenes de forma del dataset, estadísticos descriptivos y eventos extremos. Las fases de caracterización producen figuras temporales, ACF, PACF, periodogramas y gráficos de recurrencia. Las fases de reconstrucción y cuantificación generan parámetros de embedding, visualizaciones 2D/3D, estimaciones dinámicas y comparaciones con controles. Las fases predictivas generan métricas de validación y test, tablas de predicciones y figuras de real frente a predicho.
-
-La comprobación sintética con el mapa logístico genera sus propias salidas, separadas de las de Bitcoin. Entre ellas se incluyen series sintéticas, parámetros de reconstrucción, métricas dinámicas y comparación predictiva. Esta separación evita mezclar resultados sintéticos con resultados financieros.
-
-La Fase 14 genera los artefactos finales del modelo HAR-logRV y las figuras de comparación AR/kNN/HAR. Parte de esas figuras se copian al directorio \texttt{assets/\allowbreak historical\_\allowbreak validation/} del MVP para ser mostradas en la página de comparación de modelos. El MVP no recalcula esas figuras; solo las presenta como contexto histórico.
+\section{Actualización del MVP}\label{sec:actualizacion-mvp}
 
 Para actualizar el MVP después de repetir el análisis técnico, debe ejecutarse el proceso de exportación de artefactos:
 
@@ -144,5 +136,3 @@ python scripts/validate_artifacts.py
 \end{verbatim}
 
 El primer script copia modelos, métricas, figuras y dataset de ejemplo desde el repositorio técnico. El segundo verifica que los artefactos exportados son consistentes y que la aplicación puede ejecutarse sin depender de rutas absolutas ni del código de investigación en tiempo de uso.
-
-En consecuencia, la generación de informes sigue una regla simple: el repositorio técnico produce resultados; el MVP consume una selección de esos resultados; la memoria los interpreta. Mantener esta separación evita duplicidades y facilita que cualquier cifra, figura o artefacto pueda rastrearse hasta la fase que lo generó.
